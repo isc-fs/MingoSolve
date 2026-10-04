@@ -51,18 +51,15 @@ fn subsets(n: usize, k: usize) -> Vec<Vec<usize>> {
     out
 }
 
-/// Order candidate solutions (tuples over `xs`) so those that let the rest of the formula be solved without
-/// contradiction come first. Matters when a signed variable appears squared (I^2 R gives +-I): the root carried
-/// forward must be the one the other equations agree with. Stable, so ascending order is kept within each group.
-fn consistent_first(
+/// Keep only the candidate solutions (tuples over `xs`) that let the rest of the formula be solved without
+/// contradiction, and say whether any did. Matters when a signed variable appears squared (I^2 R gives +-I and
+/// the given V = I R_T rules out -I). If none can be completed, all candidates stay, in ascending order.
+fn consistent(
     f: &Formula,
     work: &Values,
     xs: &[String],
     sols: Vec<Vec<f64>>,
-) -> Vec<Vec<f64>> {
-    if sols.len() < 2 {
-        return sols;
-    }
+) -> (Vec<Vec<f64>>, bool) {
     let mut scored: Vec<(bool, Vec<f64>)> = sols
         .into_iter()
         .map(|t| {
@@ -77,8 +74,11 @@ fn consistent_first(
             (complete && conflicts_in(f, &w, 1e-6).is_empty(), t)
         })
         .collect();
-    scored.sort_by_key(|(ok, _)| !*ok);
-    scored.into_iter().map(|(_, t)| t).collect()
+    let any = scored.iter().any(|(ok, _)| *ok);
+    if any {
+        scored.retain(|(ok, _)| *ok);
+    }
+    (scored.into_iter().map(|(_, t)| t).collect(), any)
 }
 
 pub fn solve_step(f: &Formula, known: &Values) -> Found {
@@ -97,28 +97,32 @@ pub fn solve_step(f: &Formula, known: &Values) -> Found {
             v
         };
         let mut progress = false;
+        // prefer an equation whose roots the rest of the formula agrees with; else the first that gives roots
+        let mut fallback: Option<(String, Vec<f64>)> = None;
         for e in &pending {
             let u = unknowns(e);
-            if u.len() == 1 {
-                let vals = consistent_first(
-                    f,
-                    &work,
-                    &u[0..1],
-                    solve1(e, &u[0], positive(&u[0]))
-                        .into_iter()
-                        .map(|r| vec![r])
-                        .collect(),
-                )
-                .into_iter()
-                .map(|t| t[0])
-                .collect::<Vec<f64>>();
-                if let Some(&first) = vals.first() {
-                    work.insert(u[0].clone(), first);
-                    found.set(&u[0], vals);
-                    progress = true;
-                    break;
-                }
+            if u.len() != 1 {
+                continue;
             }
+            let raw: Vec<Vec<f64>> = solve1(e, &u[0], positive(&u[0]))
+                .into_iter()
+                .map(|r| vec![r])
+                .collect();
+            if raw.is_empty() {
+                continue;
+            }
+            let (sols, ok) = consistent(f, &work, &u[0..1], raw);
+            let vals: Vec<f64> = sols.into_iter().map(|t| t[0]).collect();
+            if ok {
+                fallback = Some((u[0].clone(), vals));
+                break;
+            }
+            fallback.get_or_insert((u[0].clone(), vals));
+        }
+        if let Some((x, vals)) = fallback {
+            work.insert(x.clone(), vals[0]);
+            found.set(&x, vals);
+            progress = true;
         }
         if progress {
             continue;
@@ -138,7 +142,7 @@ pub fn solve_step(f: &Formula, known: &Values) -> Found {
                     continue;
                 }
                 xs.sort();
-                let sols = consistent_first(f, &work, &xs, solve_system(&group, &xs, &positive));
+                let (sols, _) = consistent(f, &work, &xs, solve_system(&group, &xs, &positive));
                 if let Some(first) = sols.first() {
                     for (i, x) in xs.iter().enumerate() {
                         work.insert(x.clone(), first[i]);

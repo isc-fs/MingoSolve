@@ -377,7 +377,11 @@ fn scan(e: &Expr, x: &str, positive: bool) -> Vec<f64> {
             continue;
         }
         if fa == 0.0 {
-            out.push(grid[i]);
+            // isolated exact zero = root; a run of zeros is an underflow plateau (exp(-1/x) for tiny x)
+            let prev_zero = i > 0 && vals[i - 1] == 0.0;
+            if !prev_zero && fb != 0.0 {
+                out.push(grid[i]);
+            }
         } else if fa * fb < 0.0 {
             if let Some(r) = brent(&f, grid[i], grid[i + 1]) {
                 out.push(r);
@@ -412,6 +416,14 @@ fn finalize(mut roots: Vec<f64>, e: &Expr, x: &str, positive: bool) -> Vec<f64> 
 
 /// All real roots of `e(x) = 0` where `x` is the only free variable.
 pub fn solve1(e: &Expr, x: &str, positive: bool) -> Vec<f64> {
+    // an identity (0 = 0 for every x, e.g. V_0 = V_c = V_f in an RC law) determines nothing
+    let identity = [0.37, 1.0, 2.9, 13.0, 1e-3, 1e3].iter().all(|&p| {
+        let f = e.eval(&|v| (v == x).then_some(p)).unwrap_or(f64::NAN);
+        f.is_finite() && f.abs() <= 1e-12 * term_scale(e, x, p).max(1e-300)
+    });
+    if identity {
+        return vec![];
+    }
     if e.count(x) == 1 {
         let cands: Vec<f64> = isolate(e, x, n(0.0)).iter().filter_map(constant).collect();
         let r = finalize(cands, e, x, positive);
@@ -687,6 +699,12 @@ mod tests {
             &s1("0.5 = 1/2 - ay*0.25/(9.81*1.2)", "ay", false),
             &[0.0]
         ));
+    }
+
+    #[test]
+    fn identities_and_underflow_plateaus_give_no_roots() {
+        assert!(s1("0.1 - 0.1 = (0.1 - 0.1)*exp(-0.1/(0.1*C))", "C", true).is_empty());
+        assert!(s1("x = x", "x", false).is_empty());
     }
 
     #[test]

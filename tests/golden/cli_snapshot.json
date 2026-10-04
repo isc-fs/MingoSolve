@@ -1,0 +1,1779 @@
+[
+ {
+  "cmd": "battery_load N_s=103 V_cell=3.8V R_pack=0.08ohm P=30kW",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_oc": [
+     391.4
+    ],
+    "I": [
+     77.8879,
+     4814.61
+    ],
+    "V_t": [
+     385.169,
+     6.23103
+    ],
+    "P_loss": [
+     485.322
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_oc = 391.4 V   (pack open-circuit voltage)\n  I = 77.8879 A | 4814.61 A   <- several roots   (current)\n  V_t = 385.169 V | 6.23103 V   <- several roots   (pack terminal voltage under load)\n  P_loss = 485.322 W   (power lost as heat (I^2 R))\n"
+ },
+ {
+  "cmd": "battery_load N_s=112 V_cell=3.8V R_pack=0.10667ohm P=35kW",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_oc": [
+     425.6
+    ],
+    "I": [
+     84.0056,
+     3905.87
+    ],
+    "V_t": [
+     416.639,
+     8.96087
+    ],
+    "P_loss": [
+     752.763
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_oc = 425.6 V   (pack open-circuit voltage)\n  I = 84.0056 A | 3905.87 A   <- several roots   (current)\n  V_t = 416.639 V | 8.96087 V   <- several roots   (pack terminal voltage under load)\n  P_loss = 752.763 W   (power lost as heat (I^2 R))\n"
+ },
+ {
+  "cmd": "ts_discharge V_0=396V V_c=60V t=5s C=1800uF",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "R": [
+     1472.01
+    ],
+    "P_pk": [
+     106.532
+    ],
+    "E_C": [
+     137.894
+    ],
+    "P_avg": [
+     27.5789
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  R = 1472.01 Ω   (resistance)\n  P_pk = 106.532 W   (peak power (start of discharge))\n  E_C = 137.894 J   (energy released by a capacitor between V_0 and V_c)\n  P_avg = 27.5789 W   (average power over the interval)\n"
+ },
+ {
+  "cmd": "ts_discharge V_0=336V V_c=60V t=5s C=1800uF",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "R": [
+     1612.39
+    ],
+    "P_pk": [
+     70.0176
+    ],
+    "E_C": [
+     98.3664
+    ],
+    "P_avg": [
+     19.6733
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  R = 1612.39 Ω   (resistance)\n  P_pk = 70.0176 W   (peak power (start of discharge))\n  E_C = 98.3664 J   (energy released by a capacitor between V_0 and V_c)\n  P_avg = 19.6733 W   (average power over the interval)\n"
+ },
+ {
+  "cmd": "rc_lowpass f=200Hz f_c=300Hz @phi=deg",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "phi": [
+     -33.6901
+    ],
+    "H": [
+     0.83205
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  phi = -33.6901 deg   (phase shift (type @phi=deg to show degrees))\n  H = 0.83205   (gain magnitude |H|)\n"
+ },
+ {
+  "cmd": "inductor_step V_bat=12V I=2A R=1ohm L=1uH dIdt=2A/us",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_load": [
+     8.0
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_load = 8 V   (voltage at the load)\n"
+ },
+ {
+  "cmd": "chain eta rho=0.017uohm*m l_c=5.7m A_c=10mm**2 I=150A V_src=12V",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "wire_resistance",
+     "R",
+     0.00969
+    ],
+    [
+     "cable_drop",
+     "V_drop",
+     1.4535
+    ],
+    [
+     "cable_drop",
+     "eta",
+     0.878875
+    ]
+   ],
+   "target": [
+    "eta",
+    0.878875
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [wire_resistance] R = 0.00969 Ω\n  [cable_drop] V_drop = 1.4535 V\n  [cable_drop] eta = 0.878875\n  => eta = 0.878875\n"
+ },
+ {
+  "cmd": "peukert C1=10Ah I1=1A I2=10A k_p=1.2 @C2=Ah",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "C2": [
+     6.30957
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  C2 = 6.30957 Ah   (capacity at current I2 (type Ah))\n"
+ },
+ {
+  "cmd": "vswr VSWR=6.47",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "Gm": [
+     0.732262
+    ],
+    "eta_tx": [
+     0.463792
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  Gm = 0.732262   (reflection coefficient magnitude |Gamma|)\n  eta_tx = 0.463792   (fraction of power transmitted (1-|Gamma|^2))\n"
+ },
+ {
+  "cmd": "howland R3=1ohm R1=1ohm V_p=5V V_n=0 R4=100ohm",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "I_out": [
+     0.05
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  I_out = 0.05 A   (output current)\n"
+ },
+ {
+  "cmd": "segment_max_cells 4.2 4.2V*20Ah",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    19.0
+   ],
+   "error": false
+  },
+  "raw": "  19\n"
+ },
+ {
+  "cmd": "segment_max_cells 4.25 4.25V*14.7Ah",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    26.0
+   ],
+   "error": false
+  },
+  "raw": "  26\n"
+ },
+ {
+  "cmd": "pcb_spacing 237 surface legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    9.5
+   ],
+   "error": false
+  },
+  "raw": "  9.5\n"
+ },
+ {
+  "cmd": "pcb_spacing 336 coated legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    4.0
+   ],
+   "error": false
+  },
+  "raw": "  4\n"
+ },
+ {
+  "cmd": "e_series 2411",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    2200.0,
+    2200.0,
+    2700.0
+   ],
+   "error": false
+  },
+  "raw": "  below 2200  nearest 2200  above 2700\n"
+ },
+ {
+  "cmd": "gamma 50.13 -40.84",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    0.37767,
+    2.2137,
+    85.7368
+   ],
+   "error": false
+  },
+  "raw": "  |Gamma| 0.37767  VSWR 2.2137  transmitted 85.7368%\n"
+ },
+ {
+  "cmd": "uart_time 200 115200",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    0.0173611
+   ],
+   "error": false
+  },
+  "raw": "  0.0173611\n"
+ },
+ {
+  "cmd": "alias 400 340",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    60.0
+   ],
+   "error": false
+  },
+  "raw": "  60\n"
+ },
+ {
+  "cmd": "stopping_distance v=40km/h t_d=0.2s a_b=5m/s**2",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "s_stop": [
+     14.5679
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  s_stop = 14.5679 m   (stopping distance)\n"
+ },
+ {
+  "cmd": "calc (14.4V/(0.4ohm+0.1ohm))**2*0.1ohm -> W",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    82.944
+   ],
+   "error": false
+  },
+  "raw": "  82.944 W\n"
+ },
+ {
+  "cmd": "chain h_cg b_cg=0.4575m mu=2",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {},
+   "steps": [
+    [
+     "traction_limit",
+     "ax",
+     19.62
+    ],
+    [
+     "front_lift",
+     "h_cg",
+     0.22875
+    ]
+   ],
+   "target": [
+    "h_cg",
+    0.22875
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  [traction_limit] ax = 19.62 m/s²\n  [front_lift] h_cg = 0.22875 m\n  => h_cg = 0.22875 m\n"
+ },
+ {
+  "cmd": "cornering_downforce mu=1.4 m=240kg ClA=3.2 rho_air=1.1 R_c=9.125m",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {
+    "v": [
+     11.7591
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  v = 11.7591 m/s   ((final) velocity)\n"
+ },
+ {
+  "cmd": "aero_forces rho_air=1.22 CdA=1.12 v=50km/h",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "F_D": [
+     131.79
+    ],
+    "P_drag": [
+     1830.42
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  F_D = 131.79 N   (drag force)\n  P_drag = 1830.42 W   (power to overcome drag)\n"
+ },
+ {
+  "cmd": "chain v h_cg=0.205m R_c=14.5m t_tr=1.24m @v=km/h",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {},
+   "steps": [
+    [
+     "rollover",
+     "ay",
+     29.6693
+    ],
+    [
+     "cornering",
+     "v",
+     74.6689
+    ],
+    [
+     "cornering",
+     "t_lap",
+     4.39249
+    ],
+    [
+     "cornering",
+     "yaw",
+     1.43044
+    ]
+   ],
+   "target": [
+    "v",
+    74.6689
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  [rollover] ay = 29.6693 m/s²\n  [cornering] v = 74.6689 km/h\n  [cornering] t_lap = 4.39249 s\n  [cornering] yaw = 1.43044 rad/s\n  => v = 74.6689 km/h\n"
+ },
+ {
+  "cmd": "inside_wheel_fraction t_tr=1.2m ay=1.2g0 frac_in=0.25",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {
+    "h_cg": [
+     0.25
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  h_cg = 0.25 m   (CG height)\n"
+ },
+ {
+  "cmd": "coil_spring G_sh=80GPa d_wire=8mm D_m=58mm k_s=42N/mm",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "n_coils": [
+     4.99835
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  n_coils = 4.99835   (active coils)\n"
+ },
+ {
+  "cmd": "heat_capacity m=1.2kg c_p=4186 dT=82K P=860W eta=1",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "Q_h": [
+     411902.0
+    ],
+    "t": [
+     478.956
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  Q_h = 411902 J   (heat)\n  t = 478.956 s   (time)\n"
+ },
+ {
+  "cmd": "gas_states p_1=1.713bar T_1=20degC T_2=60degC V_1=1 V_2=1 @p_2=bar",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "p_2": [
+     1.94674
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  p_2 = 1.94674 bar   (pressure state 2, ABSOLUTE)\n"
+ },
+ {
+  "cmd": "closed_pipe f_p=880Hz n_h=2",
+  "python": {
+   "defaults": {
+    "c_s": 343.0
+   },
+   "solved": {
+    "L_p": [
+     0.29233
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default c_s = 343 m/s)\n  L_p = 0.29233 m   (pipe length)\n"
+ },
+ {
+  "cmd": "chain F D_o=25mm t_wall=2.5mm c_y=12.5mm L_b=400mm sigma=305MPa",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "tube_section",
+     "D_i",
+     0.02
+    ],
+    [
+     "tube_section",
+     "I_a",
+     1.13208e-08
+    ],
+    [
+     "tube_section",
+     "A_s",
+     0.000176715
+    ],
+    [
+     "three_point_bend",
+     "M_b",
+     276.227
+    ],
+    [
+     "three_point_bend",
+     "F",
+     2762.27
+    ]
+   ],
+   "target": [
+    "F",
+    2762.27
+   ],
+   "conflicts": [
+    "square_tube_section"
+   ],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [tube_section] D_i = 0.02 m\n  [tube_section] I_a = 1.13208e-08 m⁴\n  [tube_section] A_s = 0.000176715 m²\n  [three_point_bend] M_b = 276.227 m⋅N\n  [three_point_bend] F = 2762.27 N\n  => F = 2762.27 N\n  ! inconsistent: square_tube_section: A_s = B_sq**2 - (B_sq - 2*t_wall)**2  (0.000176715 != 0.000188284)\n"
+ },
+ {
+  "cmd": "two_dof 800 60 17000 180000",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    0.7011,
+    9.122
+   ],
+   "error": false
+  },
+  "raw": "  0.7011 Hz  9.122 Hz\n"
+ },
+ {
+  "cmd": "gear_train 3600 20/45,24/55,30/43,15/53",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    137.86
+   ],
+   "error": false
+  },
+  "raw": "  137.86\n"
+ },
+ {
+  "cmd": "accel_then_cruise 75 4 56km/h",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    6.76587
+   ],
+   "error": false
+  },
+  "raw": "  6.76587\n"
+ },
+ {
+  "cmd": "chain t v0=0 s=75m v=35m/s",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "uniform_accel",
+     "a",
+     8.16667
+    ],
+    [
+     "uniform_accel",
+     "t",
+     4.28571
+    ]
+   ],
+   "target": [
+    "t",
+    4.28571
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [uniform_accel] a = 8.16667 m/s²\n  [uniform_accel] t = 4.28571 s\n  => t = 4.28571 s\n"
+ },
+ {
+  "cmd": "event_score skidpad 5.6 5.1 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    41.117
+   ],
+   "error": false
+  },
+  "raw": "  41.117\n"
+ },
+ {
+  "cmd": "event_score skidpad 4.926 4.756 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    61.5281
+   ],
+   "error": false
+  },
+  "raw": "  61.5281\n"
+ },
+ {
+  "cmd": "event_score autocross 74.2 62.5 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    24.7069
+   ],
+   "error": false
+  },
+  "raw": "  24.7069\n"
+ },
+ {
+  "cmd": "cones_from_score autocross 73.1 86.3 87.1 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    92.3,
+    3.0
+   ],
+   "error": false
+  },
+  "raw": "  T_team=92.3 s -> 3 DOO\n"
+ },
+ {
+  "cmd": "cones_from_score autocross 77.52 91.2 92.6 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    97.17,
+    2.99
+   ],
+   "error": false
+  },
+  "raw": "  T_team=97.17 s -> 2.99 DOO\n"
+ },
+ {
+  "cmd": "event_score skidpad 6.25 5.0 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    3.5
+   ],
+   "error": false
+  },
+  "raw": "  3.5\n"
+ },
+ {
+  "cmd": "event_score endurance 1672 1345 legacy finish=0",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    65.1348
+   ],
+   "error": false
+  },
+  "raw": "  65.1348\n"
+ },
+ {
+  "cmd": "corrected_time 1760 event=endurance out_of_order=1 post=B",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    2000.0
+   ],
+   "error": false
+  },
+  "raw": "  2000\n"
+ },
+ {
+  "cmd": "static_nonfinalist 59 67 bpp legacy n_finalists=6",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    60.7612
+   ],
+   "error": false
+  },
+  "raw": "  60.7612\n"
+ },
+ {
+  "cmd": "static_nonfinalist 55 61 bpp 2026",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    63.1148
+   ],
+   "error": false
+  },
+  "raw": "  63.1148\n"
+ },
+ {
+  "cmd": "static_nonfinalist 79 91 cost legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    82.4725
+   ],
+   "error": false
+  },
+  "raw": "  82.4725\n"
+ },
+ {
+  "cmd": "max_points bpp,cost,skidpad,accel,efficiency legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    425.0
+   ],
+   "error": false
+  },
+  "raw": "  425\n"
+ },
+ {
+  "cmd": "speed s=75m t=3.5s",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "v_avg": [
+     21.4286
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  v_avg = 21.4286 m/s   (average speed over a distance)\n"
+ },
+ {
+  "cmd": "speed v_avg=100km/h t=3",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "s": [
+     83.3333
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  s = 83.3333 m   (distance travelled)\n"
+ },
+ {
+  "cmd": "uniform_accel v0=0 s=75 v=100km/h",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "a": [
+     5.14403
+    ],
+    "t": [
+     5.4
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  a = 5.14403 m/s²   (acceleration (longitudinal))\n  t = 5.4 s   (time)\n"
+ },
+ {
+  "cmd": "uniform_accel v0=0 s=75 t=3.8s @v=km/h",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "a": [
+     10.3878
+    ],
+    "v": [
+     142.105
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  a = 10.3878 m/s²   (acceleration (longitudinal))\n  v = 142.105 km/h   ((final) velocity)\n"
+ },
+ {
+  "cmd": "chain t v0=0 s=75 v=100km/h",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "uniform_accel",
+     "a",
+     5.14403
+    ],
+    [
+     "uniform_accel",
+     "t",
+     5.4
+    ]
+   ],
+   "target": [
+    "t",
+    5.4
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [uniform_accel] a = 5.14403 m/s²\n  [uniform_accel] t = 5.4 s\n  => t = 5.4 s\n"
+ },
+ {
+  "cmd": "chain a v0=0 s=75 v=100km/h",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "uniform_accel",
+     "a",
+     5.14403
+    ],
+    [
+     "uniform_accel",
+     "t",
+     5.4
+    ]
+   ],
+   "target": [
+    "a",
+    5.14403
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [uniform_accel] a = 5.14403 m/s²\n  [uniform_accel] t = 5.4 s\n  => a = 5.14403 m/s²\n"
+ },
+ {
+  "cmd": "battery_load N_s=103 V_cell=3.8V R_pack=0.08ohm P=30kW",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_oc": [
+     391.4
+    ],
+    "I": [
+     77.8879,
+     4814.61
+    ],
+    "V_t": [
+     385.169,
+     6.23103
+    ],
+    "P_loss": [
+     485.322
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_oc = 391.4 V   (pack open-circuit voltage)\n  I = 77.8879 A | 4814.61 A   <- several roots   (current)\n  V_t = 385.169 V | 6.23103 V   <- several roots   (pack terminal voltage under load)\n  P_loss = 485.322 W   (power lost as heat (I^2 R))\n"
+ },
+ {
+  "cmd": "battery_load N_s=112 V_cell=3.8V R_pack=0.10667ohm P=35kW",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_oc": [
+     425.6
+    ],
+    "I": [
+     84.0056,
+     3905.87
+    ],
+    "V_t": [
+     416.639,
+     8.96087
+    ],
+    "P_loss": [
+     752.763
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_oc = 425.6 V   (pack open-circuit voltage)\n  I = 84.0056 A | 3905.87 A   <- several roots   (current)\n  V_t = 416.639 V | 8.96087 V   <- several roots   (pack terminal voltage under load)\n  P_loss = 752.763 W   (power lost as heat (I^2 R))\n"
+ },
+ {
+  "cmd": "ts_discharge V_0=396V V_c=60V t=5s C=1800uF",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "R": [
+     1472.01
+    ],
+    "P_pk": [
+     106.532
+    ],
+    "E_C": [
+     137.894
+    ],
+    "P_avg": [
+     27.5789
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  R = 1472.01 Ω   (resistance)\n  P_pk = 106.532 W   (peak power (start of discharge))\n  E_C = 137.894 J   (energy released by a capacitor between V_0 and V_c)\n  P_avg = 27.5789 W   (average power over the interval)\n"
+ },
+ {
+  "cmd": "ts_discharge V_0=336V V_c=60V t=5s C=1800uF",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "R": [
+     1612.39
+    ],
+    "P_pk": [
+     70.0176
+    ],
+    "E_C": [
+     98.3664
+    ],
+    "P_avg": [
+     19.6733
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  R = 1612.39 Ω   (resistance)\n  P_pk = 70.0176 W   (peak power (start of discharge))\n  E_C = 98.3664 J   (energy released by a capacitor between V_0 and V_c)\n  P_avg = 19.6733 W   (average power over the interval)\n"
+ },
+ {
+  "cmd": "chain V R_0=1ohm alpha=10ppm/K R_th=1K/W T_amb=25degC T_0=25degC I=13A @V=mV",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [
+    [
+     "resistor_self_heating",
+     "R_T",
+     1.00169
+    ],
+    [
+     "resistor_self_heating",
+     "T",
+     467.436
+    ],
+    [
+     "resistor_self_heating",
+     "V",
+     13022.0
+    ]
+   ],
+   "target": [
+    "V",
+    13022.0
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  [resistor_self_heating] R_T = 1.00169 Ω\n  [resistor_self_heating] T = 467.436 K\n  [resistor_self_heating] V = 13022 mV\n  => V = 13022 mV\n"
+ },
+ {
+  "cmd": "rc_lowpass f=200Hz f_c=300Hz @phi=deg",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "phi": [
+     -33.6901
+    ],
+    "H": [
+     0.83205
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  phi = -33.6901 deg   (phase shift (type @phi=deg to show degrees))\n  H = 0.83205   (gain magnitude |H|)\n"
+ },
+ {
+  "cmd": "rc_transient V_0=12V V_f=0 V_c=3V R=10kohm C=100uF",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "t": [
+     1.38629
+    ],
+    "tau": [
+     1.0
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  t = 1.38629 s   (time)\n  tau = 1 s   (time constant)\n"
+ },
+ {
+  "cmd": "cornering_downforce mu=1.4 m=240kg ClA=3.2 rho_air=1.1 R_c=9.125m",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {
+    "v": [
+     11.7591
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  v = 11.7591 m/s   ((final) velocity)\n"
+ },
+ {
+  "cmd": "chain v h_cg=0.205m R_c=14.5m t_tr=1.24m @v=km/h",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {},
+   "steps": [
+    [
+     "rollover",
+     "ay",
+     29.6693
+    ],
+    [
+     "cornering",
+     "v",
+     74.6689
+    ],
+    [
+     "cornering",
+     "t_lap",
+     4.39249
+    ],
+    [
+     "cornering",
+     "yaw",
+     1.43044
+    ]
+   ],
+   "target": [
+    "v",
+    74.6689
+   ],
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  [rollover] ay = 29.6693 m/s²\n  [cornering] v = 74.6689 km/h\n  [cornering] t_lap = 4.39249 s\n  [cornering] yaw = 1.43044 rad/s\n  => v = 74.6689 km/h\n"
+ },
+ {
+  "cmd": "static_axle_loads m=280kg L_wb=1.53m a_cg=0.8m",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {
+    "Fz_r": [
+     1436.24
+    ],
+    "b_cg": [
+     0.73
+    ],
+    "Fz_f": [
+     1310.56
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  Fz_r = 1436.24 N   (static rear axle load)\n  b_cg = 0.73 m   (CG to REAR axle distance)\n  Fz_f = 1310.56 N   (static front axle load)\n"
+ },
+ {
+  "cmd": "wheel_rate k_s=55N/mm MR=1.2 k_t=95N/mm m_c=70kg",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "k_w": [
+     38194.4
+    ],
+    "k_ride": [
+     27241.9
+    ],
+    "f_n": [
+     3.13971
+    ],
+    "c_crit": [
+     2761.84
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  k_w = 38194.4 N/m   (wheel rate)\n  k_ride = 27241.9 N/m   (ride rate (wheel rate and tyre in series))\n  f_n = 3.13971 Hz   (natural frequency)\n  c_crit = 2761.84 N⋅s/m   (critical damping)\n"
+ },
+ {
+  "cmd": "coil_spring G_sh=80GPa d_wire=8mm D_m=58mm k_s=42N/mm",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "n_coils": [
+     4.99835
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  n_coils = 4.99835   (active coils)\n"
+ },
+ {
+  "cmd": "gear_drive omega_m=8000rpm i_g=11.5 r_w=0.23m Tq_m=120N*m @v=km/h",
+  "python": {
+   "defaults": {
+    "eta_g": 1.0
+   },
+   "solved": {
+    "omega_w": [
+     72.8485
+    ],
+    "Tq_w": [
+     1380.0
+    ],
+    "v": [
+     60.3186
+    ],
+    "F_x": [
+     6000.0
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default eta_g = 1)\n  omega_w = 72.8485 rad/s   (wheel speed (type rpm))\n  Tq_w = 1380 m⋅N   (wheel torque (sum of driven wheels))\n  v = 60.3186 km/h   ((final) velocity)\n  F_x = 6000 N   (tractive / braking force at the ground)\n"
+ },
+ {
+  "cmd": "engine_geometry B_bore=67mm S_k=42.5mm n_cyl=1 CR=12 @V_cc=cm**3",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "V_d": [
+     0.00014984
+    ],
+    "V_cc": [
+     13.6218
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  V_d = 0.00014984 m³   (total displacement)\n  V_cc = 13.6218 cm³   (combustion chamber (clearance) volume per cylinder)\n"
+ },
+ {
+  "cmd": "three_point_bend F=4kN L_b=400mm c_y=12.5mm I_a=1.2e-8m**4",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "M_b": [
+     400.0
+    ],
+    "sigma": [
+     416667000.0
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  M_b = 400 m⋅N   (bending moment)\n  sigma = 4.16667e+08 Pa   (normal stress)\n"
+ },
+ {
+  "cmd": "tube_section D_o=25.4mm t_wall=1.6mm",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "D_i": [
+     0.0222
+    ],
+    "I_a": [
+     8.50882e-09
+    ],
+    "A_s": [
+     0.000119632
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  D_i = 0.0222 m   (tube inner diameter)\n  I_a = 8.50882e-09 m⁴   (second moment of area)\n  A_s = 0.000119632 m²   (section area)\n"
+ },
+ {
+  "cmd": "gas_states p_1=1.713bar T_1=20degC T_2=60degC V_1=1 V_2=1 @p_2=bar",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "p_2": [
+     1.94674
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  p_2 = 1.94674 bar   (pressure state 2, ABSOLUTE)\n"
+ },
+ {
+  "cmd": "adiabatic p_1=1bar V_1=1l p_2=5bar",
+  "python": {
+   "defaults": {
+    "kappa": 1.4
+   },
+   "solved": {
+    "V_2": [
+     0.000316764
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default kappa = 1.4)\n  V_2 = 0.000316764 m³   (volume state 2)\n"
+ },
+ {
+  "cmd": "continuity_bernoulli A_1=3e-4 A_2=1e-4 v_1=1m/s p_1=1.2bar rho_f=1000 dz=0",
+  "python": {
+   "defaults": {
+    "g": 9.81
+   },
+   "solved": {
+    "v_2": [
+     3.0
+    ],
+    "p_2": [
+     116000.0
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  (default g = 9.81 m/s²)\n  v_2 = 3 m/s   (flow speed at section 2)\n  p_2 = 116000 Pa   (pressure state 2, ABSOLUTE)\n"
+ },
+ {
+  "cmd": "ackermann t_tr=1.2m L_wb=1.53m delta_i=25deg @delta_o=deg",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "delta_o": [
+     18.8517
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  delta_o = 18.8517 deg   (outer wheel steer angle)\n"
+ },
+ {
+  "cmd": "peukert C1=10Ah I1=1A I2=10A k_p=1.2 @C2=Ah",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "C2": [
+     6.30957
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  C2 = 6.30957 Ah   (capacity at current I2 (type Ah))\n"
+ },
+ {
+  "cmd": "vswr VSWR=2.21",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "Gm": [
+     0.376947
+    ],
+    "eta_tx": [
+     0.857911
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  Gm = 0.376947   (reflection coefficient magnitude |Gamma|)\n  eta_tx = 0.857911   (fraction of power transmitted (1-|Gamma|^2))\n"
+ },
+ {
+  "cmd": "ntc R_25=10kohm B_ntc=3950K T=60degC",
+  "python": {
+   "defaults": {},
+   "solved": {
+    "R_T": [
+     2486.16
+    ]
+   },
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [],
+   "error": false
+  },
+  "raw": "  R_T = 2486.16 Ω   (resistance at temperature T)\n"
+ },
+ {
+  "cmd": "calc 0.5*300kg*(100km/h)**2 -> kJ",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    115.741
+   ],
+   "error": false
+  },
+  "raw": "  115.741 kJ\n"
+ },
+ {
+  "cmd": "calc 4.2V*20Ah -> MJ",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    0.3024
+   ],
+   "error": false
+  },
+  "raw": "  0.3024 MJ\n"
+ },
+ {
+  "cmd": "event_score skidpad 5.6 5.1 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    41.117
+   ],
+   "error": false
+  },
+  "raw": "  41.117\n"
+ },
+ {
+  "cmd": "event_score autocross 72 60",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    32.5
+   ],
+   "error": false
+  },
+  "raw": "  32.5\n"
+ },
+ {
+  "cmd": "event_score endurance 1500 1400 2026",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    190.306
+   ],
+   "error": false
+  },
+  "raw": "  190.306\n"
+ },
+ {
+  "cmd": "cones_from_score autocross 73.1 86.3 87.1 legacy",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    92.3,
+    3.0
+   ],
+   "error": false
+  },
+  "raw": "  T_team=92.3 s -> 3 DOO\n"
+ },
+ {
+  "cmd": "trackdrive_score 250 200 laps=10",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    140.0
+   ],
+   "error": false
+  },
+  "raw": "  140\n"
+ },
+ {
+  "cmd": "efficiency_score t=1500 e=20000000 ef_min=3e13",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    18.75
+   ],
+   "error": false
+  },
+  "raw": "  18.75\n"
+ },
+ {
+  "cmd": "ts_rules 550 v_nom=480",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    1000.0,
+    275.0,
+    500.0,
+    60.0,
+    2.0,
+    60.0,
+    120.0,
+    6.0,
+    12.0,
+    600.0,
+    60.0,
+    5.0
+   ],
+   "error": false
+  },
+  "raw": "  insulation test 1000 V, pass >= 275 kOhm (500 Ohm/V); TSAL red threshold min(60, V/2) = 60 V; section <= 120 V, <= 6 MJ (max cell V x nominal Ah), <= 12 kg; TS <= 600 V; discharge <= 60 V in 5 s\n"
+ },
+ {
+  "cmd": "nodal \"R1 1 2 3; R2 2 0 3; R3 1 0 3; V1 1 0 10\"",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    1.0,
+    10.0,
+    10.0,
+    2.0,
+    5.0,
+    5.0,
+    1.0,
+    1.0,
+    2.0,
+    5.0,
+    3.0,
+    1.66667,
+    2.0,
+    2.0,
+    0.0,
+    5.0,
+    3.0,
+    1.66667,
+    3.0,
+    1.0,
+    0.0,
+    10.0,
+    3.0,
+    3.33333,
+    1.0,
+    -5.0
+   ],
+   "error": false
+  },
+  "raw": "  V(1) = 10 = 10 V\n  V(2) = 5 = 5 V\n  I(R1, 1->2) = 5/3 = 1.66667 A\n  I(R2, 2->0) = 5/3 = 1.66667 A\n  I(R3, 1->0) = 10/3 = 3.33333 A\n  I(V1, into + terminal) = -5 A\n"
+ },
+ {
+  "cmd": "nodal \"R1 a b 1; R2 b 0 2; R3 a 0 4; V1 a 0 1\"",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    1.0,
+    1.0,
+    2.0,
+    3.0,
+    0.666667,
+    1.0,
+    1.0,
+    3.0,
+    0.333333,
+    2.0,
+    0.0,
+    1.0,
+    3.0,
+    0.333333,
+    3.0,
+    0.0,
+    1.0,
+    4.0,
+    0.25,
+    1.0,
+    -0.583333
+   ],
+   "error": false
+  },
+  "raw": "  V(a) = 1 = 1 V\n  V(b) = 2/3 = 0.666667 V\n  I(R1, a->b) = 1/3 = 0.333333 A\n  I(R2, b->0) = 1/3 = 0.333333 A\n  I(R3, a->0) = 1/4 = 0.25 A\n  I(V1, into + terminal) = -0.583333 A\n"
+ },
+ {
+  "cmd": "two_dof 800 60 17000 180000",
+  "python": {
+   "defaults": {},
+   "solved": {},
+   "steps": [],
+   "target": null,
+   "conflicts": [],
+   "numbers": [
+    0.7011,
+    9.122
+   ],
+   "error": false
+  },
+  "raw": "  0.7011 Hz  9.122 Hz\n"
+ }
+]
