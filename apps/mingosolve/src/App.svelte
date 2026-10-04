@@ -107,7 +107,7 @@
         flex-direction: column;
         min-width: 0;
         min-height: 0;
-        padding-top: 10px;
+        padding-top: var(--space-3);
     }
     :global(:root[data-platform='mac']) main {
         padding-top: 28px;

@@ -3,6 +3,7 @@
     the steps the answer depends on. A red note means two formulas disagree: read it before using the number.
 -->
 <script lang="ts">
+    import Tex from './Tex.svelte';
     import { chainFormulas } from './solve';
     import { catalog } from './catalog.svelte';
     import type { ChainResult } from './types';
@@ -86,7 +87,7 @@
             {/if}
             <ol class="steps">
                 {#each result.steps as s, i (i)}
-                    <li><span class="muted small">{catalog.scripts.get(s.formula)?.title ?? s.formula}</span><span class="mono"><span class="var">{s.var}</span> = {s.shown}</span></li>
+                    <li><span class="muted small">{catalog.scripts.get(s.formula)?.title ?? s.formula}</span><span class="mono"><Tex tex={catalog.scripts.get(s.formula)?.formula?.vars.find((v) => v.name === s.var)?.tex ?? s.var} /> = {s.shown}</span></li>
                 {/each}
             </ol>
             {#if result.reached}
@@ -106,7 +107,7 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: var(--space-5) var(--space-4) var(--space-6) var(--space-3);
+        padding: var(--space-5) var(--space-5) var(--space-6);
         display: flex;
         flex-direction: column;
         gap: var(--space-3);

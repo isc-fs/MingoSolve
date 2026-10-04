@@ -4,11 +4,13 @@
 //! Not part of the shipped app (cargo example, built only by the e2e runner).
 
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::time::Instant;
 
 use mingosolve_lib::{finder, solve, tools, topics};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
-use tiny_http::{Header, Response, Server};
 
 fn arg<T: DeserializeOwned>(args: &Value, name: &str) -> Result<T, String> {
     serde_json::from_value(args.get(name).cloned().unwrap_or(Value::Null))
@@ -54,34 +56,82 @@ fn dispatch(cmd: &str, a: &Value) -> Result<Value, String> {
 
 fn main() {
     let port = std::env::var("BRIDGE_PORT").unwrap_or_else(|_| "8799".into());
-    let server = Server::http(format!("127.0.0.1:{port}")).expect("bind bridge port");
+    let listener = TcpListener::bind(format!("127.0.0.1:{port}")).expect("bind bridge port");
     eprintln!("ipc bridge on http://127.0.0.1:{port}");
-    let cors = [
-        Header::from_bytes("Access-Control-Allow-Origin", "*").unwrap(),
-        Header::from_bytes("Access-Control-Allow-Headers", "content-type").unwrap(),
-        Header::from_bytes("Content-Type", "application/json").unwrap(),
-    ];
-    for mut req in server.incoming_requests() {
-        let url = req.url().to_string();
-        let (status, body) = if req.method().as_str() == "OPTIONS" {
-            (204, String::new())
-        } else if url == "/health" {
-            (200, "\"ok\"".to_string())
-        } else if let Some(cmd) = url.strip_prefix("/invoke/") {
-            let mut raw = String::new();
-            let _ = req.as_reader().read_to_string(&mut raw);
-            let args: Value = serde_json::from_str(&raw).unwrap_or(json!({}));
-            match dispatch(cmd, &args) {
-                Ok(v) => (200, v.to_string()),
-                Err(e) => (400, json!(e).to_string()),
+    let t0 = Instant::now();
+    let trace = std::env::var("BRIDGE_TRACE").is_ok_and(|v| !v.is_empty());
+    // one thread and one request per connection (Connection: close), so nothing waits behind anything else
+    for stream in listener.incoming().flatten() {
+        std::thread::spawn(move || {
+            let accepted = t0.elapsed().as_secs_f64();
+            if let Err(e) = serve(stream, t0, accepted, trace) {
+                eprintln!("bridge: {e}");
             }
-        } else {
-            (404, "\"not found\"".to_string())
-        };
-        let mut resp = Response::from_string(body).with_status_code(status);
-        for h in &cors {
-            resp.add_header(h.clone());
-        }
-        let _ = req.respond(resp);
+        });
     }
+}
+
+fn serve(mut stream: TcpStream, t0: Instant, accepted: f64, trace: bool) -> std::io::Result<()> {
+    let mut reader = BufReader::new(stream.try_clone()?);
+    let mut line = String::new();
+    reader.read_line(&mut line)?;
+    let mut parts = line.split_whitespace();
+    let (method, url) = (
+        parts.next().unwrap_or("").to_string(),
+        parts.next().unwrap_or("").to_string(),
+    );
+    let mut length = 0;
+    loop {
+        let mut header = String::new();
+        if reader.read_line(&mut header)? == 0 || header.trim().is_empty() {
+            break;
+        }
+        if let Some((k, v)) = header.split_once(':') {
+            if k.eq_ignore_ascii_case("content-length") {
+                length = v.trim().parse().unwrap_or(0);
+            }
+        }
+    }
+    let mut raw = vec![0; length];
+    reader.read_exact(&mut raw)?;
+    if trace {
+        eprintln!(
+            "{accepted:.3} accepted, {:.3} → {method} {url}",
+            t0.elapsed().as_secs_f64()
+        );
+    }
+    let started = Instant::now();
+    let (status, body) = if method == "OPTIONS" {
+        (204, String::new())
+    } else if url == "/health" {
+        (200, "\"ok\"".to_string())
+    } else if let Some(cmd) = url.strip_prefix("/invoke/") {
+        let args: Value = serde_json::from_slice(&raw).unwrap_or(json!({}));
+        match dispatch(cmd, &args) {
+            Ok(v) => (200, v.to_string()),
+            Err(e) => (400, json!(e).to_string()),
+        }
+    } else {
+        (404, "\"not found\"".to_string())
+    };
+    if started.elapsed().as_secs_f64() > 1.0 {
+        eprintln!("slow: {url} took {:.1} s", started.elapsed().as_secs_f64());
+    }
+    let reason = match status {
+        200 => "OK",
+        204 => "No Content",
+        400 => "Bad Request",
+        _ => "Not Found",
+    };
+    write!(
+        stream,
+        "HTTP/1.1 {status} {reason}\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Headers: content-type\r\n\
+         Content-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+        body.len()
+    )?;
+    stream.flush()?;
+    if trace {
+        eprintln!("{:.3} ← {url} {status}", t0.elapsed().as_secs_f64());
+    }
+    Ok(())
 }

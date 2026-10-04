@@ -41,7 +41,7 @@
     {#if isMac}<div class="drag" data-tauri-drag-region></div>{/if}
 
     <div class="brand" data-tauri-drag-region>
-        <img src="/icon.png" alt="" />
+        <span class="mark" aria-hidden="true"></span>
         <div>
             <strong>MingoSolve</strong>
             <span class="mono small muted">{version !== '' ? `v${version}` : 'ISC'} · rules {settings.rules}</span>
@@ -109,25 +109,28 @@
 </aside>
 
 <style>
+    /* full height and flush with the window edge, so the window's own corners are the rail's */
     .rail {
         width: 236px;
         flex: 0 0 236px;
-        margin: 10px 0 10px 10px;
         padding: var(--space-3);
-        border-radius: var(--r-xl);
+        border-width: 0 1px 0 0;
+        border-radius: 0;
+        box-shadow: none;
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
         min-height: 0;
         overflow-y: auto;
     }
+    /* room for the window buttons (trafficLightPosition in tauri.macos.conf.json) */
     .rail.mac {
-        padding-top: 30px;
+        padding-top: 48px;
     }
     .drag {
         position: absolute;
         inset: 0 0 auto 0;
-        height: 30px;
+        height: 48px;
     }
     .brand {
         display: flex;
@@ -135,12 +138,14 @@
         gap: var(--space-3);
         padding: var(--space-2) var(--space-2) var(--space-3);
     }
-    .brand img {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        background: var(--isc-green);
-        padding: 4px;
+    /* the flat ISC mark, coloured by the theme (the glossy tile is only the Dock icon) */
+    .mark {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        background: var(--ink-accent);
+        -webkit-mask: url('/mark.png') center / contain no-repeat;
+        mask: url('/mark.png') center / contain no-repeat;
     }
     .brand strong {
         display: block;

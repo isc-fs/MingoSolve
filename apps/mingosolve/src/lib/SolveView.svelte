@@ -1,11 +1,12 @@
 <!--
     Solve (home). Paste the problem text at the top: the scripts that fit appear as a row of matches under it, each
     with how many of the problem's values it fills in; the best one is a click away and the sheet keeps the full
-    width. With nothing pasted and no script open, the topics are laid out as a grid. Pasting anywhere outside a
+    width. With nothing pasted and no script open, the script library sits below. Pasting anywhere outside a
     field lands here (App.svelte).
 -->
 <script lang="ts">
     import Icon from './Icon.svelte';
+    import Library from './Library.svelte';
     import ScriptSheet from './ScriptSheet.svelte';
     import { catalog, shortName } from './catalog.svelte';
     import { findQuestion } from './finder';
@@ -36,11 +37,6 @@
             session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));
         }, 160);
     });
-
-    function openTopic(id: string): void {
-        session.topic = id;
-        session.activeView = 'topics';
-    }
 
     const hasProblem = $derived(session.problem.trim().length > 0);
 </script>
@@ -89,16 +85,7 @@
     </div>
 
     {#if session.script === null && !hasProblem}
-        <div class="topics">
-            {#each catalog.topics as t (t.id)}
-                <button type="button" class="topic glass" data-hue={t.hue} onclick={() => openTopic(t.id)}>
-                    <span class="dot"></span>
-                    <span class="tname">{t.name}</span>
-                    <span class="muted small">{t.blurb}</span>
-                    <span class="count mono small">{t.scripts.length} scripts</span>
-                </button>
-            {/each}
-        </div>
+        <Library />
     {:else}
         <ScriptSheet />
     {/if}
@@ -109,10 +96,10 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: 0 var(--space-3) var(--space-6);
+        padding: 0 var(--space-5) var(--space-6);
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
+        gap: var(--space-4);
     }
     .problem {
         padding: var(--space-3) var(--space-4) var(--space-4);
@@ -183,47 +170,5 @@
         font-family: var(--font-mono);
         font-size: 11px;
         font-weight: 600;
-    }
-    .topics {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        gap: var(--space-3);
-    }
-    .topic {
-        appearance: none;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-1);
-        padding: var(--space-4);
-        border-radius: var(--r-xl);
-        cursor: pointer;
-        text-align: left;
-        transition: border-color var(--motion);
-    }
-    .topic:hover {
-        border-color: var(--accent-edge);
-    }
-    .tname {
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: var(--text-lg);
-    }
-    .count {
-        margin-top: var(--space-2);
-        color: var(--ink-accent);
-    }
-    .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--hue-green);
-        margin-bottom: var(--space-1);
-    }
-    .topic[data-hue='teal'] .dot {
-        background: var(--hue-teal);
-    }
-    .topic[data-hue='gold'] .dot {
-        background: var(--hue-gold);
     }
 </style>

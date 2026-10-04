@@ -2,8 +2,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use fsq::cli::fmt_var;
+use fsq::cli::{fmt_var, pretty_unit};
 use fsq::engine::{self, conflicts, conflicts_in};
+use fsq::latex::{equation_latex, var_latex};
 use fsq::registry::registry;
 use serde::Serialize;
 
@@ -14,6 +15,10 @@ pub struct VarInfo {
     desc: String,
     signed: bool,
     default: Option<f64>,
+    /// The name typeset (LaTeX): rho_air → ρ_air.
+    tex: String,
+    /// The unit for display: m**2 → m², ohm → Ω.
+    unit_shown: String,
 }
 
 #[derive(Serialize)]
@@ -21,6 +26,8 @@ pub struct FormulaInfo {
     key: String,
     title: String,
     eqs: Vec<String>,
+    /// The equations typeset (LaTeX), in the same order as eqs.
+    tex: Vec<String>,
     tags: Vec<String>,
     notes: String,
     vars: Vec<VarInfo>,
@@ -35,6 +42,7 @@ pub fn list_formulas() -> Vec<FormulaInfo> {
             key: f.key.clone(),
             title: f.title.clone(),
             eqs: f.src.clone(),
+            tex: f.src.iter().map(|e| equation_latex(e)).collect(),
             tags: f.tags.clone(),
             notes: f.notes.clone(),
             vars: f
@@ -48,6 +56,8 @@ pub fn list_formulas() -> Vec<FormulaInfo> {
                         desc: v.desc.clone(),
                         signed: v.signed,
                         default: v.default,
+                        tex: var_latex(n),
+                        unit_shown: pretty_unit(&v.unit),
                     }
                 })
                 .collect(),

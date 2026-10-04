@@ -114,13 +114,16 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: var(--space-5) var(--space-4) var(--space-6) var(--space-3);
-        display: flex;
-        flex-direction: column;
+        /* panels flow into columns on wide windows; content stays centred and at most 1400 px wide */
+        padding: var(--space-5) max(var(--space-5), calc((100% - 1400px) / 2)) var(--space-6);
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+        align-content: start;
+        align-items: start;
         gap: var(--space-3);
-        max-width: 760px;
     }
     header {
+        grid-column: 1 / -1;
         padding: 0 var(--space-2);
     }
     .panel {

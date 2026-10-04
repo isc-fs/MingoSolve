@@ -27,7 +27,7 @@ test('every worked example shows its official answer', async ({ app, request }, 
         const examples = await call<Example[]>('script_examples', { script: s.id });
         if (examples.length === 0) continue;
         await app.keyboard.press('ControlOrMeta+k');
-        await app.getByRole('textbox', { name: 'Search scripts' }).fill(s.id);
+        await app.getByRole('combobox', { name: 'Search scripts' }).fill(s.id);
         await app.getByRole('option').filter({ hasText: s.title }).first().click();
         await expect(app.locator('.sheet h2')).toHaveText(s.title);
         for (const ex of examples) {

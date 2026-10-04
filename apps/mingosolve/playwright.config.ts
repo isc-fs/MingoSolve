@@ -17,6 +17,7 @@ export default defineConfig({
     webServer: [
         {
             command: 'cargo run -q -p mingosolve --example ipc_bridge',
+            env: { BRIDGE_TRACE: process.env.BRIDGE_TRACE ?? '' },
             cwd: '../..',
             url: `${BRIDGE}/health`,
             timeout: 600_000,

@@ -8,6 +8,7 @@ pub mod engine;
 pub mod expr;
 pub mod finder;
 pub mod format;
+pub mod latex;
 pub mod registry;
 pub mod solve;
 pub mod tools;

@@ -12,9 +12,9 @@ export const test = base.extend<{ app: Page }>({
             });
         });
         await page.goto('/');
-        // ready = the script catalogue has loaded (the topic grid is drawn from it)
+        // ready = the script catalogue has loaded (the library's topic list is drawn from it)
         // (cold start: several browsers boot in parallel against one test bridge)
-        await expect(page.locator('.topic').first()).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator('.topic-row').first()).toBeVisible({ timeout: 30_000 });
         await use(page);
     },
 });
@@ -37,14 +37,14 @@ export async function pasteAnywhere(page: Page, text: string): Promise<void> {
 
 export async function openFromPalette(page: Page, query: string, title: RegExp): Promise<void> {
     await page.keyboard.press('ControlOrMeta+k');
-    const box = page.getByRole('textbox', { name: 'Search scripts' });
+    const box = page.getByRole('combobox', { name: 'Search scripts' });
     await expect(box).toBeFocused();
     await box.fill(query);
-    await page.getByRole('option').filter({ hasText: title }).first().click();
+    await page.getByRole('dialog', { name: 'Find a script' }).getByRole('option').filter({ hasText: title }).first().click();
 }
 
 export function field(page: Page, variable: string) {
-    return page.locator('label.field').filter({ has: page.locator('.var', { hasText: new RegExp(`^${variable}$`) }) }).locator('input');
+    return page.locator(`label.field[data-var="${variable}"]`).locator('input');
 }
 
 export function answer(page: Page) {

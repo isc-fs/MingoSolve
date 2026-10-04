@@ -27,12 +27,12 @@ test('Q245: palette search, type the knowns, pick the root that answers the ques
     await field(app, 'V_c').fill('60 V');
     await field(app, 't').fill('5 s');
     await field(app, 'C').fill('1800 uF');
-    const peak = app.locator('.results .res').filter({ hasText: 'P_pk' });
+    const peak = app.locator('.results .res[data-var="P_pk"]');
     await expect(peak).toContainText('106.53');
     await peak.click();
     await expect(answer(app)).toHaveText(/^106\.53\d* W$/);
     // the discharge resistor itself is also solved
-    await expect(app.locator('.results .res').filter({ hasText: /^R/ })).toContainText('1472');
+    await expect(app.locator('.results .res[data-var="R"]')).toContainText('1472');
 });
 
 test('Q34: a worked example loads its inputs and solves, with the second root explained', async ({ app }) => {
@@ -45,8 +45,8 @@ test('Q34: a worked example loads its inputs and solves, with the second root ex
 
 test('Q378: a tool script from Topics runs with the legacy rules', async ({ app }) => {
     await app.getByRole('button', { name: 'Topics' }).click();
-    await app.getByRole('textbox', { name: 'Filter scripts' }).fill('event score');
-    await app.getByRole('button', { name: /Manual dynamic event score/ }).click();
+    await app.getByRole('textbox', { name: 'Search the library' }).fill('event score');
+    await app.getByRole('button', { name: /^Dynamic event score/ }).click();
     await field(app, 'event').fill('skidpad');
     await field(app, 't_team').fill('5.6');
     await field(app, 't_min').fill('5.1');
@@ -143,8 +143,8 @@ test('the searches the app suggests, and a script id as the CLI prints it, all f
         ['battery_load', /battery/i],
     ] as const) {
         await app.keyboard.press('ControlOrMeta+k');
-        await app.getByRole('textbox', { name: 'Search scripts' }).fill(query);
-        await expect(app.getByRole('option').first(), query).toContainText(title);
+        await app.getByRole('combobox', { name: 'Search scripts' }).fill(query);
+        await expect(app.getByRole('dialog', { name: 'Find a script' }).getByRole('option').first(), query).toContainText(title);
         await app.keyboard.press('Escape');
     }
 });
