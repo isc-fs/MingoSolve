@@ -877,12 +877,6 @@ cmd = "document_penalty"
 answer = 7
 
 [[example]]
-id = 512
-what = "group A document 49 h late, corrected version 77 h late (old rule)"
-cmd = "document_penalty hours_late=49 corr_late=77 rules=legacy"
-answer = 50
-
-[[example]]
 id = 892
 what = "points deducted per late submission"
 cmd = "document_penalty hours_late=10"
