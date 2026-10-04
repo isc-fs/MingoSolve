@@ -1,1 +1,65 @@
 # structures: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "b_pan"
+unit = "m"
+desc = "sandwich panel width"
+
+[[var]]
+name = "t_skin"
+unit = "m"
+desc = "sandwich skin thickness (each skin)"
+
+[[var]]
+name = "d_core"
+unit = "m"
+desc = "sandwich core thickness (between the skins)"
+
+[[var]]
+name = "sigma_h"
+unit = "Pa"
+desc = "hoop (circumferential) stress in a pressurised tube"
+
+[[var]]
+name = "dD_m"
+unit = "m"
+desc = "growth of the tube diameter under pressure"
+
+[[var]]
+name = "d_hole"
+unit = "m"
+desc = "bolt hole diameter"
+
+[[var]]
+name = "e_edge"
+unit = "m"
+desc = "hole centre to nearest free edge"
+
+[[formula]]
+key = "sandwich_section"
+title = "Sandwich panel, two skins (core ignored)"
+eqs = [
+    "I_a = 2*(b_pan*t_skin**3/12 + b_pan*t_skin*((d_core + t_skin)/2)**2)",
+    "c_y = d_core/2 + t_skin",
+]
+tags = ["structures", "sandwich", "panel", "composite", "skin", "core", "honeycomb", "inertia", "second", "moment"]
+notes = "d_core is the core thickness, so the skin centroids sit (d_core + t_skin)/2 from the neutral axis; overall depth = d_core + 2 t_skin. Q499: b 200, t 1, d 10 mm -> 1.21 cm^4. Chain with three_point_bend for stress or deflection."
+
+[[formula]]
+key = "thin_wall_pressure"
+title = "Thin-walled tube under internal pressure (Barlow)"
+eqs = [
+    "sigma_h = p_h*D_i/(2*t_wall)",
+    "dD_m = sigma_h/E_y*(D_i + t_wall)",
+]
+tags = ["structures", "pressure", "hoop", "circumferential", "barlow", "brake", "line", "pipe", "expansion"]
+notes = "p_h is GAUGE (pressure difference across the wall). The diameter growth is taken on the mean diameter and ignores Poisson, as the Q362 key does (28.5 MPa, 0.00078 mm)."
+
+[[formula]]
+key = "edge_distance"
+title = "Minimum edge distance of a bolt hole"
+eqs = [
+    "e_edge = 1.5*d_hole",
+]
+tags = ["structures", "bolt", "hole", "edge", "distance", "tab", "bracket", "rules"]
+notes = "Rules: tabs and brackets in the primary structure need >= 1.5 x hole diameter from the hole centre to the free edge. The quiz often gives the RADIUS: double it first."

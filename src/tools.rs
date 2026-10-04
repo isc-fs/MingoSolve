@@ -888,6 +888,225 @@ fn round_to(a: &Args) -> Result<String, String> {
     Ok(g6(r * step))
 }
 
+fn qty(s: &str) -> Result<f64, String> {
+    units::parse_quantity(s)
+        .map(|q| q.value)
+        .map_err(|e| format!("{s}: {e}"))
+}
+
+fn items(s: &str) -> Vec<Vec<&str>> {
+    s.split([';', '\n'])
+        .map(|e| e.split_whitespace().collect::<Vec<_>>())
+        .filter(|e| !e.is_empty())
+        .collect()
+}
+
+/// Solve a dense square system by Gaussian elimination with partial pivoting.
+fn solve_dense(mut m: Vec<Vec<f64>>, mut rhs: Vec<f64>) -> Option<Vec<f64>> {
+    let n = rhs.len();
+    let scale = m.iter().flatten().fold(0.0f64, |a, x| a.max(x.abs()));
+    for c in 0..n {
+        let p = (c..n).max_by(|&i, &j| m[i][c].abs().total_cmp(&m[j][c].abs()))?;
+        if m[p][c].abs() <= 1e-12 * scale {
+            return None;
+        }
+        m.swap(c, p);
+        rhs.swap(c, p);
+        let pivot = m[c].clone();
+        for r in 0..n {
+            let k = m[r][c] / pivot[c];
+            if r != c && k != 0.0 {
+                for (x, pv) in m[r][c..].iter_mut().zip(&pivot[c..]) {
+                    *x -= k * pv;
+                }
+                rhs[r] -= k * rhs[c];
+            }
+        }
+    }
+    Some((0..n).map(|i| rhs[i] / m[i][i]).collect())
+}
+
+fn truss(a: &Args) -> Result<String, String> {
+    let mut names: Vec<&str> = Vec::new();
+    let mut xy: Vec<(f64, f64)> = Vec::new();
+    for n in items(a.str("nodes")) {
+        let [name, x, y] = n[..] else {
+            return Err("nodes: <name> <x> <y>; ...".into());
+        };
+        names.push(name);
+        xy.push((qty(x)?, qty(y)?));
+    }
+    let node = |s: &str| {
+        names
+            .iter()
+            .position(|n| *n == s)
+            .ok_or_else(|| format!("unknown node {s}"))
+    };
+    let mut members = Vec::new();
+    for m in a
+        .str("members")
+        .split([',', ';', ' ', '\n'])
+        .filter(|m| !m.is_empty())
+    {
+        let (i, j) = m.split_once('-').ok_or("members like A-B C-D")?;
+        let (i, j) = (node(i)?, node(j)?);
+        let (dx, dy) = (xy[j].0 - xy[i].0, xy[j].1 - xy[i].1);
+        let len = dx.hypot(dy);
+        if len == 0.0 {
+            return Err(format!("member {m} has zero length"));
+        }
+        members.push((m, i, j, dx / len, dy / len));
+    }
+    // reaction components: (node, ux, uy)
+    let mut reactions = Vec::new();
+    for s in items(a.str("supports")) {
+        let [n, kind] = s[..] else {
+            return Err("supports: <node> pin|roller|rollerx; ...".into());
+        };
+        let k = node(n)?;
+        match kind {
+            "pin" => reactions.extend([(k, 1.0, 0.0), (k, 0.0, 1.0)]),
+            "roller" | "rollery" => reactions.push((k, 0.0, 1.0)),
+            "rollerx" => reactions.push((k, 1.0, 0.0)),
+            _ => {
+                return Err(format!(
+                    "support {kind}: use pin, roller (vertical reaction) or rollerx"
+                ))
+            }
+        }
+    }
+    let nn = names.len();
+    let mut rhs = vec![0.0; 2 * nn];
+    for l in items(a.str("loads")) {
+        let (k, fx, fy) = match l[..] {
+            [n, polar] if polar.contains('@') => {
+                let (mag, ang) = polar.split_once('@').unwrap();
+                let (mag, ang) = (qty(mag)?, qty(ang)?.to_radians());
+                (node(n)?, mag * ang.cos(), mag * ang.sin())
+            }
+            [n, fx, fy] => (node(n)?, qty(fx)?, qty(fy)?),
+            _ => return Err("loads: <node> <Fx> <Fy> or <node> <F>@<deg from +x>; ...".into()),
+        };
+        rhs[2 * k] -= fx;
+        rhs[2 * k + 1] -= fy;
+    }
+    let unknowns = members.len() + reactions.len();
+    if unknowns != 2 * nn {
+        return Err(format!(
+            "{} members + {} reactions != 2 x {nn} joints: not statically determinate",
+            members.len(),
+            reactions.len()
+        ));
+    }
+    // joint equilibrium: each member pulls its end joints towards each other when in tension
+    let mut m = vec![vec![0.0; unknowns]; 2 * nn];
+    for (c, &(_, i, j, ux, uy)) in members.iter().enumerate() {
+        m[2 * i][c] += ux;
+        m[2 * i + 1][c] += uy;
+        m[2 * j][c] -= ux;
+        m[2 * j + 1][c] -= uy;
+    }
+    for (r, &(k, ux, uy)) in reactions.iter().enumerate() {
+        let c = members.len() + r;
+        m[2 * k][c] += ux;
+        m[2 * k + 1][c] += uy;
+    }
+    let f = solve_dense(m, rhs)
+        .ok_or("singular: the truss is a mechanism (or supports are collinear)")?;
+    let clean = |x: f64| {
+        if x.abs() < 1e-9 * (1.0 + f.iter().fold(0.0f64, |a, v| a.max(v.abs()))) {
+            0.0
+        } else {
+            x
+        }
+    };
+    let mut out: Vec<String> = members
+        .iter()
+        .zip(&f)
+        .map(|(mb, &v)| {
+            let v = clean(v);
+            let tag = if v > 0.0 {
+                "tension"
+            } else if v < 0.0 {
+                "compression"
+            } else {
+                "zero-force"
+            };
+            format!("{} = {}  ({tag})", mb.0, g6(v))
+        })
+        .collect();
+    for (r, &(k, ux, _)) in reactions.iter().enumerate() {
+        let dir = if ux != 0.0 { "x" } else { "y" };
+        out.push(format!(
+            "R_{}{dir} = {}",
+            names[k],
+            g6(clean(f[members.len() + r]))
+        ));
+    }
+    Ok(out.join("\n  "))
+}
+
+fn endurance_energy(a: &Args) -> Result<String, String> {
+    let (m, g, rho, v) = (a.num("m")?, a.num("g")?, a.num("rho")?, a.num("v")?);
+    let dist = a.num("laps")? * a.num("lap")?;
+    let q = rho * v * v / 2.0;
+    let f_drag = q * a.num("cda")?.abs();
+    let normal = m * g + q * a.num("cla")?.abs();
+    let f_roll = a.num("mu_r")? * normal;
+    let mut e_brake_lap = 0.0;
+    for ev in a
+        .str("brakes")
+        .split(',')
+        .map(str::trim)
+        .filter(|e| !e.is_empty())
+    {
+        let bad =
+            || format!("brake event {ev:?}: use <count>x<v_from>-<v_to> in km/h, e.g. 3x75-40");
+        let (n, speeds) = ev.split_once(['x', '*']).ok_or_else(bad)?;
+        let (v1, v2) = speeds.split_once('-').ok_or_else(bad)?;
+        let p = |s: &str| s.trim().parse::<f64>().map_err(|_| bad());
+        let (n, v1, v2) = (p(n)?, p(v1)? / 3.6, p(v2)? / 3.6);
+        e_brake_lap += n * m * (v1 * v1 - v2 * v2) / 2.0;
+    }
+    let e_road = dist * (f_drag + f_roll);
+    let e_wheel = e_road + a.num("laps")? * e_brake_lap;
+    let eta = a.num("eta")?;
+    let e_src = e_wheel / eta;
+    let kwh = |e: f64| g6(e / 3.6e6);
+    let mut out = vec![
+        format!(
+            "drag {} N, normal load {} N, rolling {} N",
+            g6(f_drag),
+            g6(normal),
+            g6(f_roll)
+        ),
+        format!(
+            "road load {} MJ + braking {} kJ/lap",
+            g6(e_road / 1e6),
+            g6(e_brake_lap / 1e3)
+        ),
+        format!(
+            "energy at the wheels {} MJ = {} kWh",
+            g6(e_wheel / 1e6),
+            kwh(e_wheel)
+        ),
+        format!("from the source (/eta) {} kWh", kwh(e_src)),
+    ];
+    let soc_min = a.num("soc_min")?;
+    if soc_min > 0.0 {
+        out.push(format!(
+            "battery at the start (/(1 - soc_min)) {} kWh",
+            kwh(e_src / (1.0 - soc_min))
+        ));
+    }
+    let e_fuel = a.num("e_fuel")?;
+    if e_fuel > 0.0 {
+        let litres = (e_src / e_fuel + a.num("reserve")?) * 1e3;
+        out.push(format!("fuel at the start (+ reserve) {} l", g6(litres)));
+    }
+    Ok(out.join("\n  "))
+}
+
 pub fn tools() -> &'static [Tool] {
     static T: OnceLock<Vec<Tool>> = OnceLock::new();
     T.get_or_init(|| {
@@ -949,6 +1168,10 @@ pub fn tools() -> &'static [Tool] {
               "s:n a:n v_max:n", accel_then_cruise),
             t("wheel_slip", "Velocity and slip angle of all four wheels (rigid body, x forward, y left, yaw > 0 = left turn). Angles in deg (type 10deg). Give vy, or known=RL alpha=4.6deg to back out vy from one wheel's slip. R = corner radius sets yaw = vx/R. Also prints the toe that equalises the slips on each axle.",
               "vx:n a:n b:n t:n delta:n=0 yaw:n=0 R:n=0 vy:n=0 toe_f:n=0 toe_r:n=0 t_r:n=0 known:s= alpha:n=0", wheel_slip),
+            t("truss", "2D pin-jointed truss by the method of joints. nodes \"A 0 0; B 3 0; C 1.5 2\", members \"A-B B-C A-C\", supports \"A pin; B roller\" (roller = vertical reaction, rollerx = horizontal), loads \"C 0 -10kN\" or \"C 10kN@-90\" (deg from +x). Member forces: + tension, - compression.",
+              "nodes:s members:s supports:s loads:s=", truss),
+            t("endurance_energy", "Endurance energy budget: laps x lap at constant v for drag (cda = cd A) and rolling (mu_r on m g + downforce, cla = |cl| A), plus braking losses per lap brakes=\"1x90-30,3x75-40\" (count x km/h from-to, all dissipated). /eta to the source; battery /(1 - soc_min); fuel /(eta e_fuel) + reserve.",
+              "m:n laps:n lap:n v:n cda:n cla:n=0 mu_r:n=0 brakes:s= eta:n=1 soc_min:n=0 e_fuel:n=0 reserve:n=0 rho:n=1.225 g:n=9.81", endurance_energy),
             t("round_to", "Round to a step: mode nearest | down | up (fuses/limits round down, 'at least' rounds up).",
               "x:n step:n=1 mode:s=nearest", round_to),
         ]
@@ -1156,5 +1379,143 @@ mod tests {
         // 6/7 style fraction survives (bridge-like ladder)
         let out = run("nodal", &["R1 a b 1; R2 b 0 2; R3 a 0 4; V1 a 0 1", ""]);
         assert!(out.contains("V(b) = 2/3"), "{out}");
+    }
+    /// Parse "name = value" lines of the truss output.
+    fn truss_forces(out: &str) -> HashMap<String, f64> {
+        out.lines()
+            .filter_map(|l| {
+                let (k, v) = l.trim().split_once(" = ")?;
+                Some((k.to_string(), v.split_whitespace().next()?.parse().ok()?))
+            })
+            .collect()
+    }
+
+    fn close(a: f64, b: f64, tol: f64) -> bool {
+        (a - b).abs() <= tol
+    }
+
+    #[test]
+    fn truss_symmetric_triangle() {
+        // A(0,0) pin, B(2,0) roller, apex C(1,1) with P = 10 down. Symmetry: R_A = R_B = P/2 = 5.
+        // Joint A, y: R_Ay + f_AC sin45 = 0 -> f_AC = -5 sqrt2 = -7.0711 (compression);
+        // x: f_AB + f_AC cos45 = 0 -> f_AB = +5 (tension tie).
+        let f = truss_forces(&run(
+            "truss",
+            &[
+                "A 0 0; B 2 0; C 1 1",
+                "A-B B-C A-C",
+                "A pin; B roller",
+                "C 0 -10",
+            ],
+        ));
+        assert!(close(f["A-B"], 5.0, 1e-9));
+        assert!(close(f["A-C"], -50f64.sqrt(), 1e-4));
+        assert!(close(f["B-C"], -50f64.sqrt(), 1e-4));
+        assert!(
+            close(f["R_Ay"], 5.0, 1e-9)
+                && close(f["R_By"], 5.0, 1e-9)
+                && close(f["R_Ax"], 0.0, 1e-9)
+        );
+    }
+
+    #[test]
+    fn truss_cantilever_two_bays() {
+        // Wall pins at 1(0,0) and 2(0,1); bottom chord 1-3-5, top chord 2-4, verticals/diagonals 3-4, 2-3, 4-5;
+        // P = 1 down at the tip 5(2,0).
+        // Joint 5: y: f45/sqrt2 = P -> f45 = sqrt2 P; x: -f35 - f45/sqrt2 = 0 -> f35 = -P.
+        // Joint 4: x: -f24 + f45/sqrt2 = 0 -> f24 = P; y: -f34 - f45/sqrt2 = 0 -> f34 = -P.
+        // Joint 3: y: f34 + f23/sqrt2 = 0 -> f23 = sqrt2 P; x: -f13 - f23/sqrt2 + f35 = 0 -> f13 = -2P.
+        // Wall: R_1x = 2P (push), R_2x = -2P (pull), R_2y = P, R_1y = 0; moment about 1: 2P x 1 = P x 2.
+        let f = truss_forces(&run(
+            "truss",
+            &[
+                "n1 0 0; n2 0 1; n3 1 0; n4 1 1; n5 2 0",
+                "n1-n3 n2-n4 n3-n4 n2-n3 n3-n5 n4-n5",
+                "n1 pin; n2 pin",
+                "n5 0 -1",
+            ],
+        ));
+        let r2 = 2f64.sqrt();
+        for (k, v) in [
+            ("n4-n5", r2),
+            ("n3-n5", -1.0),
+            ("n2-n4", 1.0),
+            ("n3-n4", -1.0),
+            ("n2-n3", r2),
+            ("n1-n3", -2.0),
+            ("R_n1x", 2.0),
+            ("R_n1y", 0.0),
+            ("R_n2x", -2.0),
+            ("R_n2y", 1.0),
+        ] {
+            assert!(close(f[k], v, 1e-5), "{k}: {} vs {v}", f[k]);
+        }
+    }
+
+    #[test]
+    fn truss_reproduces_quiz_keys() {
+        // Q1000 (geometry from its figure, L = 1, K = 20 N): official f_HG = -17.322 N.
+        let f = truss_forces(&run(
+            "truss",
+            &[
+                "A 0 0; C 1 0; E 3 0; G 4 0; B 0 1; D 1 2; F 3 2; H 4 1; M 2 1",
+                "A-B A-C B-C B-D C-D C-M D-M D-F F-M M-E E-F F-H E-H H-G E-G",
+                "A pin; G roller",
+                "B 200 0; D 100@-135; F 0 20",
+            ],
+        ));
+        assert!(close(f["H-G"], -17.322, 5e-4), "{}", f["H-G"]);
+        // Q746 (figure, 3 m grid): f_AC = -25 kN fixes the pin reaction A_x = 25 kN, so sum Fx gives
+        // R = 100 cos45 - 25 = 45.71 kN at H. Official solution: R_Gy = 35.355 kN, f_HG = -35.4 kN.
+        let f = truss_forces(&run(
+            "truss",
+            &[
+                "A 0 0; C 3 0; E 9 0; G 12 0; B 0 3; D 3 6; F 9 6; H 12 3; M 6 3",
+                "A-B A-C B-C B-D C-D C-M D-M D-F F-M M-E E-F F-H E-H H-G E-G",
+                "A pin; G roller",
+                "D 0 -25; F 100@-135; H 45.71 0",
+            ],
+        ));
+        assert!(close(f["A-C"], -25.0, 0.01), "{}", f["A-C"]);
+        assert!(close(f["H-G"], -35.355, 0.01), "{}", f["H-G"]);
+        assert!(close(f["R_Gy"], 35.355, 0.01));
+        assert!(tool("truss")
+            .unwrap()
+            .call(&["A 0 0; B 1 0; C 0 1", "A-B B-C", "A pin; B roller", ""])
+            .unwrap_err()
+            .contains("not statically determinate"));
+    }
+
+    #[test]
+    fn endurance_energy_reproduces_quiz_keys() {
+        // Q1006 / Q1085 official solution: E_wheel = 15.4986 MJ; /0.69/0.9 -> 6.93 kWh; /(0.22 x 34 MJ/l) + 0.2 -> 2.27 l.
+        let common = [
+            "m=268",
+            "laps=22",
+            "lap=1000",
+            "v=55km/h",
+            "cda=1.3*1.1",
+            "cla=-4.5*1.1",
+            "mu_r=0.05",
+            "brakes=1x90-30,3x75-40,4x55-25,1x65-20",
+            "rho=1.2",
+        ];
+        let bat = run(
+            "endurance_energy",
+            &[&common[..], &["eta=0.69", "soc_min=0.1"]].concat(),
+        );
+        assert!(bat.contains("energy at the wheels 15.4986 MJ"), "{bat}");
+        assert!(
+            bat.contains("battery at the start (/(1 - soc_min)) 6.93265 kWh"),
+            "{bat}"
+        );
+        let fuel = run(
+            "endurance_energy",
+            &[&common[..], &["eta=0.22", "e_fuel=34MJ/l", "reserve=0.2l"]].concat(),
+        );
+        assert!(
+            fuel.contains("fuel at the start (+ reserve) 2.27201 l"),
+            "{fuel}"
+        );
     }
 }

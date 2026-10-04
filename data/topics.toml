@@ -8,7 +8,7 @@ blurb = "Speed, constant acceleration, kinetic and potential energy"
 hue = "green"
 formulas = ["speed", "uniform_accel", "kinetic_energy", "rolling_energy", "stopping_distance",
             "rolling_coast", "coast_down"]
-tools = ["accel_then_cruise"]
+tools = ["accel_then_cruise", "endurance_energy"]
 
 [[topic]]
 id = "dynamics"
@@ -49,19 +49,21 @@ tools = ["gear_train"]
 [[topic]]
 id = "structures"
 name = "Structures"
-blurb = "Sections, bending, axial load, buckling, bolts, levers"
+blurb = "Sections, bending, axial load, buckling, bolts, pressure, levers and trusses"
 hue = "gold"
-formulas = ["tube_section", "square_tube_section", "rect_section", "three_point_bend", "cantilever", "axial",
-            "euler_buckling", "bolt_shear", "lever"]
-tools = []
+formulas = ["tube_section", "square_tube_section", "rect_section", "sandwich_section", "three_point_bend", "cantilever",
+            "axial", "euler_buckling", "thin_wall_pressure", "bolt_shear", "edge_distance", "lever"]
+tools = ["truss"]
 
 [[topic]]
 id = "thermo"
 name = "Thermo and fluids"
 blurb = "Heat, gases, cycles, cooling, flow, acoustics"
 hue = "teal"
-formulas = ["heat_capacity", "latent_heat", "thermal_expansion", "ideal_gas", "gas_states", "adiabatic", "carnot",
-            "newton_cooling", "continuity_bernoulli", "reynolds", "closed_pipe"]
+formulas = ["heat_capacity", "heat_flow", "latent_heat", "thermal_expansion", "ideal_gas", "gas_states", "adiabatic",
+            "pneumatic_bottle", "stirling_cycle", "carnot", "heat_pump", "joule_refrigerator", "newton_cooling",
+            "lumped_cooling", "lmtd", "continuity_bernoulli", "pipe_continuity", "floating_body", "reynolds",
+            "closed_pipe"]
 tools = ["gauge", "db_sum"]
 
 [[topic]]
