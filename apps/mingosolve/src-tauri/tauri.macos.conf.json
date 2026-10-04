@@ -16,7 +16,7 @@
         "alwaysOnTop": false,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
-        "trafficLightPosition": { "x": 26, "y": 33 },
+        "trafficLightPosition": { "x": 22, "y": 29 },
         "windowEffects": {
           "effects": [
             "underWindowBackground"

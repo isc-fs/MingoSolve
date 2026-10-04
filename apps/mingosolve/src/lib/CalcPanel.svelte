@@ -58,7 +58,7 @@
     .calc {
         width: 280px;
         flex: 0 0 280px;
-        margin: 10px 10px 10px 0;
+        margin: var(--gap) var(--gap) var(--gap) 0;
         padding: var(--space-4) var(--space-3);
         border-radius: var(--r-xl);
         display: flex;
@@ -111,7 +111,7 @@
     }
     .open {
         align-self: flex-start;
-        margin: 10px 10px 0 0;
+        margin: var(--gap) var(--gap) 0 0;
         width: 44px;
         height: 44px;
         border-radius: 14px;

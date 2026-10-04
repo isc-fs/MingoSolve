@@ -112,7 +112,7 @@
     .rail {
         width: 236px;
         flex: 0 0 236px;
-        margin: 10px 0 10px 10px;
+        margin: var(--gap) 0 var(--gap) var(--gap);
         padding: var(--space-3);
         border-radius: var(--r-xl);
         display: flex;
