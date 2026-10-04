@@ -1,0 +1,31 @@
+[package]
+name         = "mingosolve"
+version      = "0.1.0"
+edition      = "2021"
+rust-version = "1.95"
+description  = "ISC MingoSolve: desktop solver for Formula Student registration-quiz calculations."
+license      = "MIT"
+publish      = false
+
+[[bin]]
+name = "mingosolve"
+path = "src/main.rs"
+
+[lib]
+name = "mingosolve_lib"
+path = "src/lib.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri                = { version = "2", features = [] }
+tauri-plugin-store   = { version = "2" }
+tauri-plugin-updater = { version = "2" }
+tauri-plugin-process = { version = "2" }
+serde                = { version = "1", features = ["derive"] }
+toml                 = "0.8"
+serde_json           = "1"
+
+# The engine, by path: the same Rust on both sides of the IPC bridge (as can-studio uses can-flasher).
+fsq = { path = "../../.." }

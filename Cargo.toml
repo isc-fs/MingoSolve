@@ -1,6 +1,6 @@
 [workspace]
 # The `fsq` engine crate lives at the root (like can-flasher in MingoCAN); apps/mingosolve adds the Tauri app.
-members = []
+members = ["apps/mingosolve/src-tauri"]
 resolver = "2"
 
 [package]

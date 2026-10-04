@@ -121,7 +121,8 @@ impl Tool {
 
 // ------------------------------------------------------------------ rules data
 
-fn rules() -> &'static HashMap<String, toml::Table> {
+/// Every embedded rule set (legacy, 2026, 2027...) as parsed TOML.
+pub fn rule_sets() -> &'static HashMap<String, toml::Table> {
     static R: OnceLock<HashMap<String, toml::Table>> = OnceLock::new();
     R.get_or_init(|| {
         crate::data::RULES
@@ -131,13 +132,14 @@ fn rules() -> &'static HashMap<String, toml::Table> {
     })
 }
 
-fn penalties() -> &'static toml::Table {
+/// Shared penalties (D 10.1.7, IN 12.1.4...) as parsed TOML.
+pub fn penalties() -> &'static toml::Table {
     static P: OnceLock<toml::Table> = OnceLock::new();
     P.get_or_init(|| crate::data::PENALTIES.parse().expect("penalties toml"))
 }
 
 pub fn current_rules() -> &'static str {
-    rules()
+    rule_sets()
         .keys()
         .filter(|y| y.chars().all(|c| c.is_ascii_digit()))
         .max()
@@ -151,7 +153,7 @@ fn num(v: &toml::Value) -> f64 {
 }
 
 fn rule<'a>(year: &str, path: &[&str]) -> Result<&'a toml::Value, String> {
-    let mut v = rules()
+    let mut v = rule_sets()
         .get(year)
         .ok_or_else(|| format!("unknown rules {year:?} (have legacy, 2026, 2027)"))?;
     let mut cur: Option<&toml::Value> = None;

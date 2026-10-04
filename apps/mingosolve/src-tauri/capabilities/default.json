@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capabilities granted to the main ISC MingoSolve window: core, persistent settings, and the updater.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "store:default",
+    "updater:default",
+    "process:allow-restart"
+  ]
+}

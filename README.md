@@ -17,6 +17,25 @@ cd legacy/python && uv run fsq # fallback: same commands, same data
 
 Formulas, rules, units and the solved past questions are data in [data/](data), shared by both engines.
 
+## Desktop app (apps/mingosolve)
+
+Tauri 2 + Svelte 5, same structure and design system as MingoCAN's can-studio. The Rust commands call the `fsq`
+crate directly.
+
+```bash
+cd apps/mingosolve
+npm ci
+npx tauri icon src-tauri/icons/icon.png   # once: platform icons are generated, not committed
+npm run tauri:dev                         # run
+npm run check                             # svelte-check (strict TS)
+npx tauri build --bundles app             # local macOS bundle; CI builds all platforms (phase 3)
+```
+
+Views: **Solve** (paste the question → ranked formulas/tools/past questions → pre-filled form, live solve, option
+matching, copy in quiz format, session log), **Chain**, **Tools**, **Past questions**, **Rules**, **Settings**;
+calculator docked on the right; Cmd/Ctrl+K jumps to the formula search. The updater is wired to
+`isc-fs/iskapps/mingosolve/latest.json` but update artifacts stay off until the signing key exists (phase 3).
+
 ## Commands
 
 | Command | Does |
