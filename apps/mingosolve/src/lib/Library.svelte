@@ -135,8 +135,6 @@
                     <h2>Results for “{filter.trim()}”</h2>
                 {:else if current !== undefined}
                     <h2>{current.name}</h2>
-                    {@const blurb = catalog.topics.find((t) => t.id === current.id)?.blurb}
-                    {#if blurb}<p class="muted small">{blurb}</p>{/if}
                 {/if}
             </header>
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
