@@ -24,16 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/app-prereqs
-      - uses: actions/checkout@v4
-        with:
-          repository: isc-fs/IFS-Tests
-          path: ifs-tests
-          sparse-checkout: data/fsquiz
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
-        env:
-          FSQ_BANK: ${{ github.workspace }}/ifs-tests/data/fsquiz/bank.json
 
   platforms:
     name: Engine and app commands (${{ matrix.os }})
@@ -45,14 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/app-prereqs
-      - uses: actions/checkout@v4
-        with:
-          repository: isc-fs/IFS-Tests
-          path: ifs-tests
-          sparse-checkout: data/fsquiz
       - run: cargo test --workspace
-        env:
-          FSQ_BANK: ${{ github.workspace }}/ifs-tests/data/fsquiz/bank.json
 
   frontend:
     name: Frontend and end to end
