@@ -31,8 +31,8 @@ pub fn find_question(text: String) -> Found {
 }
 
 #[tauri::command]
-pub fn match_options(value: f64, options: String) -> Matching {
-    answer::match_options(value, &options)
+pub fn match_options(answer: String, options: String) -> Matching {
+    answer::match_options(&answer, &options)
 }
 
 #[tauri::command]

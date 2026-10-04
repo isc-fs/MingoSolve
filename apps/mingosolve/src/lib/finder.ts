@@ -6,8 +6,9 @@ export function findQuestion(text: string): Promise<Found> {
     return invoke('find_question', { text });
 }
 
-export function matchOptions(value: number, options: string): Promise<Matching> {
-    return invoke('match_options', { value, options });
+/** `answer` is the shown answer with its unit ("77.887 A"), so options written in other units can be compared. */
+export function matchOptions(answer: string, options: string): Promise<Matching> {
+    return invoke('match_options', { answer, options });
 }
 
 export function formatAnswer(value: number, precision: Precision, decimalComma: boolean): Promise<string> {

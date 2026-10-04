@@ -40,7 +40,7 @@ fn dispatch(cmd: &str, a: &Value) -> Result<Value, String> {
         "run_tool" => tools::run_tool(arg(a, "name")?, arg(a, "args")?).map(|r| json!(r)),
         "find_question" => ok(json!(finder::find_question(arg(a, "text")?))),
         "match_options" => ok(json!(finder::match_options(
-            arg(a, "value")?,
+            arg(a, "answer")?,
             arg(a, "options")?
         ))),
         "format_answer" => ok(json!(finder::format_answer(

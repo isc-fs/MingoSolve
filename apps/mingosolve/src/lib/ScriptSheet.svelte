@@ -175,7 +175,7 @@
         });
         matching = null;
         if (opts.trim().length > 0) {
-            void matchOptions(a.n, opts).then((m) => {
+            void matchOptions(a.shown, opts).then((m) => {
                 if (seq === latestFormat) matching = m;
             });
         }
