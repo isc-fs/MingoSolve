@@ -1,6 +1,6 @@
 // The script sheet against a fake engine: what it sends, which root it puts in the answer slab, and how it copes
 // with replies that arrive late. The real engine behind these commands is covered by the IPC tests and e2e/.
-import { render, screen, waitFor } from '@testing-library/svelte';
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -77,8 +77,8 @@ describe('live solving', () => {
         render(ScriptSheet);
         await waitFor(() => expect(solves.pending()).toBe(1));
         const t = field('t');
-        await userEvent.clear(t);
-        await userEvent.type(t, '20 s');
+        // one edit = one new solve; typing key by key on a slow machine would add solves for "1", "16"...
+        await fireEvent.input(t, { target: { value: '20 s' } });
         await waitFor(() => expect(solves.pending()).toBe(2));
         // the engine answers the current input first, then the stale one
         solves.release(1);
@@ -97,8 +97,8 @@ describe('live solving', () => {
         render(ScriptSheet);
         await waitFor(() => expect(formats.pending()).toBe(1));
         const t = field('t');
-        await userEvent.clear(t);
-        await userEvent.type(t, '16 s');
+        // one edit = one new solve; typing key by key on a slow machine would add solves for "1", "16"...
+        await fireEvent.input(t, { target: { value: '16 s' } });
         await waitFor(() => expect(slab()).toBe('6.25 m/s'));
         formats.release(formats.pending() - 1);
         formats.release(0);
