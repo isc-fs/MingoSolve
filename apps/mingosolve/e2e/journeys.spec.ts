@@ -27,12 +27,12 @@ test('Q245: palette search, type the knowns, pick the root that answers the ques
     await field(app, 'V_c').fill('60 V');
     await field(app, 't').fill('5 s');
     await field(app, 'C').fill('1800 uF');
-    const peak = app.locator('.results .res').filter({ hasText: 'P_pk' });
+    const peak = app.locator('.results .res[data-var="P_pk"]');
     await expect(peak).toContainText('106.53');
     await peak.click();
     await expect(answer(app)).toHaveText(/^106\.53\d* W$/);
     // the discharge resistor itself is also solved
-    await expect(app.locator('.results .res').filter({ hasText: /^R/ })).toContainText('1472');
+    await expect(app.locator('.results .res[data-var="R"]')).toContainText('1472');
 });
 
 test('Q34: a worked example loads its inputs and solves, with the second root explained', async ({ app }) => {

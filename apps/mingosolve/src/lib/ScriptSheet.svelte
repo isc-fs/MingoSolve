@@ -8,6 +8,7 @@
     import { untrack } from 'svelte';
 
     import Icon from './Icon.svelte';
+    import Tex from './Tex.svelte';
     import { catalog } from './catalog.svelte';
     import { solveFormula } from './solve';
     import { runTool } from './tools';
@@ -191,6 +192,8 @@
     }
 
     const pinned = $derived(script !== null && settings.pinned.includes(script.id));
+    /** Typeset name of one of this formula's variables. */
+    const texOf = $derived(new Map(script?.formula?.vars.map((v) => [v.name, v.tex]) ?? []));
 </script>
 
 {#if script === null}
@@ -217,21 +220,23 @@
         </header>
 
         {#if script.formula !== undefined}
-            <pre class="eqs">{script.formula.eqs.join('\n')}</pre>
+            <div class="eqs" title={script.formula.eqs.join('\n')}>
+                {#each script.formula.tex as t, i (i)}<Tex tex={t} display />{/each}
+            </div>
             {#if script.formula.notes.length > 0}
                 <p class="note">{script.formula.notes}</p>
             {/if}
             <div class="fields">
                 {#each script.formula.vars as v (v.name)}
                     {@const solved = result?.found.find((f) => f.name === v.name)}
-                    <label class="field">
-                        <span class="flabel"><span class="var">{v.name}</span> {v.desc}</span>
+                    <label class="field" data-var={v.name}>
+                        <span class="flabel"><span class="sym"><Tex tex={v.tex} /></span> {v.desc}</span>
                         <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                             class="input mono"
                             class:filled={values[v.name]?.trim().length > 0}
                             class:solved={solved !== undefined}
                             bind:value={values[v.name]}
-                            placeholder={solved !== undefined ? `= ${solved.shown[0]}` : v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit}]`}
+                            placeholder={solved !== undefined ? `= ${solved.shown[0]}` : v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit_shown}]`}
                         />
                     </label>
                 {/each}
@@ -246,7 +251,7 @@
                 }}
             >
                 {#each script.tool.params as p (p.name)}
-                    <label class="field" class:wide={['netlist', 'levels', 'teeth', 'events'].includes(p.name)}>
+                    <label class="field" data-var={p.name} class:wide={['netlist', 'levels', 'teeth', 'events'].includes(p.name)}>
                         <span class="flabel"><span class="var">{p.name}</span></span>
                         <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                             class="input mono"
@@ -272,7 +277,7 @@
         {#if answer !== null}
             <div class="answer">
                 <div class="answer-row">
-                    <span class="a-label">{answer.label} =</span>
+                    <span class="a-label">{#if texOf.has(answer.label)}<Tex tex={texOf.get(answer.label) ?? ''} />{:else}{answer.label}{/if} =</span>
                     <span class="a-value">{answer.shown}</span>
                     <button type="button" class="btn copy" onclick={copy} title="Copy as {formatted}">
                         <Icon name={copied ? 'check' : 'copy'} size={15} />{copied ? 'Copied' : `Copy ${formatted}`}
@@ -297,11 +302,12 @@
                         <button
                             type="button"
                             class="res"
+                            data-var={fv.name}
                             class:on={picked?.name === fv.name && picked?.index === i}
                             onclick={() => (picked = { name: fv.name, index: i })}
                             title={fv.desc}
                         >
-                            <span class="var">{fv.name}</span><span class="mono">{s}</span>
+                            <span class="sym"><Tex tex={texOf.get(fv.name) ?? fv.name} /></span><span class="mono">{s}</span>
                         </button>
                     {/each}
                 {/each}
@@ -385,14 +391,23 @@
         color: var(--ink-accent);
     }
     .eqs {
-        margin: 0;
-        padding: var(--space-3) var(--space-4);
+        padding: var(--space-2) var(--space-4);
         border-radius: var(--r-md);
         background: var(--code);
-        font-size: var(--text-sm);
-        line-height: 1.7;
-        color: var(--text-2);
-        white-space: pre-wrap;
+        color: var(--text);
+        overflow-x: auto;
+    }
+    .eqs :global(.katex-display) {
+        margin: var(--space-2) 0;
+        text-align: left;
+    }
+    .eqs :global(.katex-display > .katex) {
+        text-align: left;
+        font-size: 1.15em;
+    }
+    .sym {
+        font-size: 1.05em;
+        color: var(--text);
     }
     .doc {
         color: var(--text-2);

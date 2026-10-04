@@ -90,3 +90,25 @@ test('the palette with nothing typed offers pinned scripts first', async ({ app 
     const top = await paletteTop(app, '', 3);
     expect(top[0]).toMatch(/Battery/);
 });
+
+test('KaTeX accepts every equation and variable name the engine typesets', async ({ request }, info) => {
+    test.skip(info.project.name !== 'chromium', 'runs in Node; one project is enough');
+    const katex = (await import('katex')).default;
+    const formulas = (await (await request.post(`${BRIDGE}/invoke/list_formulas`, { data: {} })).json()) as {
+        key: string;
+        tex: string[];
+        vars: { name: string; tex: string }[];
+    }[];
+    const broken: string[] = [];
+    for (const f of formulas) {
+        for (const t of [...f.tex, ...f.vars.map((v) => v.tex)]) {
+            try {
+                katex.renderToString(t, { throwOnError: true, strict: 'error' });
+            } catch (e) {
+                broken.push(`${f.key}: ${t} (${String(e).slice(0, 80)})`);
+            }
+        }
+    }
+    expect(formulas.length).toBeGreaterThan(100);
+    expect(broken, broken.join('\n')).toEqual([]);
+});

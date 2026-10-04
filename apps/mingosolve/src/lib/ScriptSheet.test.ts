@@ -15,17 +15,19 @@ const motion: FormulaInfo = {
     key: 'uniform_motion',
     title: 'Uniform motion',
     eqs: ['v = s/t'],
+    tex: ['v = \\frac{s}{t}'],
     tags: [],
     notes: '',
-    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null })),
+    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null, tex: name, unit_shown: '' })),
 };
 const battery: FormulaInfo = {
     key: 'battery_load',
     title: 'Battery under load',
     eqs: ['V_oc = N_s*V_cell', 'P = (V_oc - I*R_pack)*I'],
+    tex: [],
     tags: [],
     notes: '',
-    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, default: null })),
+    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, default: null, tex: name, unit_shown: '' })),
 };
 const score: ToolInfo = {
     name: 'event_score',
@@ -39,8 +41,7 @@ const score: ToolInfo = {
 };
 
 function field(name: string): HTMLInputElement {
-    const label = [...document.querySelectorAll('label.field')].find((l) => l.querySelector('.var')?.textContent === name);
-    return label!.querySelector('input')!;
+    return document.querySelector<HTMLInputElement>(`label.field[data-var="${name}"] input`)!;
 }
 
 const slab = () => document.querySelector('.answer .a-value')?.textContent;
@@ -103,7 +104,8 @@ describe('live solving', () => {
         formats.release(formats.pending() - 1);
         formats.release(0);
         await new Promise((r) => setTimeout(r, 50));
-        await userEvent.click(screen.getByRole('button', { name: /^Copy/ }));
+        // by class: jsdom can't compute accessible names across KaTeX's MathML (real browsers can; see e2e/)
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
         expect(copies).toEqual(['6,25']);
     });
 

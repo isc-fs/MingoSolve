@@ -7,12 +7,18 @@ export interface VarInfo {
     desc: string;
     signed: boolean;
     default: number | null;
+    /** The name typeset (LaTeX). */
+    tex: string;
+    /** The unit for display (m², Ω). */
+    unit_shown: string;
 }
 
 export interface FormulaInfo {
     key: string;
     title: string;
     eqs: string[];
+    /** The equations typeset (LaTeX), same order as eqs. */
+    tex: string[];
     tags: string[];
     notes: string;
     vars: VarInfo[];
