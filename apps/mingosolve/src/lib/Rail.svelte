@@ -121,13 +121,14 @@
         min-height: 0;
         overflow-y: auto;
     }
+    /* the window buttons sit inside the rail's top-left corner (trafficLightPosition in tauri.macos.conf.json) */
     .rail.mac {
-        padding-top: 30px;
+        padding-top: 46px;
     }
     .drag {
         position: absolute;
         inset: 0 0 auto 0;
-        height: 30px;
+        height: 46px;
     }
     .brand {
         display: flex;
