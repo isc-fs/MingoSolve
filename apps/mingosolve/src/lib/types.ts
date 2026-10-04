@@ -86,13 +86,28 @@ export interface Matching {
 
 export type Precision = { sig: number } | { decimals: number };
 
-export interface ExampleInfo {
+export interface Found {
+    hits: Hit[];
+    quantities: string[];
+}
+
+export interface ScriptRef {
+    id: string;
+    kind: 'formula' | 'tool';
+    title: string;
+}
+
+export interface TopicInfo {
+    id: string;
+    name: string;
+    blurb: string;
+    hue: 'green' | 'teal' | 'gold';
+    scripts: ScriptRef[];
+}
+
+export interface WorkedExample {
     id: number;
     what: string;
     cmd: string;
     answer: number;
-    warning: string | null;
 }
-
-/** Parsed TOML rule set: nested tables of numbers, strings and arrays. */
-export type RuleSet = Record<string, unknown>;

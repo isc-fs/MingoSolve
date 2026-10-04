@@ -11,4 +11,5 @@ pub mod format;
 pub mod registry;
 pub mod solve;
 pub mod tools;
+pub mod topics;
 pub mod units;

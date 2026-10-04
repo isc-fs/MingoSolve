@@ -19,8 +19,14 @@ Formulas, rules, units and the solved past questions are data in [data/](data), 
 
 ## Desktop app (apps/mingosolve)
 
-Tauri 2 + Svelte 5, same structure and design system as MingoCAN's can-studio. The Rust commands call the `fsq`
-crate directly.
+ISC MingoSolve is a toolbox of engineering **scripts** for FS problems: a formula script solves for whatever you leave
+blank (with units), a tool script runs a procedure (event scoring, nodal circuits, CAN timing...). Paste a problem
+(anywhere in the window) and the scripts that fit appear with the problem's values already filled in; or browse
+**Topics**; or press **⌘K / Ctrl K** and type. Pinned and recent scripts sit in the rail. Same Rust/Tauri structure
+as MingoCAN, but its own look: **Night glass** (dark) and **Paper glass** (light), following the OS, built on the ISC
+design system (green #064229, gold #FFB81D, Jost + IBM Plex, bundled for offline use). The window is translucent on
+macOS (vibrancy) and Windows 11 (Mica); Linux draws the glass itself. Settings can switch to solid surfaces, and the OS
+"reduce transparency" and "reduce motion" settings are honoured. Design mockups: [docs/design/directions.html](docs/design/directions.html).
 
 ```bash
 cd apps/mingosolve
@@ -31,10 +37,10 @@ npm run check                             # svelte-check (strict TS)
 npx tauri build --bundles app             # local macOS bundle; CI builds all platforms (phase 3)
 ```
 
-Views: **Solve** (paste the question → ranked formulas/tools/past questions → pre-filled form, live solve, option
-matching, copy in quiz format, session log), **Chain**, **Tools**, **Past questions**, **Rules**, **Settings**;
-calculator docked on the right; Cmd/Ctrl+K jumps to the formula search. The updater is wired to
-`isc-fs/iskapps/mingosolve/latest.json` but update artifacts stay off until the signing key exists (phase 3).
+Views: **Solve** (problem box, matches, the open script with live solve, answer slab with quiz-format copy and an
+optional check against multiple-choice options, worked examples), **Topics** (all scripts by domain), **Chain**
+(several formulas to one target), **Settings**; calculator docked on the right. The updater is wired to
+`isc-fs/iskapps/mingosolve/latest.json`; update artifacts stay off until the signing key exists (phase 3).
 
 ## Commands
 

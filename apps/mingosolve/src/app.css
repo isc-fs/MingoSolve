@@ -1,559 +1,473 @@
-/* ISC MingoCAN — global design system.
-   Source of truth for color, spacing, type, radii, shadows.
-   Every view should reach for these tokens before defining its
-   own local CSS. The utility classes below cover ~90 % of common
-   shapes (buttons, cards, fields, pills); view-local styles only
-   handle truly view-specific layouts (cell-V grids, log windows,
-   chart canvases).
-
-   Design intent — quiet by default, accent used sparingly:
-     - One card surface (--surface), not three elevation levels
-     - Hairline borders + whitespace separate sections, no heavy
-       backgrounds
-     - Banners are plain --surface with a colored *left rail* —
-       no full tinted backgrounds shouting at the operator
-     - Card headers are plain title case, not UPPERCASE-LETTER-SPACED
-     - Buttons are outline by default; only the primary CTA fills
-*/
+/* ISC MingoSolve design system: "Night glass" (dark) and "Paper glass" (light).
+ *
+ * Built on the ISC design system tokens (RAL green #064229, gold #FFB81D, graphite #404040; Jost display,
+ * IBM Plex Sans body, IBM Plex Mono data) but deliberately its own look: frosted, rounded glass over a grainy,
+ * softly lit ground. Rules that keep it accessible:
+ *   - gold is a fill or a dark-theme accent, never text on a light ground (use --ink-accent there);
+ *   - every text token meets 4.5:1 on its surface; muted text is for metadata only;
+ *   - [data-solid] (Settings, or the OS "reduce transparency" setting) swaps every glass for an opaque surface;
+ *   - motion stays under 200 ms and is dropped with "reduce motion".
+ * Themes are chosen by [data-theme] on <html> (set from Settings, following the OS by default).
+ * [data-native="vibrancy"] means the window itself is translucent (macOS vibrancy, Windows Mica): the ground is
+ * then a tint over the desktop instead of an opaque backdrop.
+ */
 
 :root {
-    color-scheme: dark;
+    --isc-green: #064229;
+    --isc-green-600: #0a5334;
+    --isc-green-500: #0d6b43;
+    --isc-ink: #07130d;
+    --isc-gold: #ffb81d;
+    --isc-gold-400: #ffc94f;
+    --isc-gold-600: #e6a61a;
+    --isc-paper: #f7f5f1;
+    --isc-sand: #dfdbd2;
+    --isc-graphite: #404040;
 
-    /* ---- Color tokens ---- */
+    --font-display: 'Jost', 'Futura', 'Century Gothic', sans-serif;
+    --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    /* Four-tone greyscale. The page is darker than the card it
-       hosts, hover sits just above the card, border is a hairline
-       that's almost invisible until you look for it. --border-strong
-       is the only "visible" border tone, reserved for outlines that
-       need to read at a glance (buttons, input outlines).
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 14.5px;
+    --text-lg: 16px;
+    --text-xl: 20px;
+    --text-2xl: 26px;
+    --text-answer: 32px;
 
-       --bg-soft + --surface-elev are aliases kept for back-compat
-       with views that still reference them. New code should not
-       use them. */
-    /* British Racing Green ground (#183e2c = rgb 24 62 44). Surfaces step
-       *lighter* off it (same green family) so cards + the sidebar still
-       read as raised, the way the old greyscale did; the accent yellow
-       pops on the deep green. */
-    --bg: #183e2c;
-    --surface: #1f4d38;
-    --hover: #265a42;
-    --border: #2e6549;
-    --border-strong: #3c7759;
-    --code-bg: #102c1d;
-    --bg-soft: #143524; /* input fills — recessed inside a card */
-    --surface-elev: var(--surface);
-
-    /* Text ramp — primary, secondary, muted (for body hints — not
-       just tooltips, so contrast has to stay readable). */
-    --text: #ececec;
-    --text-secondary: #b8b8b8;
-    --text-muted: #7a7a7a;
-
-    /* Brand accent — ISC yellow. Used for: primary-CTA fills, the
-       sidebar's active-row indicator, focus rings, the "active"
-       pill on the adapter row. Avoid using it for chrome that
-       isn't a clear "you are here" / "you should press this". */
-    --accent: #f2b233;
-    --accent-hover: #f8c150;
-    --accent-soft: rgba(242, 178, 51, 0.10);
-    --accent-strong: #d99c1f;
-
-    /* Semantic colors — used as a single accent on banner left
-       rails + pill borders, NOT as fill backgrounds. The -soft
-       variants are still here for the rare case (e.g. inline
-       errors) that needs a tinted background. */
-    --success: #4ade80;
-    --success-soft: rgba(74, 222, 128, 0.10);
-    --warning: #fbbf24;
-    --warning-soft: rgba(251, 191, 36, 0.10);
-    --danger: #ff7373;
-    --danger-soft: rgba(255, 115, 115, 0.10);
-    --info: #60a5fa;
-    --info-soft: rgba(96, 165, 250, 0.10);
-
-    /* Alias — keep --error working for legacy references. */
-    --error: var(--danger);
-
-    /* ---- Spacing scale ---- */
-    /* 4px rhythm. Use --space-2 (8px) for tight gaps, --space-3
-       (12px) for fields, --space-4 (16px) for sections, --space-6
-       (24px) for page padding. */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
     --space-4: 16px;
     --space-5: 20px;
     --space-6: 24px;
-    --space-7: 32px;
-    --space-8: 48px;
+    --space-8: 32px;
 
-    /* ---- Radii ---- */
-    --radius-sm: 4px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-pill: 999px;
+    --r-sm: 10px;
+    --r-md: 13px;
+    --r-lg: 18px;
+    --r-xl: 22px;
+    --r-pill: 999px;
 
-    /* ---- Shadows ---- */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+    --blur: 22px;
+    --motion: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* ---- Type scale ---- */
-    --text-xs: 0.72rem;
-    --text-sm: 0.82rem;
-    --text-base: 0.9rem;
-    --text-lg: 1rem;
-    --text-xl: 1.15rem;
-    --text-2xl: 1.4rem;
-
-    /* ---- Fonts ---- */
-    --font-sans:
-        -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto,
-        'Helvetica Neue', Arial, sans-serif;
-    --font-mono:
-        ui-monospace, 'JetBrains Mono', 'SF Mono', SFMono-Regular, Menlo, Monaco,
-        Consolas, 'Liberation Mono', monospace;
-
-    /* ---- Motion ---- */
-    --motion-fast: 100ms ease-out;
-    --motion-base: 160ms ease-out;
+    --grain-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
-/* ---- Document reset ---- */
+/* ---- Night glass (dark) ---- */
+:root,
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --ground: var(--isc-ink);
+    --ground-tint: rgba(7, 19, 13, 0.72);
+    --glow: radial-gradient(640px 460px at 8% 4%, rgba(13, 107, 67, 0.55), transparent 70%),
+        radial-gradient(560px 420px at 92% 96%, rgba(255, 184, 29, 0.16), transparent 70%),
+        radial-gradient(700px 520px at 72% 18%, rgba(10, 83, 52, 0.42), transparent 70%);
+    --grain: 0.32;
+
+    --glass: rgba(255, 255, 255, 0.055);
+    --glass-strong: rgba(255, 255, 255, 0.085);
+    --glass-edge: rgba(255, 255, 255, 0.11);
+    --glass-hi: rgba(255, 255, 255, 0.13);
+    --glass-solid: #11241a;
+    --shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.75);
+
+    --text: #f4f2ec;
+    --text-2: rgba(255, 255, 255, 0.82);
+    --muted: rgba(255, 255, 255, 0.62);
+    --well: rgba(0, 0, 0, 0.24);
+    --well-edge: rgba(255, 255, 255, 0.1);
+    --field: rgba(0, 0, 0, 0.3);
+    --field-edge: rgba(255, 255, 255, 0.14);
+    --field-focus: var(--isc-gold);
+    --hover: rgba(255, 255, 255, 0.06);
+    --selected: rgba(255, 255, 255, 0.1);
+    --code: rgba(0, 0, 0, 0.32);
+
+    --accent: var(--isc-gold);
+    --accent-soft: rgba(255, 184, 29, 0.14);
+    --accent-edge: rgba(255, 184, 29, 0.45);
+    --ink-accent: var(--isc-gold-400);
+    --on-accent: #1a1406;
+    --var: var(--isc-gold-400);
+
+    --answer-bg: linear-gradient(135deg, rgba(255, 184, 29, 0.17), rgba(255, 184, 29, 0.04));
+    --answer-edge: rgba(255, 184, 29, 0.38);
+    --answer-label: var(--isc-gold-400);
+    --answer-text: #ffffff;
+    --answer-note: rgba(255, 255, 255, 0.72);
+
+    --good: #5ee0a0;
+    --warn: #ffcf66;
+    --bad: #ff8a80;
+    --good-soft: rgba(94, 224, 160, 0.12);
+    --warn-soft: rgba(255, 207, 102, 0.12);
+    --bad-soft: rgba(255, 138, 128, 0.12);
+
+    --hue-green: #5ee0a0;
+    --hue-teal: #6fd3d6;
+    --hue-gold: var(--isc-gold);
+}
+
+/* ---- Paper glass (light) ---- */
+:root[data-theme='light'] {
+    color-scheme: light;
+    --ground: var(--isc-paper);
+    --ground-tint: rgba(247, 245, 241, 0.74);
+    --glow: radial-gradient(640px 460px at 6% 0%, rgba(13, 107, 67, 0.15), transparent 70%),
+        radial-gradient(600px 440px at 96% 100%, rgba(255, 184, 29, 0.22), transparent 70%);
+    --grain: 0.42;
+
+    --glass: rgba(255, 255, 255, 0.6);
+    --glass-strong: rgba(255, 255, 255, 0.78);
+    --glass-edge: rgba(6, 66, 41, 0.11);
+    --glass-hi: rgba(255, 255, 255, 0.95);
+    --glass-solid: #ffffff;
+    --shadow: 0 18px 40px -24px rgba(6, 66, 41, 0.35);
+
+    --text: #1c211e;
+    --text-2: var(--isc-graphite);
+    --muted: #5d5d5d;
+    --well: rgba(255, 255, 255, 0.72);
+    --well-edge: rgba(6, 66, 41, 0.1);
+    --field: #ffffff;
+    --field-edge: var(--isc-sand);
+    --field-focus: var(--isc-green-500);
+    --hover: rgba(6, 66, 41, 0.05);
+    --selected: rgba(6, 66, 41, 0.09);
+    --code: rgba(6, 66, 41, 0.06);
+
+    --accent: var(--isc-green-500);
+    --accent-soft: rgba(13, 107, 67, 0.09);
+    --accent-edge: rgba(13, 107, 67, 0.4);
+    --ink-accent: var(--isc-green-500);
+    --on-accent: #ffffff;
+    --var: var(--isc-green-500);
+
+    --answer-bg: linear-gradient(135deg, #064229, #0a5334);
+    --answer-edge: rgba(6, 66, 41, 0.5);
+    --answer-label: var(--isc-gold-400);
+    --answer-text: #ffffff;
+    --answer-note: rgba(255, 255, 255, 0.8);
+
+    --good: #0d6b43;
+    --warn: #8c6510;
+    --bad: #b3261e;
+    --good-soft: rgba(13, 107, 67, 0.1);
+    --warn-soft: rgba(140, 101, 16, 0.1);
+    --bad-soft: rgba(179, 38, 30, 0.08);
+
+    --hue-green: #0d6b43;
+    --hue-teal: #0b6e74;
+    --hue-gold: #8c6510;
+}
+
+/* ---- Ground ---- */
+
+* {
+    box-sizing: border-box;
+}
 
 html,
 body {
     margin: 0;
-    padding: 0;
     height: 100%;
-    background: var(--bg);
-    color: var(--text);
+    overflow: hidden;
+}
+
+body {
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: var(--text-base);
     line-height: 1.5;
+    color: var(--text);
+    background: var(--ground);
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
-#app {
-    min-height: 100vh;
-}
-
-/* Scrollbar — minimal, just visible enough on hover. */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-::-webkit-scrollbar-track {
+:root[data-native='vibrancy'] body {
     background: transparent;
 }
-::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: var(--radius-pill);
-    border: 2px solid var(--bg);
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--border-strong);
-}
 
-/* Focus rings — visible but quiet. Keyboard-only so mouse users
-   don't get the outline on click. */
-:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: var(--radius-sm);
+/* The lit, grainy backdrop behind all glass. */
+.ground {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: var(--glow), var(--ground);
+    pointer-events: none;
 }
-
-/* ---- Typography helpers ---- */
-
-.muted {
-    color: var(--text-muted);
+:root[data-native='vibrancy'] .ground {
+    background: var(--glow), var(--ground-tint);
+}
+.ground::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: var(--grain);
+    mix-blend-mode: overlay;
+    background-image: var(--grain-image);
 }
 
-.text-secondary {
-    color: var(--text-secondary);
+/* ---- Glass ---- */
+
+.glass {
+    position: relative;
+    background: var(--glass);
+    border: 1px solid var(--glass-edge);
+    border-radius: var(--r-lg);
+    backdrop-filter: blur(var(--blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+    box-shadow: inset 0 1px 0 var(--glass-hi), var(--shadow);
 }
 
-.small {
-    font-size: var(--text-sm);
+:root[data-solid] .glass,
+:root[data-solid] .well {
+    background: var(--glass-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+:root[data-solid] .ground {
+    background: var(--ground);
+}
+:root[data-solid] .ground::after {
+    display: none;
 }
 
+@media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .well {
+        background: var(--glass-solid) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+}
+
+.well {
+    background: var(--well);
+    border: 1px solid var(--well-edge);
+    border-radius: var(--r-md);
+}
+
+/* ---- Type ---- */
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+h1 {
+    font-size: var(--text-2xl);
+}
+h2 {
+    font-size: var(--text-xl);
+}
+h3 {
+    font-size: var(--text-lg);
+}
+p {
+    margin: 0;
+}
 .mono {
     font-family: var(--font-mono);
 }
-
-/* ---- Layout primitives ---- */
-
-.stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+.muted {
+    color: var(--muted);
 }
-.stack-sm {
-    gap: var(--space-2);
+.small {
+    font-size: var(--text-xs);
 }
-.stack-lg {
-    gap: var(--space-5);
+.var {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--var);
 }
-
-.row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+.label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
 }
-.row-spread {
-    justify-content: space-between;
-}
-
-.divider {
-    height: 1px;
-    background: var(--border);
-    border: none;
-    margin: var(--space-4) 0;
+code,
+pre {
+    font-family: var(--font-mono);
 }
 
-/* ---- Buttons ---- */
-/* Default: outline-only — transparent fill, --border-strong
-   outline. Hover fills with --hover so the affordance is clear.
-   This reads cleanly on both --bg (page) and --surface (cards)
-   without needing a different button color per surface. */
+/* ---- Controls ---- */
 
-.btn,
-button.btn {
+button {
+    font: inherit;
+    color: inherit;
+}
+
+.btn {
     appearance: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    background: transparent;
+    height: 34px;
+    padding: 0 var(--space-4);
+    border-radius: var(--r-pill);
+    border: 1px solid var(--glass-edge);
+    background: var(--glass-strong);
     color: var(--text);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-md);
-    padding: var(--space-2) var(--space-4);
-    font: inherit;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
+    font-weight: 500;
     cursor: pointer;
-    transition: background var(--motion-fast),
-        border-color var(--motion-fast),
-        color var(--motion-fast);
+    transition:
+        background var(--motion),
+        border-color var(--motion),
+        transform var(--motion);
 }
-.btn:hover:not(:disabled) {
-    background: var(--hover);
-    border-color: var(--text-muted);
+.btn:hover {
+    border-color: var(--accent-edge);
 }
-.btn:active:not(:disabled) {
-    background: var(--surface);
+.btn:active {
+    transform: scale(0.98);
 }
-.btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-/* Primary — the only filled button. Reserve for the main action
-   in a section (Flash, Burn bootloader, Provision). */
 .btn-primary {
     background: var(--accent);
-    color: #1a1a1a;
-    border-color: var(--accent);
+    border-color: transparent;
+    color: var(--on-accent);
     font-weight: 600;
 }
-.btn-primary:hover:not(:disabled) {
-    background: var(--accent-hover);
-    border-color: var(--accent-hover);
-    color: #1a1a1a;
+.btn-primary:hover {
+    border-color: transparent;
+    filter: brightness(1.06);
 }
-.btn-primary:active:not(:disabled) {
-    background: var(--accent-strong);
-    border-color: var(--accent-strong);
-}
-
-/* Secondary — quieter than the outline default: hover swaps the
-   text + outline to accent. Useful for "view this" / "switch
-   that" inline-link buttons. */
-.btn-secondary:hover:not(:disabled) {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: transparent;
-}
-
-/* Ghost — no outline, no fill. For inline secondary actions in
-   tables/lists where a full button would be too loud. */
 .btn-ghost {
     background: transparent;
     border-color: transparent;
 }
-.btn-ghost:hover:not(:disabled) {
+.btn-ghost:hover {
     background: var(--hover);
-    border-color: var(--border);
+    border-color: transparent;
 }
-
-/* Danger — destructive actions (Clear DTCs, Erase chip). Outlined
-   in --danger; fills with a faint tint on hover so accidental
-   clicks don't blend in. */
-.btn-danger {
-    color: var(--danger);
-    border-color: var(--danger);
-}
-.btn-danger:hover:not(:disabled) {
-    background: var(--danger-soft);
-    border-color: var(--danger);
-    color: var(--danger);
-}
-
-/* Compact size — for inline secondary actions next to fields. */
 .btn-sm {
-    padding: var(--space-1) var(--space-3);
-    font-size: var(--text-sm);
-}
-
-/* Square icon button — 36px, single glyph. Outline-only to match
-   the .btn default. */
-.icon-btn {
-    appearance: none;
-    width: 36px;
-    height: 36px;
-    flex: 0 0 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    font: inherit;
-    font-size: var(--text-lg);
-    cursor: pointer;
-    transition: background var(--motion-fast),
-        border-color var(--motion-fast),
-        color var(--motion-fast);
-}
-.icon-btn:hover:not(:disabled) {
-    background: var(--hover);
-    border-color: var(--text-muted);
-    color: var(--text);
-}
-.icon-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-/* ---- Cards ---- */
-/* Cards lean on background contrast (surface vs. bg) + a hairline
-   border for separation. No heavy outlines, no shadows. */
-
-.card {
-    padding: var(--space-5);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-}
-
-.card-tight {
-    padding: var(--space-4);
-}
-
-.card-elev {
-    box-shadow: var(--shadow-sm);
-}
-
-/* Card header — plain title-case h3. The old uppercase letter-
-   spaced caption felt loud + dated; this is just a sentence-case
-   label that reads like the rest of the body text. */
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-3);
-}
-.card-header h3 {
-    margin: 0;
-    font-size: var(--text-base);
-    color: var(--text);
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: none;
-}
-
-/* ---- Form fields ---- */
-
-.field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-.field > .label,
-.field > span:first-child,
-.field > label {
-    font-size: var(--text-sm);
-    color: var(--text-muted);
+    height: 28px;
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
 }
 
 .input,
-.field input[type='text'],
-.field input[type='number'],
-.field select,
-.field textarea {
+textarea.input,
+select.input {
     appearance: none;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
+    width: 100%;
+    min-height: 38px;
+    padding: 8px var(--space-3);
+    border-radius: var(--r-sm);
+    border: 1px solid var(--field-edge);
+    background: var(--field);
     color: var(--text);
     font: inherit;
     font-size: var(--text-base);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    transition: border-color var(--motion-fast);
+    transition:
+        border-color var(--motion),
+        box-shadow var(--motion);
 }
-.input:focus,
-.field input:focus,
-.field select:focus,
-.field textarea:focus {
+.input.mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+}
+.input::placeholder {
+    color: var(--muted);
+    opacity: 0.85;
+}
+.input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--field-focus);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
-.input:disabled,
-.field input:disabled,
-.field select:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-/* Toggle — labelled checkbox / radio. */
-.toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-1) 0;
-    cursor: pointer;
-}
-.toggle input {
-    accent-color: var(--accent);
+textarea.input {
+    resize: vertical;
+    line-height: 1.5;
 }
 
-/* ---- Pills + badges ---- */
-/* No mono font, no UPPERCASE — pills are inline status reads, not
-   code identifiers. The body keeps the sans body font so they
-   blend into surrounding text instead of jumping out. */
+:focus-visible {
+    outline: 2px solid var(--field-focus);
+    outline-offset: 2px;
+}
 
-.pill {
+.chip {
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
+    height: 24px;
+    padding: 0 10px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--ink-accent);
+    font-family: var(--font-mono);
     font-size: var(--text-xs);
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-pill);
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-}
-.pill-accent {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-.pill-success {
-    border-color: var(--success);
-    color: var(--success);
-}
-.pill-warning {
-    border-color: var(--warning);
-    color: var(--warning);
-}
-.pill-danger {
-    border-color: var(--danger);
-    color: var(--danger);
-}
-.pill-info {
-    border-color: var(--info);
-    color: var(--info);
-}
-
-/* ---- Status banners ---- */
-/* Quiet pattern: plain --surface chrome with a colored left rail
-   to flag intent. Body text + headings stay in --text; the only
-   colored element is the rail + any <strong> inside. Banners do
-   NOT scream — they sit alongside the rest of the page chrome. */
-
-.banner {
-    padding: var(--space-3) var(--space-4);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left-width: 3px;
-    border-radius: var(--radius-md);
-    color: var(--text);
-}
-.banner-success {
-    border-left-color: var(--success);
-}
-.banner-success strong {
-    color: var(--success);
-}
-.banner-warning {
-    border-left-color: var(--warning);
-}
-.banner-warning strong {
-    color: var(--warning);
-}
-.banner-danger {
-    border-left-color: var(--danger);
-}
-.banner-danger strong {
-    color: var(--danger);
-}
-.banner-info {
-    border-left-color: var(--info);
-}
-.banner-info strong {
-    color: var(--info);
-}
-
-/* Gate variant — a banner that carries an action (e.g. the "no adapter
-   selected → Choose adapter" empty-state gate). Lays the message and
-   the action button on one row, action pushed to the trailing edge. */
-.banner.gate {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    justify-content: space-between;
-}
-.banner.gate .gate-action {
-    flex: none;
+    font-weight: 500;
     white-space: nowrap;
 }
-
-/* ---- View shell ---- */
-/* Every top-level view shares the same outer chrome: comfortable
-   page padding, vertical stack of sections, scroll on Y when
-   content overflows. Header gets generous space below it to set
-   the page-title rhythm. */
-
-.view {
-    padding: var(--space-6) var(--space-7) var(--space-7);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
+.chip-quiet {
+    background: var(--hover);
+    color: var(--text-2);
+}
+.chip-warn {
+    background: var(--warn-soft);
+    color: var(--warn);
 }
 
-.view > header {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
+.note {
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--text-2);
+    background: var(--hover);
 }
-.view > header > div {
-    flex: 1;
+.note-bad {
+    background: var(--bad-soft);
+    color: var(--text);
 }
-.view > header h2 {
-    margin: 0 0 var(--space-1);
-    font-size: var(--text-2xl);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+.note-bad strong {
+    color: var(--bad);
 }
-.view > header p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: var(--text-base);
-    max-width: 70ch;
-    line-height: 1.55;
+.note-warn {
+    background: var(--warn-soft);
+}
+.note-warn strong {
+    color: var(--warn);
+}
+
+kbd {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--glass-edge);
+    color: var(--muted);
+}
+
+::selection {
+    background: var(--accent-soft);
+}
+
+/* Scrollbars that don't fight the glass. */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--selected);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
 }

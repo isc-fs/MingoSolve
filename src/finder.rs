@@ -142,7 +142,7 @@ pub fn quantities(text: &str) -> Vec<Quantity> {
         // the whole word must be a unit; "in" (inch) and "t" (tonne) are too often plain English ("0 to 100 in 4 s")
         let unit: String = chars[k..end].iter().collect();
         let unit = unit.trim_end_matches(['/', '*']);
-        let found = if unit.is_empty() || ["in", "t"].contains(&unit) {
+        let with_unit = if unit.is_empty() || ["in", "t"].contains(&unit) {
             None
         } else {
             units::parse_quantity(&format!("{number} {unit}"))
@@ -150,6 +150,9 @@ pub fn quantities(text: &str) -> Vec<Quantity> {
                 .filter(|q| q.dims != DIMENSIONLESS || unit == "%")
                 .map(|q| (format!("{number} {unit}"), q.dims))
         };
+        // a bare number ("103 cells", "friction coefficient of 1.4") is kept as a dimensionless candidate; it only
+        // fills a variable whose description matches the words around it
+        let found = with_unit.or_else(|| Some((number.clone(), DIMENSIONLESS)));
         if let Some((text, dims)) = found {
             let before: String = chars[i.saturating_sub(50)..i].iter().collect();
             let after: String = chars[end..(end + 20).min(chars.len())].iter().collect();
@@ -194,9 +197,7 @@ fn prefill(names: &[String], qs: &[Quantity]) -> Vec<(String, String)> {
     let mut taken: HashSet<&String> = HashSet::new();
     let mut out = Vec::new();
     for q in qs {
-        if q.dims == DIMENSIONLESS {
-            continue;
-        }
+        let bare = q.dims == DIMENSIONLESS;
         let mut cands: Vec<(usize, usize, &String)> = names
             .iter()
             .filter(|n| !taken.contains(n) && var_dims(n) == q.dims)
@@ -206,6 +207,11 @@ fn prefill(names: &[String], qs: &[Quantity]) -> Vec<(String, String)> {
                 (overlap, r.var(n).desc.len(), n)
             })
             .collect();
+        if bare {
+            // unitless numbers need the words to name the variable, and no tie-break by plainness
+            cands.retain(|c| c.0 > 0);
+            cands.iter_mut().for_each(|c| c.1 = 0);
+        }
         cands.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
         let pick = match cands.as_slice() {
             [] => None,
@@ -302,8 +308,13 @@ mod tests {
         let qs = quantities(
             "A car of 280 kg accelerates from 0 to 100 km/h in 4,2 s. The motor gives 80 kW.",
         );
-        let texts: Vec<&str> = qs.iter().map(|q| q.text.as_str()).collect();
+        let texts: Vec<&str> = qs
+            .iter()
+            .filter(|q| q.dims != DIMENSIONLESS)
+            .map(|q| q.text.as_str())
+            .collect();
         assert_eq!(texts, ["280 kg", "100 km/h", "4.2 s", "80 kW"]);
+        assert!(qs.iter().any(|q| q.text == "0" && q.dims == DIMENSIONLESS));
         let qs = quantities("tube 25 x 2.5 mm, area 10 mm² at 60 °C");
         assert!(qs.iter().any(|q| q.text == "10 mm**2"));
         assert!(qs.iter().any(|q| q.text == "60 degC"));
@@ -342,6 +353,39 @@ mod tests {
             hits.iter().any(|h| h.id == "cornering_downforce"),
             "{:?}",
             hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn unitless_numbers_fill_only_when_named() {
+        let hits = find(
+            "A car of mass 240 kg with ClA 3.2 m² drives the skidpad (radius 9.125 m). With a tyre friction \
+             coefficient of 1.4, what is the maximum speed?",
+            5,
+        );
+        let hit = hits
+            .iter()
+            .find(|h| h.id == "cornering_downforce")
+            .expect("cornering_downforce");
+        assert!(
+            hit.prefill.contains(&("mu".into(), "1.4".into())),
+            "{:?}",
+            hit.prefill
+        );
+        let hits = find(
+            "The accumulator has 103 cells in series at 3.8 V. What is the current at 30 kW?",
+            5,
+        );
+        let hit = hits.iter().find(|h| h.id == "battery_load").unwrap();
+        assert!(
+            hit.prefill.contains(&("N_s".into(), "103".into())),
+            "{:?}",
+            hit.prefill
+        );
+        assert!(
+            !hit.prefill.iter().any(|(n, _)| n == "N_p"),
+            "{:?}",
+            hit.prefill
         );
     }
 

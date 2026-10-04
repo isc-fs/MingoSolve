@@ -2,9 +2,9 @@
 //! crate directly (no shell-out), mirrored on the frontend by one thin `src/lib/*.ts` wrapper per module.
 
 mod finder;
-mod rules;
 mod solve;
 mod tools;
+mod topics;
 
 #[tauri::command]
 fn engine_version() -> &'static str {
@@ -27,9 +27,8 @@ pub fn run() {
             finder::find_question,
             finder::match_options,
             finder::format_answer,
-            finder::list_examples,
-            rules::rule_sets,
-            rules::rules_changes,
+            topics::list_topics,
+            topics::script_examples,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ISC MingoSolve");

@@ -1,12 +1,12 @@
 <!--
-    Settings: default rule year for scoring tools, how answers are copied (precision, decimal comma), updates and
-    about (version, FS-Quiz ODbL attribution). Changes save automatically.
+    Settings: look (theme, glass or solid), default rule year for scoring scripts, how answers are copied, updates
+    and about. Everything saves automatically.
 -->
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getVersion } from '@tauri-apps/api/app';
 
-    import { settings } from './settings.svelte';
+    import { settings, type Theme } from './settings.svelte';
     import { checkForUpdate, type AvailableUpdate } from './updater';
 
     let { update = $bindable() }: { update: AvailableUpdate | null } = $props();
@@ -27,79 +27,153 @@
         checking = true;
         update = await checkForUpdate();
         checking = false;
-        checked = update === null ? 'You have the latest version (or the update server is unreachable).' : null;
+        checked = update === null ? 'You have the latest version, or the update server is unreachable.' : null;
     }
+
+    const themes: { id: Theme; label: string; hint: string }[] = [
+        { id: 'system', label: 'Follow the OS', hint: 'Dark at night, light by day' },
+        { id: 'dark', label: 'Night glass', hint: 'Dark' },
+        { id: 'light', label: 'Paper glass', hint: 'Light' },
+    ];
 </script>
 
-<section class="view">
+<div class="view">
     <header>
-        <div>
-            <h2>Settings</h2>
-            <p>Saved automatically.</p>
-        </div>
+        <h1>Settings</h1>
+        <p class="muted">Saved automatically.</p>
     </header>
 
-    <div class="card stack">
-        <div class="card-header"><h3>Rules</h3></div>
-        <label class="field narrow">
-            <span>Default rule set for scoring and rule tools</span>
-            <select bind:value={settings.rules}>
+    <section class="glass panel">
+        <h2>Look</h2>
+        <div class="seg" role="radiogroup" aria-label="Theme">
+            {#each themes as t (t.id)}
+                <button type="button" role="radio" aria-checked={settings.theme === t.id} class:on={settings.theme === t.id} onclick={() => (settings.theme = t.id)}>
+                    <strong>{t.label}</strong><span class="muted small">{t.hint}</span>
+                </button>
+            {/each}
+        </div>
+        <label class="toggle">
+            <input type="checkbox" bind:checked={settings.solid} />
+            <span>Solid surfaces instead of glass <span class="muted">(easier to read on busy desktops; also follows the OS "reduce transparency" setting)</span></span>
+        </label>
+    </section>
+
+    <section class="glass panel">
+        <h2>Rules</h2>
+        <label class="field">
+            <span class="label">Default rule set for scoring scripts</span>
+            <select class="input" bind:value={settings.rules}>
                 <option value="2027">2027 (FS-Rules 2027 v1.0)</option>
                 <option value="2026">2026 (FS-Rules 2026 v1.1)</option>
-                <option value="legacy">legacy (reproduces most past FS-Quiz keys)</option>
+                <option value="legacy">Legacy (rules up to 2025)</option>
             </select>
         </label>
-    </div>
+    </section>
 
-    <div class="card stack">
-        <div class="card-header"><h3>Answer format</h3></div>
+    <section class="glass panel">
+        <h2>Copied answers</h2>
         <div class="row">
             <label class="field">
-                <span>Round to</span>
-                <select bind:value={settings.precision.kind}>
+                <span class="label">Round to</span>
+                <select class="input" bind:value={settings.precision.kind}>
                     <option value="sig">significant figures</option>
                     <option value="decimals">decimals</option>
                 </select>
             </label>
-            <label class="field">
-                <span>How many</span>
-                <input type="number" min="0" max="12" bind:value={settings.precision.n} />
+            <label class="field narrow">
+                <span class="label">How many</span>
+                <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input" type="number" min="0" max="12" bind:value={settings.precision.n} />
             </label>
         </div>
         <label class="toggle">
             <input type="checkbox" bind:checked={settings.decimalComma} />
-            Copy with a decimal comma (<span class="mono">77,9</span> instead of <span class="mono">77.9</span>)
+            <span>Decimal comma (<span class="mono">77,9</span> instead of <span class="mono">77.9</span>)</span>
         </label>
-    </div>
+    </section>
 
-    <div class="card stack">
-        <div class="card-header"><h3>Updates</h3></div>
+    <section class="glass panel">
+        <h2>Updates</h2>
         <div class="row">
             <button type="button" class="btn" onclick={check} disabled={checking}>{checking ? 'Checking…' : 'Check for updates'}</button>
-            {#if checked !== null}<span class="muted">{checked}</span>{/if}
+            {#if checked !== null}<span class="muted small">{checked}</span>{/if}
         </div>
-        <p class="muted small">Pin one version for quiz day: don't install updates during a quiz window.</p>
-    </div>
+    </section>
 
-    <div class="card stack">
-        <div class="card-header"><h3>About</h3></div>
-        <p>ISC MingoSolve {version !== '' ? `v${version}` : ''}, ISC Racing Team.</p>
-        <p class="muted">
-            Formulas and past questions are derived from the FS-Quiz database
-            (<a href="https://fs-quiz.eu" target="_blank" rel="noreferrer">fs-quiz.eu</a>), available under the Open
-            Database License (ODbL). Practice timed quizzes in MingoQuiz.
+    <section class="glass panel">
+        <h2>About</h2>
+        <p>ISC MingoSolve {version !== '' ? `v${version}` : ''} · ISC Racing Team</p>
+        <p class="muted small">
+            Scripts are checked against past FS-Quiz questions (fs-quiz.eu, Open Database License). Shortcuts:
+            <kbd>⌘K</kbd> find a script, paste anywhere to start from a problem, <kbd>Esc</kbd> clears a script.
         </p>
-    </div>
-</section>
+    </section>
+</div>
 
 <style>
-    .narrow {
+    .view {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: var(--space-5) var(--space-4) var(--space-6) var(--space-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        max-width: 760px;
+    }
+    header {
+        padding: 0 var(--space-2);
+    }
+    .panel {
+        padding: var(--space-5);
+        border-radius: var(--r-xl);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+    .seg {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-2);
+    }
+    .seg button {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: var(--space-3);
+        border-radius: var(--r-md);
+        border: 1px solid var(--well-edge);
+        background: var(--well);
+        cursor: pointer;
+        text-align: left;
+    }
+    .seg button.on {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .toggle {
+        display: flex;
+        gap: var(--space-2);
+        align-items: flex-start;
+        cursor: pointer;
+        line-height: 1.5;
+    }
+    .toggle input {
+        accent-color: var(--accent);
+        margin-top: 4px;
+    }
+    .row {
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-end;
+    }
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
         max-width: 420px;
     }
-    .small {
-        font-size: var(--text-xs);
-    }
-    a {
-        color: var(--accent);
+    .narrow {
+        width: 110px;
     }
 </style>

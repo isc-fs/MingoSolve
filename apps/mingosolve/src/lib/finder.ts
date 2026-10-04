@@ -1,8 +1,8 @@
 // Thin invoke wrappers for src-tauri/src/finder.rs.
 import { invoke } from '@tauri-apps/api/core';
-import type { ExampleInfo, Hit, Matching, Precision } from './types';
+import type { Found, Matching, Precision } from './types';
 
-export function findQuestion(text: string): Promise<Hit[]> {
+export function findQuestion(text: string): Promise<Found> {
     return invoke('find_question', { text });
 }
 
@@ -12,8 +12,4 @@ export function matchOptions(value: number, options: string): Promise<Matching> 
 
 export function formatAnswer(value: number, precision: Precision, decimalComma: boolean): Promise<string> {
     return invoke('format_answer', { value, precision, decimalComma });
-}
-
-export function listExamples(): Promise<ExampleInfo[]> {
-    return invoke('list_examples');
 }

@@ -1,10 +1,12 @@
 <!--
-    Docked calculator: always visible on the right so a quick unit-aware calculation never costs a view switch.
-    Enter evaluates; results stack newest first; click a result to copy its number.
+    Calculator, docked on the right and collapsible: unit-aware expressions (0.5*280kg*(100km/h)**2 -> kJ). Enter
+    evaluates; results stack newest first; click one to copy its number.
 -->
 <script lang="ts">
+    import Icon from './Icon.svelte';
     import { calc } from './solve';
     import { session } from './session.svelte';
+    import { settings } from './settings.svelte';
 
     let history = $state<{ expr: string; out: string }[]>([]);
 
@@ -12,60 +14,67 @@
         const expr = session.calcInput.trim();
         if (expr.length === 0) return;
         const out = await calc(expr).catch((e: unknown) => `error: ${String(e)}`);
-        history.unshift({ expr, out });
-        history = history.slice(0, 40);
-    }
-
-    function copy(out: string): void {
-        const n = out.split(' ')[0];
-        void navigator.clipboard.writeText(n);
+        history = [{ expr, out }, ...history].slice(0, 40);
     }
 </script>
 
-<aside class="calc">
-    <div class="calc-head">
-        <h3>Calculator</h3>
-        <span class="muted small">units welcome: <span class="mono">0.5*280kg*(100km/h)**2 -&gt; kJ</span></span>
-    </div>
-    <input
-        class="input mono"
-        placeholder="expression [-> unit]"
-        bind:value={session.calcInput}
-        onkeydown={(e) => {
-            if (e.key === 'Enter') void evaluate();
-        }}
-    />
-    <ul>
-        {#each history as h, i (i)}
-            <li>
-                <button type="button" class="entry" title="Copy the number" onclick={() => copy(h.out)}>
-                    <span class="mono muted small">{h.expr}</span>
-                    <span class="mono result" class:error={h.out.startsWith('error')}>{h.out}</span>
-                </button>
-            </li>
-        {/each}
-    </ul>
-</aside>
+{#if settings.calcOpen}
+    <aside class="calc glass" aria-label="Calculator">
+        <div class="head">
+            <Icon name="calc" />
+            <h3>Calculator</h3>
+            <button type="button" class="btn btn-ghost btn-sm" onclick={() => (settings.calcOpen = false)} aria-label="Hide calculator">
+                <Icon name="x" size={14} />
+            </button>
+        </div>
+        <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            class="input mono"
+            placeholder="2*pi*9.125m/4.9s -> km/h"
+            bind:value={session.calcInput}
+            onkeydown={(e) => e.key === 'Enter' && evaluate()}
+            aria-label="Expression"
+        />
+        <ul>
+            {#each history as h, i (i)}
+                <li>
+                    <button type="button" class="entry" title="Copy the number" onclick={() => navigator.clipboard.writeText(h.out.split(' ')[0])}>
+                        <span class="mono muted small">{h.expr}</span>
+                        <span class="mono result" class:error={h.out.startsWith('error')}>{h.out}</span>
+                    </button>
+                </li>
+            {/each}
+        </ul>
+        {#if history.length === 0}
+            <p class="muted small">Units work everywhere: <span class="mono">km/h</span>, <span class="mono">rpm</span>, <span class="mono">bar</span>, <span class="mono">Ah</span>, <span class="mono">g0</span>. End with <span class="mono">-&gt; unit</span> to convert.</p>
+        {/if}
+    </aside>
+{:else}
+    <button type="button" class="open glass" onclick={() => (settings.calcOpen = true)} aria-label="Show calculator" title="Calculator">
+        <Icon name="calc" />
+    </button>
+{/if}
 
 <style>
     .calc {
-        width: 300px;
-        flex: 0 0 300px;
+        width: 280px;
+        flex: 0 0 280px;
+        margin: 10px 10px 10px 0;
         padding: var(--space-4) var(--space-3);
-        background: var(--surface);
-        border-left: 1px solid var(--border);
+        border-radius: var(--r-xl);
         display: flex;
         flex-direction: column;
         gap: var(--space-3);
         min-height: 0;
     }
-    .calc-head h3 {
-        margin: 0 0 2px;
-        font-size: var(--text-base);
-        font-weight: 600;
+    .head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--ink-accent);
     }
-    .small {
-        font-size: var(--text-xs);
+    .head h3 {
+        flex: 1;
+        color: var(--text);
     }
     ul {
         list-style: none;
@@ -74,30 +83,41 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: var(--space-1);
+        gap: 6px;
     }
     .entry {
         appearance: none;
         width: 100%;
         text-align: left;
-        background: var(--bg-soft);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: var(--space-2);
-        color: var(--text);
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--r-md);
+        border: 1px solid var(--well-edge);
+        background: var(--well);
         cursor: pointer;
         display: flex;
         flex-direction: column;
         gap: 2px;
-        font: inherit;
     }
     .entry:hover {
-        border-color: var(--border-strong);
+        border-color: var(--accent-edge);
     }
     .result {
-        color: var(--accent);
+        color: var(--ink-accent);
+        font-size: var(--text-lg);
     }
     .result.error {
-        color: var(--danger);
+        color: var(--bad);
+        font-size: var(--text-sm);
+    }
+    .open {
+        align-self: flex-start;
+        margin: 10px 10px 0 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        color: var(--ink-accent);
     }
 </style>

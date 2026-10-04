@@ -1,10 +1,19 @@
-// Persistent settings (MingoCAN pattern): one reactive object, loaded from the plugin-store JSON in the OS
-// app-config folder, saved by a debounced autosave effect that no-ops until the first load finished.
+// Persistent settings: one reactive object, loaded from the plugin-store JSON in the OS app-config folder and
+// saved by a debounced autosave effect that no-ops until the first load finished.
 import { load, type Store } from '@tauri-apps/plugin-store';
 
 export type RuleYear = '2027' | '2026' | 'legacy';
+export type Theme = 'system' | 'dark' | 'light';
 
 export interface Settings {
+    /** Night glass (dark), Paper glass (light), or follow the OS. */
+    theme: Theme;
+    /** Opaque surfaces instead of glass (also applied when the OS asks to reduce transparency). */
+    solid: boolean;
+    /** Script ids pinned to the rail, and the most recently opened ones. */
+    pinned: string[];
+    recent: string[];
+    calcOpen: boolean;
     /** Rule set used by scoring tools unless a tool call names another. */
     rules: RuleYear;
     precision: { kind: 'sig' | 'decimals'; n: number };
@@ -13,7 +22,16 @@ export interface Settings {
 }
 
 export function defaultSettings(): Settings {
-    return { rules: '2027', precision: { kind: 'sig', n: 4 }, decimalComma: false };
+    return {
+        theme: 'system',
+        solid: false,
+        pinned: ['battery_load', 'cornering_downforce', 'event_score'],
+        recent: [],
+        calcOpen: true,
+        rules: '2027',
+        precision: { kind: 'sig', n: 4 },
+        decimalComma: false,
+    };
 }
 
 export const settings = $state<Settings>(defaultSettings());

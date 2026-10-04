@@ -1,15 +1,33 @@
-//! Quiz-speed helpers: question finder with pre-fill, multiple-choice option matching, answer formatting and the
-//! past-question examples (with known-wrong-key warnings).
+//! Finder (paste a problem, get the scripts that fit, pre-filled), option matching and answer formatting.
 
-use std::collections::HashMap;
-
-use fsq::answer::{self, known_keys, Matching, Precision};
-use fsq::finder::{find, Hit};
+use fsq::answer::{self, Matching, Precision};
+use fsq::cli::pretty_unit;
+use fsq::finder::{find, quantities, Hit};
+use fsq::units::DIMENSIONLESS;
 use serde::Serialize;
 
+#[derive(Serialize)]
+pub struct Found {
+    hits: Vec<Hit>,
+    /// Quantities with units detected in the text, as typed ("3.8 V").
+    quantities: Vec<String>,
+}
+
+/// Scripts (formulas and tools) that fit a pasted problem; past-question hits are left out of the app.
 #[tauri::command]
-pub fn find_question(text: String) -> Vec<Hit> {
-    find(&text, 12)
+pub fn find_question(text: String) -> Found {
+    let hits = find(&text, 24)
+        .into_iter()
+        .filter(|h| h.kind != "example")
+        .take(8)
+        .collect();
+    // chips show only values with units; unitless numbers still pre-fill when their words name a variable
+    let quantities = quantities(&text)
+        .into_iter()
+        .filter(|q| q.dims != DIMENSIONLESS)
+        .map(|q| pretty_unit(&q.text))
+        .collect();
+    Found { hits, quantities }
 }
 
 #[tauri::command]
@@ -20,28 +38,4 @@ pub fn match_options(value: f64, options: String) -> Matching {
 #[tauri::command]
 pub fn format_answer(value: f64, precision: Precision, decimal_comma: bool) -> String {
     answer::format_answer(value, precision, decimal_comma)
-}
-
-#[derive(Serialize)]
-pub struct ExampleInfo {
-    id: u32,
-    what: String,
-    cmd: String,
-    answer: f64,
-    warning: Option<String>,
-}
-
-#[tauri::command]
-pub fn list_examples() -> Vec<ExampleInfo> {
-    let keys: HashMap<u32, String> = known_keys().into_iter().map(|k| (k.id, k.note)).collect();
-    fsq::cli::examples()
-        .into_iter()
-        .map(|e| ExampleInfo {
-            warning: keys.get(&e.id).cloned(),
-            id: e.id,
-            what: e.what,
-            cmd: e.cmd,
-            answer: e.answer,
-        })
-        .collect()
 }

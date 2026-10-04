@@ -1,0 +1,98 @@
+# Topic library: every script (formula or procedural tool) belongs to exactly one topic.
+# Order here is the order shown in the app. `hue` picks the topic's accent from the app palette.
+
+[[topic]]
+id = "motion"
+name = "Motion and energy"
+blurb = "Speed, constant acceleration, kinetic and potential energy"
+hue = "green"
+formulas = ["speed", "uniform_accel", "kinetic_energy", "rolling_energy", "stopping_distance"]
+tools = ["accel_then_cruise"]
+
+[[topic]]
+id = "dynamics"
+name = "Vehicle dynamics"
+blurb = "Axle loads, load transfer, cornering, rollover, steering"
+hue = "green"
+formulas = ["static_axle_loads", "longitudinal_transfer", "lateral_transfer", "rollover", "inside_wheel_fraction",
+            "front_lift", "traction_limit", "cornering", "cornering_downforce", "ackermann"]
+tools = []
+
+[[topic]]
+id = "suspension"
+name = "Suspension and springs"
+blurb = "Wheel and ride rates, natural frequency, damping, coil springs"
+hue = "green"
+formulas = ["wheel_rate", "coil_spring"]
+tools = ["two_dof"]
+
+[[topic]]
+id = "aero"
+name = "Aerodynamics"
+blurb = "Downforce, drag, balance, terminal velocity"
+hue = "teal"
+formulas = ["aero_forces", "aero_split", "terminal_velocity"]
+tools = []
+
+[[topic]]
+id = "powertrain"
+name = "Powertrain and brakes"
+blurb = "Gear ratios, torque and power, planetaries, engines, brake torque"
+hue = "gold"
+formulas = ["gear_drive", "power_torque", "planetary", "engine_geometry", "engine_order", "brake_torque",
+            "top_speed_power"]
+tools = ["gear_train"]
+
+[[topic]]
+id = "structures"
+name = "Structures"
+blurb = "Sections, bending, axial load, buckling, bolts"
+hue = "gold"
+formulas = ["tube_section", "square_tube_section", "rect_section", "three_point_bend", "cantilever", "axial",
+            "euler_buckling", "bolt_shear"]
+tools = []
+
+[[topic]]
+id = "thermo"
+name = "Thermo and fluids"
+blurb = "Heat, gases, cycles, cooling, flow, acoustics"
+hue = "teal"
+formulas = ["heat_capacity", "latent_heat", "thermal_expansion", "ideal_gas", "gas_states", "adiabatic", "carnot",
+            "newton_cooling", "continuity_bernoulli", "reynolds", "closed_pipe"]
+tools = ["gauge", "db_sum"]
+
+[[topic]]
+id = "hv"
+name = "Accumulator and HV"
+blurb = "Pack under load, energy, discharge rule, segment limits, TS rules"
+hue = "gold"
+formulas = ["battery_load", "max_power_transfer", "pack_energy", "energy_power", "ts_discharge", "cap_energy",
+            "peukert"]
+tools = ["segment_max_cells", "ts_rules", "pcb_spacing"]
+
+[[topic]]
+id = "circuits"
+name = "Circuits and electronics"
+blurb = "Ohm, wiring, transients, filters, sensors, op-amps, converters"
+hue = "teal"
+formulas = ["ohm", "wire_resistance", "cable_drop", "resistance_temperature", "resistor_self_heating",
+            "rc_transient", "inductor_step", "inductor_energy", "reactance", "rc_lowpass", "vswr", "divider",
+            "ntc", "howland", "buck"]
+tools = ["nodal", "e_series", "gamma"]
+
+[[topic]]
+id = "signals"
+name = "Signals and comms"
+blurb = "Sampling, ADCs, CAN and UART timing, binary"
+hue = "teal"
+formulas = ["nyquist", "adc"]
+tools = ["alias", "twos", "uart_time", "can_frame_bits"]
+
+[[topic]]
+id = "scoring"
+name = "Rules and scoring"
+blurb = "Event scores (2027, 2026, legacy), penalties, statics, rounding"
+hue = "gold"
+formulas = []
+tools = ["corrected_time", "event_score", "cones_from_score", "dv_rank_score", "dc_autocross_score",
+         "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to"]

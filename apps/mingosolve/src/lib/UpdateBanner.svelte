@@ -123,18 +123,18 @@
 {/if}
 
 <style>
-    /* Slim app-wide notice. Mirrors the design-system banner (plain
-       surface + a coloured left rail) but laid out as a single row
-       with the message on the left and actions on the right. */
     .update-banner {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: var(--space-4);
+        margin: 10px 10px 0;
         padding: var(--space-2) var(--space-4);
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        border-left: 3px solid var(--accent);
+        border-radius: var(--r-lg);
+        background: var(--glass-strong);
+        border: 1px solid var(--accent-edge);
+        position: relative;
+        z-index: 1;
     }
     .body {
         display: flex;
@@ -154,10 +154,13 @@
     .small {
         font-size: var(--text-xs);
     }
+    a {
+        color: var(--ink-accent);
+    }
     .spinner {
         width: 14px;
         height: 14px;
-        border: 2px solid var(--border);
+        border: 2px solid var(--glass-edge);
         border-top-color: var(--accent);
         border-radius: 50%;
         animation: spin 1s linear infinite;

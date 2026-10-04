@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MingoSolve directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --page: #e9e7e2; --ink: #1b1b1b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 24px 64px; background: var(--page); color: var(--ink); font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  h1 { font-family: 'Jost', sans-serif; font-weight: 600; font-size: 28px; margin: 0 0 6px; }
+  .lede { margin: 0 0 28px; max-width: 70ch; line-height: 1.55; color: #4a4a4a; }
+  .dir { margin: 0 auto 48px; max-width: 1180px; }
+  .dir > header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
+  .dir > header h2 { font-family: 'Jost', sans-serif; font-weight: 600; font-size: 22px; margin: 0; }
+  .dir > header p { margin: 0; color: #555; }
+  .tag { font: 500 12px 'IBM Plex Mono', monospace; padding: 3px 8px; border-radius: 999px; background: #0000000d; }
+
+  /* ---------- window shell, themed by custom properties ---------- */
+  .win { position: relative; height: 660px; border-radius: 22px; overflow: hidden; display: grid;
+         grid-template-columns: 232px 1fr; background: var(--bg); color: var(--text);
+         box-shadow: 0 30px 80px -20px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.08); }
+  .win::before { content: ''; position: absolute; inset: 0; background: var(--backdrop); pointer-events: none; }
+  .win::after { content: ''; position: absolute; inset: 0; opacity: var(--grain); pointer-events: none; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  .glass { position: relative; z-index: 1; background: var(--glass); border: 1px solid var(--glass-edge);
+           backdrop-filter: blur(var(--blur)) saturate(140%); -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+           box-shadow: inset 0 1px 0 var(--glass-hi), 0 12px 32px -18px var(--shadow); }
+  .rail { margin: 12px 0 12px 12px; border-radius: 18px; padding: 16px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 2px 6px 14px; }
+  .mark { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--mark-bg); color: var(--mark-fg);
+          font: 700 15px 'Jost', sans-serif; }
+  .brand b { font: 600 16px 'Jost', sans-serif; letter-spacing: .01em; }
+  .brand small { display: block; font: 400 11px 'IBM Plex Mono', monospace; color: var(--muted); }
+  .nav { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; font-size: 14px; color: var(--text-2); }
+  .nav.on { background: var(--sel); color: var(--text); font-weight: 600; }
+  .nav .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--muted)); }
+  .nav kbd { margin-left: auto; font: 500 11px 'IBM Plex Mono', monospace; color: var(--muted); }
+  .sect { margin: 14px 10px 4px; font: 500 11px 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .main { position: relative; z-index: 1; padding: 22px 24px 22px 18px; display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; align-content: start; }
+  .ask { grid-column: 1 / -1; border-radius: 18px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; }
+  .ask .q { flex: 1; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+  .ask .q strong { color: var(--text); font-weight: 500; }
+  .chip { font: 500 12px 'IBM Plex Mono', monospace; padding: 4px 9px; border-radius: 999px; background: var(--chip); color: var(--chip-fg); white-space: nowrap; }
+  .card { border-radius: 18px; padding: 16px; }
+  .card h3 { margin: 0 0 4px; font: 600 15px 'Jost', sans-serif; letter-spacing: .01em; }
+  .card .sub { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+  .hits { display: flex; flex-direction: column; gap: 8px; }
+  .hit { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 13px; background: var(--well); border: 1px solid var(--glass-edge); font-size: 13px; }
+  .hit.top { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .hit .score { margin-left: auto; font: 500 11px 'IBM Plex Mono', monospace; color: var(--muted); }
+  .topics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
+  .topic { padding: 10px 12px; border-radius: 13px; background: var(--well); font-size: 13px; display: flex; justify-content: space-between; }
+  .topic span { color: var(--muted); font: 400 12px 'IBM Plex Mono', monospace; }
+  .eq { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--code); font: 400 12.5px/1.6 'IBM Plex Mono', monospace; color: var(--text-2); }
+  .fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .f label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .f label b { font: 600 12px 'IBM Plex Mono', monospace; color: var(--var); margin-right: 4px; }
+  .f .in { height: 36px; border-radius: 11px; padding: 0 12px; display: flex; align-items: center; background: var(--field); border: 1px solid var(--field-edge);
+           font: 400 13px 'IBM Plex Mono', monospace; color: var(--text); }
+  .f .in.empty { color: var(--muted); font-family: 'IBM Plex Sans', sans-serif; }
+  .f .in.filled { border-color: var(--accent-soft); }
+  .answer { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: var(--answer-bg); border: 1px solid var(--answer-edge);
+            display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .answer .lbl { font: 600 13px 'IBM Plex Mono', monospace; color: var(--answer-lbl); }
+  .answer .val { font: 600 30px 'Jost', sans-serif; color: var(--answer-fg); letter-spacing: .01em; }
+  .answer .alt { font: 400 13px 'IBM Plex Mono', monospace; color: var(--answer-alt, var(--muted)); }
+  .answer .copy { margin-left: auto; font: 600 13px 'IBM Plex Sans', sans-serif; padding: 8px 14px; border-radius: 999px; background: var(--btn); color: var(--btn-fg); }
+
+  /* ---------- A: Night glass ---------- */
+  .A { --bg: #07130D; --backdrop: radial-gradient(520px 380px at 12% 8%, rgba(13,107,67,.55), transparent 70%),
+         radial-gradient(460px 360px at 88% 92%, rgba(255,184,29,.20), transparent 70%),
+         radial-gradient(600px 420px at 70% 20%, rgba(10,83,52,.45), transparent 70%);
+       --grain: .35; --glass: rgba(255,255,255,.055); --glass-edge: rgba(255,255,255,.10); --glass-hi: rgba(255,255,255,.12); --blur: 22px; --shadow: rgba(0,0,0,.6);
+       --text: #F4F2EC; --text-2: rgba(255,255,255,.80); --muted: rgba(255,255,255,.55); --sel: rgba(255,255,255,.09);
+       --mark-bg: #FFB81D; --mark-fg: #064229; --chip: rgba(255,184,29,.14); --chip-fg: #FFC94F; --well: rgba(0,0,0,.22);
+       --accent: #FFB81D; --accent-soft: rgba(255,184,29,.45); --code: rgba(0,0,0,.30); --var: #FFC94F;
+       --field: rgba(0,0,0,.28); --field-edge: rgba(255,255,255,.12);
+       --answer-bg: linear-gradient(135deg, rgba(255,184,29,.16), rgba(255,184,29,.04)); --answer-edge: rgba(255,184,29,.35);
+       --answer-lbl: #FFC94F; --answer-fg: #FFFFFF; --btn: #FFB81D; --btn-fg: #07130D; }
+  /* ---------- B: Paper glass (light) ---------- */
+  .B { --bg: #F7F5F1; --backdrop: radial-gradient(560px 400px at 8% 0%, rgba(13,107,67,.16), transparent 70%),
+         radial-gradient(520px 380px at 95% 100%, rgba(255,184,29,.22), transparent 70%);
+       --grain: .45; --glass: rgba(255,255,255,.62); --glass-edge: rgba(6,66,41,.10); --glass-hi: rgba(255,255,255,.9); --blur: 18px; --shadow: rgba(6,66,41,.25);
+       --text: #1E2320; --text-2: #404040; --muted: #5D5D5D; --sel: rgba(6,66,41,.08);
+       --mark-bg: #064229; --mark-fg: #FFB81D; --chip: rgba(6,66,41,.08); --chip-fg: #064229; --well: rgba(255,255,255,.7);
+       --accent: #0D6B43; --accent-soft: rgba(13,107,67,.45); --code: rgba(6,66,41,.06); --var: #0D6B43;
+       --field: #FFFFFF; --field-edge: #DFDBD2;
+       --answer-bg: linear-gradient(135deg, rgba(6,66,41,.95), rgba(10,83,52,.92)); --answer-edge: rgba(6,66,41,.4);
+       --answer-lbl: #FFC94F; --answer-fg: #FFFFFF; --answer-alt: rgba(255,255,255,.78); --btn: #FFB81D; --btn-fg: #064229; }
+  /* ---------- C: Graphite smoke ---------- */
+  .C { --bg: #161817; --backdrop: radial-gradient(700px 500px at 50% -10%, rgba(255,255,255,.08), transparent 70%),
+         linear-gradient(160deg, #1d201f 0%, #121413 100%);
+       --grain: .5; --glass: rgba(40,43,42,.55); --glass-edge: rgba(255,255,255,.08); --glass-hi: rgba(255,255,255,.07); --blur: 26px; --shadow: rgba(0,0,0,.7);
+       --text: #ECECEA; --text-2: #C7C8C4; --muted: #8E908B; --sel: rgba(255,255,255,.07);
+       --mark-bg: #2b2e2d; --mark-fg: #FFB81D; --chip: rgba(255,255,255,.07); --chip-fg: #ECECEA; --well: rgba(255,255,255,.035);
+       --accent: #3DDC97; --accent-soft: rgba(61,220,151,.45); --code: rgba(0,0,0,.35); --var: #3DDC97;
+       --field: rgba(0,0,0,.35); --field-edge: rgba(255,255,255,.09);
+       --answer-bg: rgba(61,220,151,.08); --answer-edge: rgba(61,220,151,.35);
+       --answer-lbl: #3DDC97; --answer-fg: #FFFFFF; --btn: #ECECEA; --btn-fg: #161817; }
+  .C .dot { --dot: #3DDC97; }
+</style>
+</head>
+<body>
+  <h1>ISC MingoSolve: three directions</h1>
+  <p class="lede">
+    Same screen in all three: paste a problem (or browse a topic), the best-matching solver opens with the values from the
+    text already filled in, and the missing one is solved live. All use ISC tokens (green #064229, gold #FFB81D, Jost +
+    IBM Plex), rounded 14 to 22 px corners, frosted glass over a soft textured backdrop. None looks like MingoCAN's
+    flat green-and-yellow.
+  </p>
+  <div id="dirs"></div>
+
+<template id="screen">
+  <div class="win">
+    <aside class="rail glass">
+      <div class="brand"><div class="mark">M</div><div><b>MingoSolve</b><small>v0.2 · rules 2027</small></div></div>
+      <div class="nav on"><span class="dot"></span>Solve<kbd>⌘K</kbd></div>
+      <div class="nav"><span class="dot"></span>Topics</div>
+      <div class="nav"><span class="dot"></span>Chain</div>
+      <div class="sect">Pinned</div>
+      <div class="nav">Battery under load</div>
+      <div class="nav">Cornering + downforce</div>
+      <div class="nav">Event score 2027</div>
+      <div class="sect">Recent</div>
+      <div class="nav">Spring wheel rate</div>
+      <div class="nav">TS discharge</div>
+    </aside>
+    <main class="main">
+      <div class="ask glass">
+        <div class="q"><strong>Pasted problem</strong> · The accumulator has 103 cells in series at 3.8 V and an internal
+          resistance of 0.08 Ω. What current is drawn at 30 kW?</div>
+        <span class="chip">3.8 V</span><span class="chip">0.08 Ω</span><span class="chip">30 kW</span>
+      </div>
+      <section class="card glass">
+        <h3>Best matches</h3>
+        <p class="sub">from the words and the units in the text</p>
+        <div class="hits">
+          <div class="hit top"><span>Battery under load</span><span class="score">fills 3</span></div>
+          <div class="hit"><span>Ohm's law and power</span><span class="score">fills 2</span></div>
+          <div class="hit"><span>Max power transfer</span><span class="score">fills 1</span></div>
+        </div>
+        <div class="topics">
+          <div class="topic">Vehicle dynamics<span>14</span></div>
+          <div class="topic">Powertrain<span>7</span></div>
+          <div class="topic">Accumulator &amp; HV<span>11</span></div>
+          <div class="topic">Electronics<span>13</span></div>
+          <div class="topic">Structures<span>8</span></div>
+          <div class="topic">Thermo &amp; fluids<span>11</span></div>
+        </div>
+      </section>
+      <section class="card glass">
+        <h3>Battery under load</h3>
+        <p class="sub">OCV + internal resistance feeding a load of power P</p>
+        <pre class="eq">V_oc = N_s·V_cell     V_t = V_oc − I·R_pack
+P = I·V_t             P_loss = I²·R_pack</pre>
+        <div class="fields">
+          <div class="f"><label><b>N_s</b>cells in series</label><div class="in filled">103</div></div>
+          <div class="f"><label><b>V_cell</b>cell voltage</label><div class="in filled">3.8 V</div></div>
+          <div class="f"><label><b>R_pack</b>pack resistance</label><div class="in filled">0.08 Ω</div></div>
+          <div class="f"><label><b>P</b>load power</label><div class="in filled">30 kW</div></div>
+          <div class="f"><label><b>I</b>current</label><div class="in empty">solve for this</div></div>
+          <div class="f"><label><b>V_t</b>terminal voltage</label><div class="in empty">solve for this</div></div>
+        </div>
+        <div class="answer">
+          <span class="lbl">I =</span><span class="val">77.89 A</span><span class="alt">other root 4815 A (V_t 6.2 V)</span>
+          <span class="copy">Copy</span>
+        </div>
+      </section>
+    </main>
+  </div>
+</template>
+
+<script>
+  const dirs = [
+    ['A', 'Night glass', 'dark', 'Deep ISC ink ground with green and gold light bleeding through frosted panels. Gold is reserved for the answer and the one primary action. Most "racing" of the three.'],
+    ['B', 'Paper glass', 'light', 'Warm ISC paper with fine grain, milky white glass, green ink. The answer sits in a solid green slab with white text. Calm, very readable in daylight, the furthest from MingoCAN.'],
+    ['C', 'Graphite smoke', 'dark', 'Neutral smoked glass, no brand green in the chrome. One mint accent for "solved", gold only in the mark. Instrument-panel feel; the least brand-heavy.'],
+  ];
+  const tpl = document.getElementById('screen');
+  const root = document.getElementById('dirs');
+  for (const [k, name, mode, blurb] of dirs) {
+    const sec = document.createElement('section');
+    sec.className = 'dir';
+    sec.innerHTML = `<header><h2>${k} · ${name}</h2><span class="tag">${mode}</span><p>${blurb}</p></header>`;
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('.win').classList.add(k);
+    sec.appendChild(node);
+    root.appendChild(sec);
+  }
+</script>
+</body>
+</html>
