@@ -497,3 +497,176 @@ id = 173
 what = "tech inspection takt time, 29.5 h x 4 bays / 40 cars"
 cmd = "calc (8h+10h+11.5h)*4/40 -> min"
 answer = 177
+
+id = 377
+what = "Ackermann outer angle, inner 20 deg, L 2586 mm, track 719 mm"
+cmd = "ackermann delta_i=20deg L_wb=2586mm t_tr=719mm @delta_o=deg"
+answer = 18.29
+
+[[example]]
+id = 92
+what = "front-left slip angle from yaw rate (official range 8.9-9.3)"
+cmd = "wheel_slip_angle vx_car=42km/h vy_car=-3km/h yaw=1.3 x_w=0.765m y_w=0.6m delta_w=10deg @alpha_w=deg"
+answer = 9.15
+
+[[example]]
+id = 750
+what = "front toe for equal front slips from rear-inside slip, lf = lr = 0.8"
+cmd = "wheel_slip vx=10.2 R=8 a=0.8 b=0.8 t=1.2 delta=12deg toe_r=0.5deg known=RL alpha=4.6deg"
+answer = -0.5
+
+[[example]]
+id = 1001
+what = "front toe for equal front slips, minimum wheelbase 1525 mm"
+cmd = "wheel_slip vx=10.2 R=8 a=0.7625 b=0.7625 t=1.2 delta=12deg toe_r=0.5deg known=RL alpha=4.6deg"
+answer = -0.46
+
+[[example]]
+id = 1065
+what = "front outer wheel load at 1.8 g, 45 % front of 250 kg"
+cmd = "wheel_loads_cornering m_ax=112.5kg ay=1.8g0 h_cg=280mm t_tr=1200mm"
+answer = 1015
+
+[[example]]
+id = 522
+what = "CG distance from rear axle, 44/56 split, 1570 mm wheelbase"
+cmd = "static_axle_loads Fz_f=44N Fz_r=56N L_wb=1.57m"
+answer = 0.69
+
+[[example]]
+id = 376
+what = "bracket reaction from moments about the other support"
+cmd = "lever F_1=500N l_1=45mm l_2=35mm"
+answer = 643
+
+[[example]]
+id = 421
+what = "lever arm to balance the car with five 6 kg crates"
+cmd = "lever F_1=231.6kg*g0 l_1=1m F_2=30kg*g0"
+answer = 7.72
+
+[[example]]
+id = 366
+what = "wind tunnel speed for a 60 % model vs 80 % CFD at 65 km/h"
+cmd = "reynolds_matching v_sc1=65km/h L_sc1=0.8 L_sc2=0.6 @v_sc2=km/h"
+answer = 86.67
+
+[[example]]
+id = 1056
+what = "impact speed of a car falling from 40000 ft"
+cmd = "terminal_velocity m=165kg CdA=1.54 rho_air=1.2"
+answer = 41.85
+
+[[example]]
+id = 1057
+what = "fall time of a car from 40000 ft with drag"
+cmd = "drag_fall m=165kg CdA=1.54 rho_air=1.2 dh=40000ft"
+answer = 294
+
+[[example]]
+id = 856
+what = "SCx from a 300 to 265 km/h coast-down in 2 s (part 1)"
+cmd = "coast_down m=760kg v0=300km/h v=265km/h t=2s"
+answer = 0.98
+
+[[example]]
+id = 360
+what = "loose wheel speed after rolling 40 m against 10 N"
+cmd = "rolling_coast v0=72km/h m=5kg J_w=0.093 r_w=8.1in F=10N s=40m"
+answer = 17
+
+[[example]]
+id = 142
+what = "skidpad time at 15 m/s2 on the best line (R = 7.625 + 1.45/2)"
+cmd = "cornering R_c=8.35m ay=15"
+answer = 4.688
+
+[[example]]
+id = 363
+what = "max speed in a 20 m corner with rho*ClA = 6 kg/m"
+cmd = "cornering_downforce m=260kg R_c=20m mu=1.5 rho_air=1 ClA=6 @v=km/h"
+answer = 76.4
+
+[[example]]
+id = 93
+what = "critical damping for 240 kg on 100 N/mm"
+cmd = "wheel_rate k_ride=100N/mm m_c=240kg @c_crit=N*s/mm"
+answer = 9.8
+
+[[example]]
+id = 777
+what = "I4 second-order vibration at 4500 rpm"
+cmd = "engine_order k_ord=2 omega_m=4500rpm"
+answer = 150
+
+[[example]]
+id = 775
+what = "bore of a 3-cyl 65 kW engine from piston speed and bmep"
+cmd = "engine_geometry P_m=65kW omega_m=8400rpm c_m=18m/s bmep=12atm n_cyl=3 @B_bore=mm"
+answer = 71.0
+
+[[example]]
+id = 806
+what = "deck machining to raise CR 12 to 13.5 with a 0.1 mm thinner gasket"
+cmd = "cr_change S_k=42.5mm CR_1=12 CR_2=13.5 dh_gskt=0.1mm @dh_mach=mm"
+answer = 0.364
+
+[[example]]
+id = 995
+what = "deck machining to raise CR 11 to 13.5 with a 0.1 mm thinner gasket"
+cmd = "cr_change S_k=68.6mm CR_1=11 CR_2=13.5 dh_gskt=0.1mm @dh_mach=mm"
+answer = 1.272
+
+[[example]]
+id = 621
+what = "ignition timing in crank degrees from 2 mm before TDC"
+cmd = "slider_crank x_p=2mm S_k=52mm l_rod=66mm @th_cr=deg"
+answer = 19.2
+
+[[example]]
+id = 572
+what = "compound planetary ratio, planet 2 teeth from equal centre distance"
+cmd = "compound_planetary z_s=25 mod_1=2mm mod_2=3.015mm z_p1=76 z_r=86"
+answer = 14.76
+
+[[example]]
+id = 426
+what = "epicyclic planet speed, sun fixed, arm at 200 rpm"
+cmd = "epicyclic_planet n_s=0 n_c=200rpm z_s=40 z_p=50 @n_p=rpm"
+answer = 360
+
+[[example]]
+id = 664
+what = "two-stage gearbox output speed"
+cmd = "gear_train 600 25/75,15/100"
+answer = 30
+
+[[example]]
+id = 672
+what = "chain ratio after adding 4 teeth to the 38-tooth sprocket"
+cmd = "gear_train 1 42/20"
+answer = 2.1
+
+[[example]]
+id = 75
+what = "speed where 4WD hub torque stops being grip-limited (v1)"
+cmd = "traction_torque n_dw=4 Tq_wh=130 r_w=200mm mu=1.2 m=190kg rho_air=1.2 ClA=1.625 @v=km/h"
+answer = 63.4
+
+[[example]]
+id = 757
+what = "regen wheel torque from battery current (eta = product of 4)"
+cmd = "regen_wheel_torque V_oc=500V I=84A R_pack=0.2ohm eta_g=0.857821 n_dw=2 v=70km/h r_w=0.3m"
+answer = 390
+
+[[example]]
+id = 811
+what = "power-limited top speed with drag and 1.4 v^2 friction"
+cmd = "top_speed_losses eta_g=0.61 P_m=70kW rho_air=1.2 CdA=1.5 k_v2=1.4 @v=km/h"
+answer = 95.32
+
+[[example]]
+id = 1071
+what = "front disc temperature rise braking 180 to 90 km/h (part C)"
+cmd = "brake_heat m=1200kg v0=180km/h v=90km/h frac_d=0.7 n_d=2 m_d=7.2kg c_p=460"
+answer = 119

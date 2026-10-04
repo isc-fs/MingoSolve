@@ -821,6 +821,62 @@ fn accel_then_cruise(a: &Args) -> Result<String, String> {
     }))
 }
 
+fn wheel_slip(a: &Args) -> Result<String, String> {
+    let deg = 180.0 / std::f64::consts::PI;
+    let (vx, half_f, a_cg, b_cg, delta) = (
+        a.num("vx")?,
+        a.num("t")? / 2.0,
+        a.num("a")?,
+        a.num("b")?,
+        a.num("delta")?,
+    );
+    let half_r = match a.num("t_r")? {
+        x if x > 0.0 => x / 2.0,
+        _ => half_f,
+    };
+    let (toe_f, toe_r) = (a.num("toe_f")?, a.num("toe_r")?);
+    let yaw = match a.num("R")? {
+        r if r != 0.0 => vx / r,
+        _ => a.num("yaw")?,
+    };
+    // name, x ahead of CG, y left of CG, road-wheel angle (toe-in turns a left wheel right)
+    let wheels = [
+        ("FL", a_cg, half_f, delta - toe_f),
+        ("FR", a_cg, -half_f, delta + toe_f),
+        ("RL", -b_cg, half_r, -toe_r),
+        ("RR", -b_cg, -half_r, toe_r),
+    ];
+    let mut vy = a.num("vy")?;
+    let known = a.str("known").to_uppercase();
+    if !known.is_empty() {
+        let &(_, x, y, d) = wheels
+            .iter()
+            .find(|w| w.0 == known)
+            .ok_or("known: FL, FR, RL or RR")?;
+        vy = (vx - yaw * y) * (d - a.num("alpha")?).tan() - yaw * x;
+    }
+    let mut out = vec![format!("yaw {} rad/s  vy(CG) {} m/s", g6(yaw), g6(vy))];
+    let mut drift = HashMap::new();
+    for (name, x, y, d) in wheels {
+        let (vxw, vyw) = (vx - yaw * y, vy + yaw * x);
+        let beta = vyw.atan2(vxw);
+        drift.insert(name, beta);
+        out.push(format!(
+            "{name}  vx {} m/s  vy {} m/s  wheel angle {} deg  slip {} deg",
+            g6(vxw),
+            g6(vyw),
+            g6(d * deg),
+            g6((d - beta) * deg)
+        ));
+    }
+    out.push(format!(
+        "toe for equal front slips {} deg, rear {} deg (toe-in +)",
+        g6((drift["FR"] - drift["FL"]) / 2.0 * deg),
+        g6((drift["RR"] - drift["RL"]) / 2.0 * deg)
+    ));
+    Ok(out.join("\n  "))
+}
+
 fn round_to(a: &Args) -> Result<String, String> {
     let (x, step) = (a.num("x")?, a.num("step")?);
     let q = x / step;
@@ -891,6 +947,8 @@ pub fn tools() -> &'static [Tool] {
               "n_in:n teeth:s", gear_train),
             t("accel_then_cruise", "Time to cover s from rest accelerating at a up to v_max, then constant v_max.",
               "s:n a:n v_max:n", accel_then_cruise),
+            t("wheel_slip", "Velocity and slip angle of all four wheels (rigid body, x forward, y left, yaw > 0 = left turn). Angles in deg (type 10deg). Give vy, or known=RL alpha=4.6deg to back out vy from one wheel's slip. R = corner radius sets yaw = vx/R. Also prints the toe that equalises the slips on each axle.",
+              "vx:n a:n b:n t:n delta:n=0 yaw:n=0 R:n=0 vy:n=0 toe_f:n=0 toe_r:n=0 t_r:n=0 known:s= alpha:n=0", wheel_slip),
             t("round_to", "Round to a step: mode nearest | down | up (fuses/limits round down, 'at least' rounds up).",
               "x:n step:n=1 mode:s=nearest", round_to),
         ]
@@ -1041,6 +1099,48 @@ mod tests {
             run("can_transfer", &["290*128000", "500000"]),
             "580000 frames x 111 bit  time 128.76 s"
         );
+    }
+
+    #[test]
+    fn wheel_slip_matches_official_answers() {
+        // Q92 (official 8.9-9.3 deg): FL at x = 1.53/2, y = 0.6: vx 11.667 - 1.3*0.6 = 10.887,
+        // vy -0.833 + 1.3*0.765 = 0.1612, slip 10 - atan(0.1612/10.887) = 9.152 deg
+        let out = run(
+            "wheel_slip",
+            &[
+                "vx=42km/h",
+                "a=0.765",
+                "b=0.765",
+                "t=1.2",
+                "delta=10deg",
+                "yaw=1.3",
+                "vy=-3km/h",
+            ],
+        );
+        assert!(
+            out.contains(
+                "FL  vx 10.8867 m/s  vy 0.161167 m/s  wheel angle 10 deg  slip 9.15185 deg"
+            ),
+            "{out}"
+        );
+        // Q1001 (official -0.46): rear inside slip 4.6 deg with 0.5 deg toe-in, R = 8 m, L = 1.525 m
+        let out = run(
+            "wheel_slip",
+            &[
+                "vx=10.2",
+                "R=8",
+                "a=0.7625",
+                "b=0.7625",
+                "t=1.2",
+                "delta=12deg",
+                "toe_r=0.5deg",
+                "known=RL",
+                "alpha=4.6deg",
+            ],
+        );
+        assert!(out.contains("RL  vx 9.435 m/s"), "{out}");
+        assert!(out.contains("slip 4.6 deg"), "{out}");
+        assert!(out.contains("toe for equal front slips -0.46"), "{out}");
     }
 
     #[test]

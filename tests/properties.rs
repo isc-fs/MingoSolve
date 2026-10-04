@@ -59,7 +59,8 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(400))]
 
     #[test]
-    fn hiding_one_variable_recovers_it(fi in 0usize..70, seed in prop::collection::vec(0.0f64..1.0, 8), h in 0usize..16) {
+    fn hiding_one_variable_recovers_it(fi in 0usize..10_000, seed in prop::collection::vec(0.0f64..1.0, 8), h in 0usize..16) {
+        let fi = fi % registry().formulas.len();
         let f = &registry().formulas[fi];
         let Some(pt) = point(fi, &seed) else { return Ok(()) };
         let hidden = &f.names[h % f.names.len()];
