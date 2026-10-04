@@ -595,7 +595,7 @@ desc = "ADC code (floor it)"
 [[var]]
 name = "q_lsb"
 unit = "V"
-desc = "ADC resolution (one LSB)"
+desc = "one LSB step as a voltage"
 
 [[var]]
 name = "R1"

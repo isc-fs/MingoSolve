@@ -24,6 +24,8 @@ or `dev`, tag, or touch iskapps without the owner's OK.
 - Rust: `cargo test --workspace`, `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`.
 - App (from `apps/mingosolve`): `npm run check`, `npm test` (Vitest, fake engine), `npm run e2e` (Playwright, real
   engine through the test bridge `src-tauri/examples/ipc_bridge.rs`; needs `npx tauri icon` once and Playwright browsers).
+- Finder changes (`src/finder.rs`): also run `FSQ_BANK=<IFS-Tests>/data/fsquiz/bank.json cargo test --test prefill_bank`.
+  The bank is not public, so CI skips that test; it must report 0 wrong pre-fills before merging.
 - Python (from `legacy/python`): `uv sync`, `uv run fsq`, `uv run pytest`, `uv run ruff check .`, `uv run ruff format .`.
 
 ## Rules
