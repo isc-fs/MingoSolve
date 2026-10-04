@@ -1,0 +1,1838 @@
+# common: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "t"
+unit = "s"
+desc = "time"
+
+[[var]]
+name = "s"
+unit = "m"
+desc = "distance travelled"
+
+[[var]]
+name = "v"
+unit = "m/s"
+desc = "(final) velocity"
+
+[[var]]
+name = "v0"
+unit = "m/s"
+desc = "initial velocity"
+
+[[var]]
+name = "a"
+unit = "m/s**2"
+desc = "acceleration (longitudinal)"
+signed = true
+
+[[var]]
+name = "g"
+unit = "m/s**2"
+desc = "gravitational acceleration"
+default = 9.81
+
+[[var]]
+name = "m"
+unit = "kg"
+desc = "mass"
+
+[[var]]
+name = "F"
+unit = "N"
+desc = "force"
+signed = true
+
+[[var]]
+name = "rho_air"
+unit = "kg/m**3"
+desc = "air density (1.225 at sea level, 15 degC)"
+default = 1.225
+
+[[var]]
+name = "mu"
+unit = "dimensionless"
+desc = "friction coefficient (tyre-road)"
+
+[[var]]
+name = "R_c"
+unit = "m"
+desc = "corner radius (skidpad centreline 9.125)"
+
+[[var]]
+name = "ay"
+unit = "m/s**2"
+desc = "lateral acceleration (type 1.5g0 for 1.5 g)"
+signed = true
+
+[[var]]
+name = "ax"
+unit = "m/s**2"
+desc = "longitudinal acceleration of the car"
+signed = true
+
+[[var]]
+name = "ClA"
+unit = "m**2"
+desc = "lift (downforce) coefficient x area, positive = downforce"
+
+[[var]]
+name = "CdA"
+unit = "m**2"
+desc = "drag coefficient x area"
+
+[[var]]
+name = "F_L"
+unit = "N"
+desc = "downforce"
+
+[[var]]
+name = "F_D"
+unit = "N"
+desc = "drag force"
+
+[[var]]
+name = "h_cg"
+unit = "m"
+desc = "CG height"
+
+[[var]]
+name = "L_wb"
+unit = "m"
+desc = "wheelbase"
+
+[[var]]
+name = "t_tr"
+unit = "m"
+desc = "track width"
+
+[[var]]
+name = "omega"
+unit = "rad/s"
+desc = "angular speed (type rpm)"
+
+[[var]]
+name = "Tq"
+unit = "N*m"
+desc = "torque"
+signed = true
+
+[[var]]
+name = "r_w"
+unit = "m"
+desc = "wheel (dynamic) radius"
+
+[[var]]
+name = "P_drag"
+unit = "W"
+desc = "power to overcome drag"
+
+[[var]]
+name = "v_term"
+unit = "m/s"
+desc = "terminal velocity"
+
+[[var]]
+name = "a_cg"
+unit = "m"
+desc = "CG to FRONT axle distance"
+
+[[var]]
+name = "b_cg"
+unit = "m"
+desc = "CG to REAR axle distance"
+
+[[var]]
+name = "Fz_f"
+unit = "N"
+desc = "static front axle load"
+
+[[var]]
+name = "Fz_r"
+unit = "N"
+desc = "static rear axle load"
+
+[[var]]
+name = "dFz_x"
+unit = "N"
+desc = "longitudinal load transfer (front to rear)"
+
+[[var]]
+name = "dFz_y"
+unit = "N"
+desc = "lateral load transfer on one axle (per wheel)"
+
+[[var]]
+name = "m_ax"
+unit = "kg"
+desc = "mass on the axle considered"
+
+[[var]]
+name = "frac_in"
+unit = "dimensionless"
+desc = "fraction of weight on the inside wheels"
+
+[[var]]
+name = "x_cop"
+unit = "m"
+desc = "centre of pressure behind the FRONT axle"
+
+[[var]]
+name = "F_Lf"
+unit = "N"
+desc = "downforce on the front axle"
+
+[[var]]
+name = "F_Lr"
+unit = "N"
+desc = "downforce on the rear axle"
+
+[[var]]
+name = "t_lap"
+unit = "s"
+desc = "lap time"
+
+[[var]]
+name = "s_stop"
+unit = "m"
+desc = "stopping distance"
+
+[[var]]
+name = "t_d"
+unit = "s"
+desc = "reaction / system delay"
+
+[[var]]
+name = "a_b"
+unit = "m/s**2"
+desc = "braking deceleration (positive)"
+
+[[var]]
+name = "k_s"
+unit = "N/m"
+desc = "spring rate"
+
+[[var]]
+name = "MR"
+unit = "dimensionless"
+desc = "motion ratio = wheel travel / spring travel"
+
+[[var]]
+name = "k_w"
+unit = "N/m"
+desc = "wheel rate"
+
+[[var]]
+name = "k_t"
+unit = "N/m"
+desc = "tyre vertical stiffness"
+
+[[var]]
+name = "k_ride"
+unit = "N/m"
+desc = "ride rate (wheel rate and tyre in series)"
+
+[[var]]
+name = "m_c"
+unit = "kg"
+desc = "(corner) mass on the spring"
+
+[[var]]
+name = "f_n"
+unit = "Hz"
+desc = "natural frequency"
+
+[[var]]
+name = "c_crit"
+unit = "N*s/m"
+desc = "critical damping"
+
+[[var]]
+name = "z_def"
+unit = "m"
+desc = "static or aero deflection at the wheel"
+
+[[var]]
+name = "G_sh"
+unit = "Pa"
+desc = "shear modulus (steel ~80 GPa)"
+
+[[var]]
+name = "d_wire"
+unit = "m"
+desc = "spring wire diameter"
+
+[[var]]
+name = "D_m"
+unit = "m"
+desc = "spring mean coil diameter (inner + wire d)"
+
+[[var]]
+name = "n_coils"
+unit = "dimensionless"
+desc = "active coils"
+
+[[var]]
+name = "delta_i"
+unit = "rad"
+desc = "inner wheel steer angle"
+
+[[var]]
+name = "delta_o"
+unit = "rad"
+desc = "outer wheel steer angle"
+
+[[var]]
+name = "yaw"
+unit = "rad/s"
+desc = "yaw rate"
+
+[[var]]
+name = "V"
+unit = "V"
+desc = "voltage across an element"
+signed = true
+
+[[var]]
+name = "I"
+unit = "A"
+desc = "current"
+signed = true
+
+[[var]]
+name = "R"
+unit = "ohm"
+desc = "resistance"
+
+[[var]]
+name = "P"
+unit = "W"
+desc = "power"
+signed = true
+
+[[var]]
+name = "E"
+unit = "J"
+desc = "energy"
+
+[[var]]
+name = "Q_c"
+unit = "C"
+desc = "electric charge"
+
+[[var]]
+name = "N_s"
+unit = "dimensionless"
+desc = "cells in series"
+
+[[var]]
+name = "N_p"
+unit = "dimensionless"
+desc = "cells (or strings) in parallel"
+
+[[var]]
+name = "V_cell"
+unit = "V"
+desc = "cell voltage (OCV, nominal or max: check which one the question means)"
+
+[[var]]
+name = "R_cell"
+unit = "ohm"
+desc = "cell internal resistance"
+
+[[var]]
+name = "V_oc"
+unit = "V"
+desc = "pack open-circuit voltage"
+
+[[var]]
+name = "R_pack"
+unit = "ohm"
+desc = "pack internal resistance"
+
+[[var]]
+name = "V_t"
+unit = "V"
+desc = "pack terminal voltage under load"
+
+[[var]]
+name = "P_loss"
+unit = "W"
+desc = "power lost as heat (I^2 R)"
+
+[[var]]
+name = "P_max"
+unit = "W"
+desc = "maximum power transferable to a load"
+
+[[var]]
+name = "C_cell"
+unit = "C"
+desc = "cell capacity (type it as Ah)"
+
+[[var]]
+name = "E_cell"
+unit = "J"
+desc = "energy of one cell"
+
+[[var]]
+name = "E_pack"
+unit = "J"
+desc = "pack energy"
+
+[[var]]
+name = "rho"
+unit = "ohm*m"
+desc = "resistivity"
+
+[[var]]
+name = "l_c"
+unit = "m"
+desc = "conductor length (go + return!)"
+
+[[var]]
+name = "A_c"
+unit = "m**2"
+desc = "conductor cross-section"
+
+[[var]]
+name = "V_src"
+unit = "V"
+desc = "source / battery voltage"
+
+[[var]]
+name = "V_drop"
+unit = "V"
+desc = "voltage drop on a conductor"
+
+[[var]]
+name = "eta"
+unit = "dimensionless"
+desc = "efficiency (0..1)"
+
+[[var]]
+name = "R_0"
+unit = "ohm"
+desc = "resistance at reference temperature"
+
+[[var]]
+name = "R_T"
+unit = "ohm"
+desc = "resistance at temperature T"
+
+[[var]]
+name = "alpha"
+unit = "1/K"
+desc = "temperature coefficient of resistance"
+
+[[var]]
+name = "T"
+unit = "K"
+desc = "temperature (type degC; absolute for NTC, differences elsewhere)"
+
+[[var]]
+name = "T_0"
+unit = "K"
+desc = "reference temperature"
+
+[[var]]
+name = "T_amb"
+unit = "K"
+desc = "ambient temperature"
+
+[[var]]
+name = "R_th"
+unit = "K/W"
+desc = "thermal resistance"
+
+[[var]]
+name = "C"
+unit = "F"
+desc = "capacitance"
+
+[[var]]
+name = "L"
+unit = "H"
+desc = "inductance"
+
+[[var]]
+name = "V_0"
+unit = "V"
+desc = "initial capacitor voltage"
+
+[[var]]
+name = "V_f"
+unit = "V"
+desc = "final (asymptotic) capacitor voltage"
+
+[[var]]
+name = "V_c"
+unit = "V"
+desc = "capacitor voltage at time t"
+
+[[var]]
+name = "tau"
+unit = "s"
+desc = "time constant"
+
+[[var]]
+name = "P_pk"
+unit = "W"
+desc = "peak power (start of discharge)"
+
+[[var]]
+name = "P_avg"
+unit = "W"
+desc = "average power over the interval"
+
+[[var]]
+name = "E_C"
+unit = "J"
+desc = "energy released by a capacitor between V_0 and V_c"
+
+[[var]]
+name = "V_load"
+unit = "V"
+desc = "voltage at the load"
+
+[[var]]
+name = "V_bat"
+unit = "V"
+desc = "battery voltage"
+
+[[var]]
+name = "dIdt"
+unit = "A/s"
+desc = "current slope"
+signed = true
+
+[[var]]
+name = "f"
+unit = "Hz"
+desc = "frequency"
+
+[[var]]
+name = "f_c"
+unit = "Hz"
+desc = "cutoff frequency"
+
+[[var]]
+name = "phi"
+unit = "rad"
+desc = "phase shift (type @phi=deg to show degrees)"
+signed = true
+
+[[var]]
+name = "H"
+unit = "dimensionless"
+desc = "gain magnitude |H|"
+
+[[var]]
+name = "X_C"
+unit = "ohm"
+desc = "capacitive reactance"
+
+[[var]]
+name = "X_L"
+unit = "ohm"
+desc = "inductive reactance"
+
+[[var]]
+name = "Gm"
+unit = "dimensionless"
+desc = "reflection coefficient magnitude |Gamma|"
+
+[[var]]
+name = "VSWR"
+unit = "dimensionless"
+desc = "voltage standing wave ratio"
+
+[[var]]
+name = "eta_tx"
+unit = "dimensionless"
+desc = "fraction of power transmitted (1-|Gamma|^2)"
+
+[[var]]
+name = "f_max"
+unit = "Hz"
+desc = "highest signal frequency"
+
+[[var]]
+name = "f_s"
+unit = "Hz"
+desc = "sampling frequency"
+
+[[var]]
+name = "V_in"
+unit = "V"
+desc = "input voltage"
+
+[[var]]
+name = "V_out"
+unit = "V"
+desc = "output voltage"
+
+[[var]]
+name = "V_ref"
+unit = "V"
+desc = "ADC reference voltage"
+
+[[var]]
+name = "k_div"
+unit = "dimensionless"
+desc = "divider ratio before the ADC"
+
+[[var]]
+name = "n_bits"
+unit = "dimensionless"
+desc = "ADC bits"
+
+[[var]]
+name = "code"
+unit = "dimensionless"
+desc = "ADC code (floor it)"
+
+[[var]]
+name = "q_lsb"
+unit = "V"
+desc = "ADC resolution (one LSB)"
+
+[[var]]
+name = "R1"
+unit = "ohm"
+desc = "resistor R1"
+
+[[var]]
+name = "R2"
+unit = "ohm"
+desc = "resistor R2"
+
+[[var]]
+name = "R3"
+unit = "ohm"
+desc = "resistor R3"
+
+[[var]]
+name = "R4"
+unit = "ohm"
+desc = "resistor R4"
+
+[[var]]
+name = "R_25"
+unit = "ohm"
+desc = "NTC resistance at 25 degC"
+
+[[var]]
+name = "B_ntc"
+unit = "K"
+desc = "NTC beta constant"
+
+[[var]]
+name = "V_p"
+unit = "V"
+desc = "op-amp non-inverting input voltage"
+signed = true
+
+[[var]]
+name = "V_n"
+unit = "V"
+desc = "op-amp inverting input voltage"
+signed = true
+
+[[var]]
+name = "I_out"
+unit = "A"
+desc = "output current"
+signed = true
+
+[[var]]
+name = "C1"
+unit = "C"
+desc = "capacity at current I1 (type Ah)"
+
+[[var]]
+name = "C2"
+unit = "C"
+desc = "capacity at current I2 (type Ah)"
+
+[[var]]
+name = "I1"
+unit = "A"
+desc = "discharge current 1"
+
+[[var]]
+name = "I2"
+unit = "A"
+desc = "discharge current 2"
+
+[[var]]
+name = "k_p"
+unit = "dimensionless"
+desc = "Peukert exponent"
+
+[[var]]
+name = "D"
+unit = "dimensionless"
+desc = "duty cycle"
+
+[[var]]
+name = "V_o"
+unit = "V"
+desc = "converter output voltage"
+
+[[var]]
+name = "dI"
+unit = "A"
+desc = "inductor ripple current (peak-peak)"
+
+[[var]]
+name = "f_sw"
+unit = "Hz"
+desc = "switching frequency"
+
+[[var]]
+name = "mu_r"
+unit = "dimensionless"
+desc = "relative permeability"
+
+[[var]]
+name = "N_t"
+unit = "dimensionless"
+desc = "number of turns"
+
+[[var]]
+name = "A_core"
+unit = "m**2"
+desc = "core cross-section"
+
+[[var]]
+name = "l_core"
+unit = "m"
+desc = "magnetic path length"
+
+[[var]]
+name = "E_k"
+unit = "J"
+desc = "kinetic energy"
+
+[[var]]
+name = "E_pot"
+unit = "J"
+desc = "potential energy"
+
+[[var]]
+name = "dh"
+unit = "m"
+desc = "height change"
+
+[[var]]
+name = "J_w"
+unit = "kg*m**2"
+desc = "rotational inertia (per wheel x number of wheels)"
+
+[[var]]
+name = "v_avg"
+unit = "m/s"
+desc = "average speed over a distance"
+
+[[var]]
+name = "omega_m"
+unit = "rad/s"
+desc = "motor / engine speed (type rpm)"
+
+[[var]]
+name = "omega_w"
+unit = "rad/s"
+desc = "wheel speed (type rpm)"
+
+[[var]]
+name = "i_g"
+unit = "dimensionless"
+desc = "overall gear ratio (motor rev per wheel rev)"
+
+[[var]]
+name = "Tq_m"
+unit = "N*m"
+desc = "motor torque"
+
+[[var]]
+name = "Tq_w"
+unit = "N*m"
+desc = "wheel torque (sum of driven wheels)"
+
+[[var]]
+name = "eta_g"
+unit = "dimensionless"
+desc = "drivetrain efficiency"
+default = 1.0
+
+[[var]]
+name = "F_x"
+unit = "N"
+desc = "tractive / braking force at the ground"
+
+[[var]]
+name = "P_m"
+unit = "W"
+desc = "mechanical power"
+
+[[var]]
+name = "n_s"
+unit = "rad/s"
+desc = "planetary sun speed"
+signed = true
+
+[[var]]
+name = "n_r"
+unit = "rad/s"
+desc = "planetary ring speed"
+signed = true
+
+[[var]]
+name = "n_c"
+unit = "rad/s"
+desc = "planetary carrier speed"
+signed = true
+
+[[var]]
+name = "z_s"
+unit = "dimensionless"
+desc = "sun teeth"
+
+[[var]]
+name = "z_r"
+unit = "dimensionless"
+desc = "ring teeth"
+
+[[var]]
+name = "B_bore"
+unit = "m"
+desc = "bore"
+
+[[var]]
+name = "S_k"
+unit = "m"
+desc = "stroke"
+
+[[var]]
+name = "n_cyl"
+unit = "dimensionless"
+desc = "number of cylinders"
+
+[[var]]
+name = "V_d"
+unit = "m**3"
+desc = "total displacement"
+
+[[var]]
+name = "V_cc"
+unit = "m**3"
+desc = "combustion chamber (clearance) volume per cylinder"
+
+[[var]]
+name = "CR"
+unit = "dimensionless"
+desc = "compression ratio"
+
+[[var]]
+name = "c_m"
+unit = "m/s"
+desc = "mean piston speed"
+
+[[var]]
+name = "bmep"
+unit = "Pa"
+desc = "brake mean effective pressure"
+
+[[var]]
+name = "f_ord"
+unit = "Hz"
+desc = "engine order / firing frequency"
+
+[[var]]
+name = "k_ord"
+unit = "dimensionless"
+desc = "engine order (I4 4-stroke firing = 2)"
+
+[[var]]
+name = "mu_pad"
+unit = "dimensionless"
+desc = "pad friction coefficient"
+
+[[var]]
+name = "p_h"
+unit = "Pa"
+desc = "hydraulic pressure (type bar)"
+
+[[var]]
+name = "A_pis"
+unit = "m**2"
+desc = "piston area (one piston)"
+
+[[var]]
+name = "n_pis"
+unit = "dimensionless"
+desc = "number of pistons pushing pads (opposed 2-piston = 2)"
+
+[[var]]
+name = "r_m"
+unit = "m"
+desc = "effective (mean) disc radius"
+
+[[var]]
+name = "Tq_b"
+unit = "N*m"
+desc = "brake torque"
+
+[[var]]
+name = "I_a"
+unit = "m**4"
+desc = "second moment of area"
+
+[[var]]
+name = "D_o"
+unit = "m"
+desc = "tube outer diameter"
+
+[[var]]
+name = "D_i"
+unit = "m"
+desc = "tube inner diameter"
+
+[[var]]
+name = "t_wall"
+unit = "m"
+desc = "wall thickness"
+
+[[var]]
+name = "A_s"
+unit = "m**2"
+desc = "section area"
+
+[[var]]
+name = "B_sq"
+unit = "m"
+desc = "square tube outer side"
+
+[[var]]
+name = "b_rect"
+unit = "m"
+desc = "rectangle width"
+
+[[var]]
+name = "h_rect"
+unit = "m"
+desc = "rectangle height"
+
+[[var]]
+name = "c_y"
+unit = "m"
+desc = "distance from neutral axis to outer fibre"
+
+[[var]]
+name = "L_b"
+unit = "m"
+desc = "beam / member length (between supports)"
+
+[[var]]
+name = "E_y"
+unit = "Pa"
+desc = "Young's modulus (steel 200-210 GPa, Al 70 GPa)"
+
+[[var]]
+name = "sigma"
+unit = "Pa"
+desc = "normal stress"
+signed = true
+
+[[var]]
+name = "sigma_y"
+unit = "Pa"
+desc = "yield strength (FS rules baseline steel 305 MPa)"
+default = 305000000.0
+
+[[var]]
+name = "eps"
+unit = "dimensionless"
+desc = "strain"
+
+[[var]]
+name = "dL_b"
+unit = "m"
+desc = "elongation"
+
+[[var]]
+name = "M_b"
+unit = "N*m"
+desc = "bending moment"
+signed = true
+
+[[var]]
+name = "delta_b"
+unit = "m"
+desc = "deflection"
+
+[[var]]
+name = "F_cr"
+unit = "N"
+desc = "Euler buckling load"
+
+[[var]]
+name = "K_e"
+unit = "dimensionless"
+desc = "effective length factor (pinned-pinned 1, fixed-free 2, fixed-fixed 0.5)"
+default = 1.0
+
+[[var]]
+name = "n_b"
+unit = "dimensionless"
+desc = "number of bolts / shear planes"
+
+[[var]]
+name = "tau_a"
+unit = "Pa"
+desc = "allowable shear stress"
+
+[[var]]
+name = "d_b"
+unit = "m"
+desc = "bolt diameter"
+
+[[var]]
+name = "t_p"
+unit = "m"
+desc = "plate thickness"
+
+[[var]]
+name = "p_brg"
+unit = "Pa"
+desc = "bearing pressure"
+
+[[var]]
+name = "Q_h"
+unit = "J"
+desc = "heat"
+
+[[var]]
+name = "c_p"
+unit = "J/(kg*K)"
+desc = "specific heat (water 4186)"
+
+[[var]]
+name = "dT"
+unit = "K"
+desc = "temperature change (type delta_degC or K)"
+
+[[var]]
+name = "L_lat"
+unit = "J/kg"
+desc = "latent heat"
+
+[[var]]
+name = "alpha_th"
+unit = "1/K"
+desc = "thermal expansion coefficient"
+
+[[var]]
+name = "L_0"
+unit = "m"
+desc = "initial length"
+
+[[var]]
+name = "dL_th"
+unit = "m"
+desc = "thermal elongation"
+
+[[var]]
+name = "p_1"
+unit = "Pa"
+desc = "pressure state 1, ABSOLUTE (type bar)"
+
+[[var]]
+name = "p_2"
+unit = "Pa"
+desc = "pressure state 2, ABSOLUTE"
+
+[[var]]
+name = "T_1"
+unit = "K"
+desc = "temperature state 1 (type degC)"
+
+[[var]]
+name = "T_2"
+unit = "K"
+desc = "temperature state 2 (type degC)"
+
+[[var]]
+name = "V_g"
+unit = "m**3"
+desc = "gas volume"
+
+[[var]]
+name = "V_1"
+unit = "m**3"
+desc = "volume state 1"
+
+[[var]]
+name = "V_2"
+unit = "m**3"
+desc = "volume state 2"
+
+[[var]]
+name = "R_s"
+unit = "J/(kg*K)"
+desc = "specific gas constant (air 287)"
+default = 287.0
+
+[[var]]
+name = "kappa"
+unit = "dimensionless"
+desc = "heat capacity ratio"
+default = 1.4
+
+[[var]]
+name = "T_hot"
+unit = "K"
+desc = "hot reservoir temperature"
+
+[[var]]
+name = "T_cold"
+unit = "K"
+desc = "cold reservoir temperature"
+
+[[var]]
+name = "eta_c"
+unit = "dimensionless"
+desc = "Carnot efficiency"
+
+[[var]]
+name = "T_i"
+unit = "K"
+desc = "initial body temperature"
+
+[[var]]
+name = "k_cool"
+unit = "1/s"
+desc = "cooling constant h*A/(m*c)"
+
+[[var]]
+name = "rho_f"
+unit = "kg/m**3"
+desc = "fluid density (water 1000)"
+
+[[var]]
+name = "v_1"
+unit = "m/s"
+desc = "flow speed at section 1"
+
+[[var]]
+name = "v_2"
+unit = "m/s"
+desc = "flow speed at section 2"
+
+[[var]]
+name = "A_1"
+unit = "m**2"
+desc = "section 1 area"
+
+[[var]]
+name = "A_2"
+unit = "m**2"
+desc = "section 2 area"
+
+[[var]]
+name = "dz"
+unit = "m"
+desc = "height of 2 above 1"
+signed = true
+
+[[var]]
+name = "mu_dyn"
+unit = "Pa*s"
+desc = "dynamic viscosity"
+
+[[var]]
+name = "L_ch"
+unit = "m"
+desc = "characteristic length"
+
+[[var]]
+name = "Re"
+unit = "dimensionless"
+desc = "Reynolds number"
+
+[[var]]
+name = "c_s"
+unit = "m/s"
+desc = "speed of sound"
+default = 343.0
+
+[[var]]
+name = "L_p"
+unit = "m"
+desc = "pipe length"
+
+[[var]]
+name = "f_p"
+unit = "Hz"
+desc = "pipe resonance frequency"
+
+[[var]]
+name = "n_h"
+unit = "dimensionless"
+desc = "harmonic index (1, 2, ...)"
+
+[[var]]
+name = "mu_0"
+unit = "H/m"
+desc = "vacuum permeability (4 pi 1e-7 H/m)"
+default = 1.2566370614359173e-06
+
+[[var]]
+name = "T_25"
+unit = "K"
+desc = "NTC reference temperature (25 degC)"
+default = 298.15
+
+[[formula]]
+key = "aero_forces"
+title = "Downforce and drag: F = 1/2 rho C A v^2"
+eqs = [
+    "F_L = rho_air*ClA*v**2/2",
+    "F_D = rho_air*CdA*v**2/2",
+    "P_drag = F_D*v",
+]
+tags = ["aero", "downforce", "drag", "lift", "dynamic", "pressure"]
+notes = "Force scales with v^2 and rho: F2/F1 = (v2/v1)^2. Sea level rho = 1.225."
+
+[[formula]]
+key = "terminal_velocity"
+title = "Terminal velocity"
+eqs = [
+    "v_term = sqrt(2*m*g/(rho_air*CdA))",
+]
+tags = ["aero", "terminal", "fall", "drag"]
+
+[[formula]]
+key = "static_axle_loads"
+title = "Static axle loads from CG position"
+eqs = [
+    "Fz_f = m*g*b_cg/L_wb",
+    "Fz_r = m*g*a_cg/L_wb",
+    "L_wb = a_cg + b_cg",
+]
+tags = ["dynamics", "weight", "distribution", "cg", "axle", "load", "static"]
+notes = "Front fraction = b_cg/L_wb. '70 % rear' -> a_cg = 0.7*L_wb."
+
+[[formula]]
+key = "longitudinal_transfer"
+title = "Longitudinal load transfer"
+eqs = [
+    "dFz_x = m*ax*h_cg/L_wb",
+]
+tags = ["dynamics", "load", "transfer", "braking", "acceleration", "pitch"]
+
+[[formula]]
+key = "lateral_transfer"
+title = "Lateral load transfer on one axle (rigid, per wheel)"
+eqs = [
+    "dFz_y = m_ax*ay*h_cg/t_tr",
+]
+tags = ["dynamics", "load", "transfer", "cornering", "lateral", "wheel", "load"]
+notes = "Wheel load = Fz_axle/2 +- dFz_y. First skidpad lap is a RIGHT turn (left wheels outside)."
+
+[[formula]]
+key = "rollover"
+title = "Rollover limit of a rigid car"
+eqs = [
+    "ay*h_cg = g*t_tr/2",
+]
+tags = ["dynamics", "rollover", "tip", "track", "cg"]
+
+[[formula]]
+key = "inside_wheel_fraction"
+title = "Share of weight left on the inside wheels"
+eqs = [
+    "frac_in = 1/2 - ay*h_cg/(g*t_tr)",
+]
+tags = ["dynamics", "lateral", "load", "cg", "height"]
+
+[[formula]]
+key = "front_lift"
+title = "Front wheels lift under acceleration (moments about rear contact)"
+eqs = [
+    "ax*h_cg = g*b_cg",
+]
+tags = ["dynamics", "wheelie", "traction", "cg", "height"]
+notes = "Traction-limited: ax = mu*g."
+
+[[formula]]
+key = "traction_limit"
+title = "Friction-limited acceleration"
+eqs = [
+    "ax = mu*g",
+]
+tags = ["dynamics", "traction", "grip", "friction"]
+
+[[formula]]
+key = "aero_split"
+title = "Downforce split by centre of pressure"
+eqs = [
+    "F_Lf = F_L*(L_wb - x_cop)/L_wb",
+    "F_Lr = F_L - F_Lf",
+]
+tags = ["dynamics", "aero", "balance", "centre", "of", "pressure"]
+
+[[formula]]
+key = "cornering"
+title = "Cornering: ay = v^2 / R, lap time, yaw rate"
+eqs = [
+    "ay = v**2/R_c",
+    "t_lap = 2*pi*R_c/v",
+    "yaw = v/R_c",
+]
+tags = ["dynamics", "cornering", "lateral", "skidpad", "lap", "yaw"]
+notes = "Skidpad: R_c = 15.25/2 + 3/2 = 9.125 m (centreline). One lap = 57.334 m."
+
+[[formula]]
+key = "cornering_downforce"
+title = "Max cornering speed with downforce"
+eqs = [
+    "m*v**2/R_c = mu*(m*g + rho_air*ClA*v**2/2)",
+]
+tags = ["dynamics", "aero", "cornering", "grip", "skidpad", "speed", "downforce"]
+notes = "Lift (negative ClA) works too. Watch the sign convention of the question."
+
+[[formula]]
+key = "stopping_distance"
+title = "Stopping distance with delay"
+eqs = [
+    "s_stop = v*t_d + v**2/(2*a_b)",
+]
+tags = ["dynamics", "braking", "ebs", "stopping", "distance", "delay"]
+notes = "DV EBS question (Q795): 40 km/h, 0.2 s, 5 m/s2 -> 14.57 m."
+
+[[formula]]
+key = "wheel_rate"
+title = "Wheel rate, ride rate, frequency, critical damping"
+eqs = [
+    "k_w = k_s/MR**2",
+    "k_ride = k_w*k_t/(k_w + k_t)",
+    "f_n = sqrt(k_ride/m_c)/(2*pi)",
+    "c_crit = 2*sqrt(k_ride*m_c)",
+    "z_def = F/k_ride",
+]
+tags = ["dynamics", "suspension", "spring", "motion", "ratio", "wheel", "rate", "ride", "frequency", "damping"]
+notes = "Official convention: MR = wheel travel / spring travel, k_w = k_s/MR^2. Without a tyre, pass k_ride = k_w (or a huge k_t)."
+
+[[formula]]
+key = "coil_spring"
+title = "Helical spring rate"
+eqs = [
+    "k_s = G_sh*d_wire**4/(8*D_m**3*n_coils)",
+]
+tags = ["structures", "spring", "coil", "wire", "rate"]
+
+[[formula]]
+key = "ackermann"
+title = "Ackermann steering"
+eqs = [
+    "1/tan(delta_o) - 1/tan(delta_i) = t_tr/L_wb",
+]
+tags = ["dynamics", "steering", "ackermann", "geometry", "angle"]
+
+[[formula]]
+key = "ohm"
+title = "Ohm's law and power"
+eqs = [
+    "V = I*R",
+    "P = V*I",
+]
+tags = ["electrical", "ohm", "power", "current", "voltage"]
+
+[[formula]]
+key = "battery_load"
+title = "Battery (OCV + internal R) feeding a load of power P"
+eqs = [
+    "V_oc = N_s*V_cell",
+    "R_pack = N_s*R_cell/N_p",
+    "V_t = V_oc - I*R_pack",
+    "P = I*V_t",
+    "P_loss = I**2*R_pack",
+]
+tags = ["electrical", "hv", "accumulator", "battery", "internal", "resistance", "load", "current"]
+notes = "P = I*V_oc - I^2*R has two roots: the physical one is the SMALLER current. If R is given per stack, pass R_pack = R_stack/N_stacks_in_parallel directly. '4 stacks of 103 cells' = N_s 103, 4 in parallel."
+
+[[formula]]
+key = "max_power_transfer"
+title = "Max power from a source into a matched load"
+eqs = [
+    "P_max = V_oc**2/(4*R_pack)",
+]
+tags = ["electrical", "battery", "power", "matched", "short"]
+
+[[formula]]
+key = "pack_energy"
+title = "Pack / cell energy from capacity"
+eqs = [
+    "E_cell = V_cell*C_cell",
+    "E_pack = N_s*N_p*E_cell",
+]
+tags = ["electrical", "hv", "accumulator", "energy", "capacity", "cell"]
+notes = "Rules cell energy (EV 5.1.2, 2026/2027) = MAX cell voltage x nominal capacity. Old keys mixed V_max (Q577/Q781) and V_nom (Q396). See tool segment_max_cells."
+
+[[formula]]
+key = "energy_power"
+title = "E = P t, Q = I t"
+eqs = [
+    "E = P*t",
+    "Q_c = I*t",
+]
+tags = ["energy", "power", "time", "charge", "coulomb"]
+
+[[formula]]
+key = "wire_resistance"
+title = "Conductor resistance R = rho l / A"
+eqs = [
+    "R = rho*l_c/A_c",
+]
+tags = ["electrical", "wire", "cable", "resistance", "resistivity", "copper"]
+notes = "rho Cu ~1.72e-8 (0.017 uOhm m), Al ~2.65e-8, kappa = 1/rho (56 S m/mm2 for Cu). Use the LOOP length (supply + return)."
+
+[[formula]]
+key = "cable_drop"
+title = "Voltage drop and efficiency of a feed cable"
+eqs = [
+    "V_drop = I*R",
+    "eta = 1 - V_drop/V_src",
+]
+tags = ["electrical", "cable", "drop", "efficiency", "starter"]
+
+[[formula]]
+key = "resistance_temperature"
+title = "R(T) = R0 (1 + alpha (T - T0))"
+eqs = [
+    "R_T = R_0*(1 + alpha*(T - T_0))",
+]
+tags = ["electrical", "resistance", "temperature", "coefficient", "tcr", "ppm"]
+
+[[formula]]
+key = "resistor_self_heating"
+title = "Self-heating resistor (steady state)"
+eqs = [
+    "R_T = R_0*(1 + alpha*(T - T_0))",
+    "T = T_amb + I**2*R_T*R_th",
+    "V = I*R_T",
+]
+tags = ["electrical", "self", "heating", "thermal", "resistance", "temperature"]
+
+[[formula]]
+key = "rc_transient"
+title = "RC charge/discharge"
+eqs = [
+    "V_c = V_f + (V_0 - V_f)*exp(-t/(R*C))",
+    "tau = R*C",
+]
+tags = ["electrical", "rc", "transient", "capacitor", "discharge", "charge", "time", "constant"]
+notes = "Discharge to 0: V_f = 0. Relay hold-up: same law on the coil current."
+
+[[formula]]
+key = "ts_discharge"
+title = "TS discharge (<= 60 V in 5 s): resistor, peak and average power"
+eqs = [
+    "V_c = V_0*exp(-t/(R*C))",
+    "P_pk = V_0**2/R",
+    "E_C = C*(V_0**2 - V_c**2)/2",
+    "P_avg = E_C/t",
+]
+tags = ["electrical", "hv", "discharge", "rule", "60", "V", "5", "s", "precharge", "resistor", "power"]
+notes = "Give V_c=60V t=5s. V_0 varies by question: Q245 used V_nom, Q330 'minimum possible' used V_min. Sum inverter capacitances."
+
+[[formula]]
+key = "cap_energy"
+title = "Capacitor energy between two voltages"
+eqs = [
+    "E_C = C*(V_0**2 - V_c**2)/2",
+]
+tags = ["electrical", "capacitor", "energy"]
+
+[[formula]]
+key = "inductor_step"
+title = "Load voltage during a current step through R and L"
+eqs = [
+    "V_load = V_bat - I*R - L*dIdt",
+]
+tags = ["electrical", "inductance", "di/dt", "cable", "step"]
+
+[[formula]]
+key = "inductor_energy"
+title = "Coil inductance and stored energy"
+eqs = [
+    "L = mu_0*mu_r*N_t**2*A_core/l_core",
+    "E = L*I**2/2",
+]
+tags = ["electrical", "inductance", "coil", "solenoid", "energy"]
+
+[[formula]]
+key = "reactance"
+title = "Reactances"
+eqs = [
+    "X_C = 1/(2*pi*f*C)",
+    "X_L = 2*pi*f*L",
+]
+tags = ["electrical", "ac", "impedance", "reactance", "capacitor", "inductor"]
+
+[[formula]]
+key = "rc_lowpass"
+title = "1st-order RC low-pass"
+eqs = [
+    "f_c = 1/(2*pi*R*C)",
+    "phi = -atan(f/f_c)",
+    "H = 1/sqrt(1 + (f/f_c)**2)",
+]
+tags = ["electrical", "filter", "low", "pass", "rc", "cutoff", "phase"]
+notes = "Phase is negative. E12 pick: tool e_series."
+
+[[formula]]
+key = "vswr"
+title = "Reflection and VSWR"
+eqs = [
+    "VSWR = (1 + Gm)/(1 - Gm)",
+    "eta_tx = 1 - Gm**2",
+]
+tags = ["electrical", "rf", "vswr", "reflection", "transmission", "line", "antenna"]
+notes = "Gamma = (Z_L - Z_0)/(Z_L + Z_0) for complex loads: tool gamma."
+
+[[formula]]
+key = "nyquist"
+title = "Minimum sampling frequency"
+eqs = [
+    "f_s = 2*f_max",
+]
+tags = ["electrical", "sampling", "nyquist", "adc"]
+notes = "Aliased frequency: tool alias."
+
+[[formula]]
+key = "adc"
+title = "ADC code and LSB"
+eqs = [
+    "code = V_in*k_div/V_ref*2**n_bits",
+    "q_lsb = V_ref/2**n_bits",
+]
+tags = ["electrical", "adc", "resolution", "code", "lsb"]
+notes = "Floor the code."
+
+[[formula]]
+key = "divider"
+title = "Voltage divider (R2 to ground)"
+eqs = [
+    "V_out = V_in*R2/(R1 + R2)",
+]
+tags = ["electrical", "divider", "sensor", "ntc", "ptc"]
+
+[[formula]]
+key = "ntc"
+title = "NTC beta model (T absolute: type degC)"
+eqs = [
+    "R_T = R_25*exp(B_ntc*(1/T - 1/T_25))",
+]
+tags = ["electrical", "ntc", "thermistor", "temperature", "sensor"]
+
+[[formula]]
+key = "howland"
+title = "Improved Howland current pump"
+eqs = [
+    "I_out = (R3/R1)*(V_p - V_n)/R4",
+]
+tags = ["electrical", "opamp", "current", "source"]
+
+[[formula]]
+key = "peukert"
+title = "Peukert capacity at another current"
+eqs = [
+    "C2 = C1*(I1/I2)**(k_p - 1)",
+]
+tags = ["electrical", "battery", "capacity", "peukert"]
+
+[[formula]]
+key = "buck"
+title = "Buck converter duty and ripple"
+eqs = [
+    "D = V_o/(V_in*eta)",
+    "dI = (V_in - V_o)*D/(L*f_sw)",
+]
+tags = ["electrical", "buck", "converter", "dcdc", "ripple", "duty"]
+notes = "Q1032 puts the efficiency into D."
+
+[[formula]]
+key = "kinetic_energy"
+title = "Kinetic and potential energy"
+eqs = [
+    "E_k = m*v**2/2",
+    "E_pot = m*g*dh",
+]
+tags = ["energy", "kinetic", "potential", "work"]
+
+[[formula]]
+key = "rolling_energy"
+title = "Kinetic energy incl. rotating wheels"
+eqs = [
+    "E_k = (m + J_w/r_w**2)*v**2/2",
+]
+tags = ["energy", "rotating", "inertia", "wheel"]
+
+[[formula]]
+key = "speed"
+title = "Average speed: v_avg = s / t"
+eqs = [
+    "v_avg = s/t",
+]
+tags = ["kinematics", "velocity", "speed"]
+
+[[formula]]
+key = "uniform_accel"
+title = "Constant acceleration (suvat)"
+eqs = [
+    "v = v0 + a*t",
+    "s = v0*t + a*t**2/2",
+]
+tags = ["kinematics", "acceleration", "suvat"]
+notes = "v**2 = v0**2 + 2*a*s follows from these two."
+
+[[formula]]
+key = "gear_drive"
+title = "Gear ratio: speeds, torques, road speed"
+eqs = [
+    "omega_m = omega_w*i_g",
+    "Tq_w = Tq_m*i_g*eta_g",
+    "v = omega_w*r_w",
+    "F_x = Tq_w/r_w",
+]
+tags = ["powertrain", "gear", "ratio", "wheel", "speed", "rpm", "torque", "road", "speed"]
+notes = "eta_g defaults to 1. Gear train: i_g = product(z_driven/z_driver); idlers cancel."
+
+[[formula]]
+key = "power_torque"
+title = "Power = torque x speed"
+eqs = [
+    "P_m = Tq*omega",
+]
+tags = ["powertrain", "power", "torque", "rpm"]
+
+[[formula]]
+key = "planetary"
+title = "Planetary (Willis)"
+eqs = [
+    "(n_s - n_c)/(n_r - n_c) = -z_r/z_s",
+]
+tags = ["powertrain", "planetary", "epicyclic", "sun", "ring", "carrier", "willis"]
+notes = "Ring fixed: n_r = 0 -> ratio 1 + z_r/z_s. Signs matter (speeds are signed)."
+
+[[formula]]
+key = "engine_geometry"
+title = "Displacement, compression ratio, piston speed, bmep power"
+eqs = [
+    "V_d = n_cyl*pi/4*B_bore**2*S_k",
+    "CR = (V_d/n_cyl + V_cc)/V_cc",
+    "c_m = S_k*omega_m/pi",
+    "P_m = bmep*V_d*omega_m/(4*pi)",
+]
+tags = ["powertrain", "engine", "bore", "stroke", "displacement", "compression", "ratio", "piston", "speed", "bmep"]
+notes = "P = bmep*Vd*n/120 for a 4-stroke (n in rpm). Head/gasket change dh = dVc/(pi/4 B^2)."
+
+[[formula]]
+key = "engine_order"
+title = "Engine order frequency"
+eqs = [
+    "f_ord = k_ord*omega_m/(2*pi)",
+]
+tags = ["powertrain", "engine", "order", "firing", "frequency", "vibration"]
+
+[[formula]]
+key = "brake_torque"
+title = "Disc brake torque and ground force"
+eqs = [
+    "Tq_b = mu_pad*p_h*A_pis*n_pis*r_m",
+    "F_x = Tq_b/r_w",
+]
+tags = ["powertrain", "brakes", "caliper", "pressure", "disc", "torque"]
+notes = "n_pis counts pistons pressing pads, both faces (opposed 2-pot = 2). Q1071 used single mu*F*r."
+
+[[formula]]
+key = "top_speed_power"
+title = "Power-limited top speed (drag only)"
+eqs = [
+    "eta_g*P_m = rho_air*CdA*v**3/2",
+]
+tags = ["powertrain", "top", "speed", "power", "drag"]
+
+[[formula]]
+key = "tube_section"
+title = "Round tube section"
+eqs = [
+    "D_i = D_o - 2*t_wall",
+    "I_a = pi/64*(D_o**4 - D_i**4)",
+    "A_s = pi/4*(D_o**2 - D_i**2)",
+]
+tags = ["structures", "tube", "section", "second", "moment", "area", "inertia"]
+
+[[formula]]
+key = "square_tube_section"
+title = "Square hollow section"
+eqs = [
+    "I_a = (B_sq**4 - (B_sq - 2*t_wall)**4)/12",
+    "A_s = B_sq**2 - (B_sq - 2*t_wall)**2",
+]
+tags = ["structures", "square", "tube", "section", "inertia"]
+
+[[formula]]
+key = "rect_section"
+title = "Solid rectangle"
+eqs = [
+    "I_a = b_rect*h_rect**3/12",
+    "A_s = b_rect*h_rect",
+]
+tags = ["structures", "rectangle", "section", "inertia"]
+
+[[formula]]
+key = "three_point_bend"
+title = "Simply supported, centre load"
+eqs = [
+    "M_b = F*L_b/4",
+    "sigma = M_b*c_y/I_a",
+    "delta_b = F*L_b**3/(48*E_y*I_a)",
+]
+tags = ["structures", "bending", "beam", "three", "point", "load", "deflection", "stress"]
+notes = "Load at yield: sigma = sigma_y. c_y = D_o/2 for tubes."
+
+[[formula]]
+key = "cantilever"
+title = "Cantilever, tip load"
+eqs = [
+    "M_b = F*L_b",
+    "sigma = M_b*c_y/I_a",
+    "delta_b = F*L_b**3/(3*E_y*I_a)",
+]
+tags = ["structures", "bending", "cantilever", "deflection", "stress"]
+
+[[formula]]
+key = "axial"
+title = "Axial stress / strain (Hooke)"
+eqs = [
+    "sigma = F/A_s",
+    "eps = sigma/E_y",
+    "dL_b = eps*L_b",
+]
+tags = ["structures", "axial", "tension", "young", "modulus", "strain", "elongation"]
+
+[[formula]]
+key = "euler_buckling"
+title = "Euler buckling"
+eqs = [
+    "F_cr = pi**2*E_y*I_a/(K_e*L_b)**2",
+]
+tags = ["structures", "buckling", "euler", "column"]
+
+[[formula]]
+key = "bolt_shear"
+title = "Bolts in shear and bearing"
+eqs = [
+    "F = n_b*tau_a*pi*d_b**2/4",
+    "p_brg = F/(n_b*d_b*t_p)",
+]
+tags = ["structures", "bolt", "shear", "bearing", "fastener"]
+notes = "Tension: same with allowable tensile stress. Edge distance >= 1.5 D. Pick next standard size up."
+
+[[formula]]
+key = "heat_capacity"
+title = "Sensible heat and heating time"
+eqs = [
+    "Q_h = m*c_p*dT",
+    "P*t*eta = Q_h",
+]
+tags = ["thermo", "heat", "capacity", "energy", "heating", "water", "time"]
+notes = "eta defaults to nothing: pass eta=1 if lossless. Water: 1 kg/L, 4186 J/kgK."
+
+[[formula]]
+key = "latent_heat"
+title = "Latent heat"
+eqs = [
+    "Q_h = m*L_lat",
+]
+tags = ["thermo", "latent", "melting", "evaporation"]
+
+[[formula]]
+key = "thermal_expansion"
+title = "Linear thermal expansion"
+eqs = [
+    "dL_th = alpha_th*L_0*dT",
+]
+tags = ["thermo", "expansion"]
+
+[[formula]]
+key = "ideal_gas"
+title = "Ideal gas p V = m R T (absolute p, T in K)"
+eqs = [
+    "p_1*V_g = m*R_s*T_1",
+]
+tags = ["thermo", "gas", "pressure", "tyre", "bottle", "air"]
+notes = "Gauge -> absolute: add ~1.013 bar. See tool gauge."
+
+[[formula]]
+key = "gas_states"
+title = "Closed gas, two states (p V / T constant)"
+eqs = [
+    "p_1*V_1/T_1 = p_2*V_2/T_2",
+]
+tags = ["thermo", "gas", "pressure", "temperature", "isochoric", "tyre"]
+notes = "Isochoric: V_1 = V_2. Pressures ABSOLUTE. Q178 gauge, Q254 absolute: check the options."
+
+[[formula]]
+key = "adiabatic"
+title = "Isentropic ideal gas"
+eqs = [
+    "p_1*V_1**kappa = p_2*V_2**kappa",
+]
+tags = ["thermo", "adiabatic", "isentropic", "compression"]
+
+[[formula]]
+key = "carnot"
+title = "Carnot efficiency"
+eqs = [
+    "eta_c = 1 - T_cold/T_hot",
+]
+tags = ["thermo", "carnot", "efficiency"]
+
+[[formula]]
+key = "newton_cooling"
+title = "Newton cooling"
+eqs = [
+    "T = T_amb + (T_i - T_amb)*exp(-k_cool*t)",
+]
+tags = ["thermo", "cooling", "newton"]
+
+[[formula]]
+key = "continuity_bernoulli"
+title = "Continuity + Bernoulli"
+eqs = [
+    "A_1*v_1 = A_2*v_2",
+    "p_1 + rho_f*v_1**2/2 = p_2 + rho_f*v_2**2/2 + rho_f*g*dz",
+]
+tags = ["fluids", "bernoulli", "continuity", "flow", "pipe", "venturi", "pressure"]
+
+[[formula]]
+key = "reynolds"
+title = "Reynolds number"
+eqs = [
+    "Re = rho_f*v*L_ch/mu_dyn",
+]
+tags = ["fluids", "reynolds", "similarity", "viscosity"]
+
+[[formula]]
+key = "closed_pipe"
+title = "Closed-open pipe resonance"
+eqs = [
+    "f_p = (2*n_h - 1)*c_s/(4*L_p)",
+]
+tags = ["acoustics", "pipe", "resonance", "intake", "exhaust", "quarter", "wave"]
+notes = "n_h = 2 is the first overtone (3rd harmonic). Open-open: f = n c / 2L."

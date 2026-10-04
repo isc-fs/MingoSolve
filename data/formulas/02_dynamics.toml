@@ -1,0 +1,176 @@
+# dynamics: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "vx_car"
+unit = "m/s"
+desc = "vehicle longitudinal velocity at the CG (x forward)"
+
+[[var]]
+name = "vy_car"
+unit = "m/s"
+desc = "vehicle lateral velocity at the CG (y to the left)"
+signed = true
+
+[[var]]
+name = "x_w"
+unit = "m"
+desc = "wheel position ahead of the CG (rear wheels negative)"
+signed = true
+
+[[var]]
+name = "y_w"
+unit = "m"
+desc = "wheel position left of the CG (right wheels negative)"
+signed = true
+
+[[var]]
+name = "vx_wh"
+unit = "m/s"
+desc = "longitudinal velocity of the wheel centre"
+
+[[var]]
+name = "vy_wh"
+unit = "m/s"
+desc = "lateral velocity of the wheel centre (y to the left)"
+signed = true
+
+[[var]]
+name = "delta_w"
+unit = "rad"
+desc = "road-wheel angle incl. toe (positive = wheel points left)"
+signed = true
+
+[[var]]
+name = "alpha_w"
+unit = "rad"
+desc = "tyre slip angle (positive = wheel points left of its velocity)"
+signed = true
+
+[[formula]]
+key = "wheel_slip_angle"
+title = "Slip angle of one wheel from yaw rate (rigid body)"
+eqs = [
+    "vx_wh = vx_car - yaw*y_w",
+    "vy_wh = vy_car + yaw*x_w",
+    "alpha_w = delta_w - atan(vy_wh/vx_wh)",
+]
+tags = ["dynamics", "slip", "angle", "tyre", "yaw", "wheel", "velocity", "steering", "toe"]
+notes = "x forward, y left, yaw > 0 = left turn. Front-left: x_w = a_cg, y_w = +t/2; rear-right: x_w = -b_cg, y_w = -t/2. Toe-in turns a LEFT wheel right (delta_w = delta - toe) and a RIGHT wheel left (delta + toe). All four wheels, or the toe for equal slips: tool wheel_slip."
+
+[[var]]
+name = "Fz_out"
+unit = "N"
+desc = "vertical load on the outside wheel of the axle"
+
+[[var]]
+name = "Fz_in"
+unit = "N"
+desc = "vertical load on the inside wheel of the axle"
+
+[[formula]]
+key = "wheel_loads_cornering"
+title = "Outside / inside wheel loads on one axle in a corner (rigid)"
+eqs = [
+    "Fz_out = m_ax*g/2 + m_ax*ay*h_cg/t_tr",
+    "Fz_in = m_ax*g/2 - m_ax*ay*h_cg/t_tr",
+]
+tags = ["dynamics", "wheel", "load", "corner", "lateral", "transfer", "tyre", "vertical", "outside", "inside"]
+notes = "m_ax = axle share of the mass (45 % front of 250 kg -> 112.5 kg), t_tr = that axle's track. Right turn: LEFT wheels are outside (first skidpad lap is a right turn). Add aero load per wheel separately."
+
+[[var]]
+name = "F_1"
+unit = "N"
+desc = "force (or weight) on lever arm 1"
+
+[[var]]
+name = "F_2"
+unit = "N"
+desc = "force (or weight) on lever arm 2"
+
+[[var]]
+name = "l_1"
+unit = "m"
+desc = "lever arm 1 (perpendicular distance to the pivot)"
+
+[[var]]
+name = "l_2"
+unit = "m"
+desc = "lever arm 2 (perpendicular distance to the pivot)"
+
+[[formula]]
+key = "lever"
+title = "Lever / moment balance about a pivot: F1 l1 = F2 l2"
+eqs = [
+    "F_1*l_1 = F_2*l_2",
+]
+tags = ["statics", "lever", "moment", "balance", "pivot", "bracket", "arm", "equilibrium"]
+notes = "Masses balance the same way: type weights as 231.6kg*g0. Bracket reaction: take moments about the other support; the arm is the perpendicular distance."
+
+[[var]]
+name = "v_sc1"
+unit = "m/s"
+desc = "air speed of test 1 (model or CFD)"
+
+[[var]]
+name = "v_sc2"
+unit = "m/s"
+desc = "air speed of test 2 for the same Reynolds number"
+
+[[var]]
+name = "L_sc1"
+unit = "dimensionless"
+desc = "scale of model 1 (1 = full size)"
+
+[[var]]
+name = "L_sc2"
+unit = "dimensionless"
+desc = "scale of model 2 (1 = full size)"
+
+[[formula]]
+key = "reynolds_matching"
+title = "Scale model speed for the same Reynolds number (same fluid)"
+eqs = [
+    "v_sc1*L_sc1 = v_sc2*L_sc2",
+]
+tags = ["aero", "wind", "tunnel", "scale", "model", "reynolds", "cfd", "similarity"]
+notes = "Re = rho v L / mu with the same air: v L stays constant. A smaller model needs a higher speed. Different fluids: use reynolds."
+
+[[var]]
+name = "t_fall"
+unit = "s"
+desc = "fall time with quadratic drag"
+
+[[var]]
+name = "v_fall"
+unit = "m/s"
+desc = "speed after the fall"
+
+[[formula]]
+key = "drag_fall"
+title = "Fall from rest with quadratic drag: speed and time"
+eqs = [
+    "v_term = sqrt(2*m*g/(rho_air*CdA))",
+    "v_fall = v_term*sqrt(1 - exp(-2*g*dh/v_term**2))",
+    "t_fall = v_term/g*log(exp(g*dh/v_term**2) + sqrt(exp(2*g*dh/v_term**2) - 1))",
+]
+tags = ["aero", "fall", "drop", "terminal", "drag", "time", "height", "airplane"]
+notes = "dh = fall height (40000 ft = 12192 m). t = v_term/g acosh(exp(g h/v_term^2)). Constant air density."
+
+[[formula]]
+key = "coast_down"
+title = "Coast-down drag from a speed drop (mean-speed method)"
+eqs = [
+    "m*(v0 - v) = rho_air*CdA*((v0 + v)/2)**2/2*t",
+    "s = (v0 + v)/2*t",
+]
+tags = ["aero", "coast", "down", "drag", "deceleration", "scx", "distance"]
+notes = "Drag evaluated at the mean speed (official Q856 method), no rolling resistance. SCx = CdA."
+
+[[formula]]
+key = "rolling_coast"
+title = "Coasting with rotating inertia against a constant resistance"
+eqs = [
+    "(m + J_w/r_w**2)*(v0**2 - v**2)/2 = F*s",
+]
+tags = ["energy", "rolling", "wheel", "inertia", "resistance", "coast", "work"]
+notes = "F = constant resistance (rolling, friction) over the distance s. A loose wheel: m = wheel mass, J_w its own inertia. 16.2 inch outer diameter -> r_w = 8.1in."

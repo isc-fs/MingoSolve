@@ -1,0 +1,111 @@
+# Topic library: every script (formula or procedural tool) belongs to exactly one topic.
+# Order here is the order shown in the app. `hue` picks the topic's accent from the app palette.
+
+[[topic]]
+id = "motion"
+name = "Motion and energy"
+blurb = "Speed, constant acceleration, kinetic and potential energy"
+hue = "green"
+formulas = ["speed", "uniform_accel", "kinetic_energy", "rolling_energy", "stopping_distance",
+            "rolling_coast", "coast_down"]
+tools = ["accel_then_cruise", "endurance_energy"]
+
+[[topic]]
+id = "dynamics"
+name = "Vehicle dynamics"
+blurb = "Axle loads, load transfer, cornering, rollover, steering"
+hue = "green"
+formulas = ["static_axle_loads", "longitudinal_transfer", "lateral_transfer", "rollover", "inside_wheel_fraction",
+            "front_lift", "traction_limit", "cornering", "cornering_downforce", "skidpad_lap", "ackermann",
+            "wheel_loads_cornering", "wheel_slip_angle"]
+tools = ["wheel_slip"]
+
+[[topic]]
+id = "suspension"
+name = "Suspension and springs"
+blurb = "Wheel and ride rates, natural frequency, damping, coil springs"
+hue = "green"
+formulas = ["wheel_rate", "coil_spring"]
+tools = ["two_dof"]
+
+[[topic]]
+id = "aero"
+name = "Aerodynamics"
+blurb = "Downforce, drag, balance, terminal velocity"
+hue = "teal"
+formulas = ["aero_forces", "aero_split", "terminal_velocity", "drag_fall", "reynolds_matching"]
+tools = []
+
+[[topic]]
+id = "powertrain"
+name = "Powertrain and brakes"
+blurb = "Gear ratios, torque and power, planetaries, engines, brake torque"
+hue = "gold"
+formulas = ["gear_drive", "power_torque", "planetary", "engine_geometry", "engine_order", "brake_torque",
+            "top_speed_power", "compound_planetary", "epicyclic_planet", "slider_crank", "cr_change",
+            "traction_torque", "regen_wheel_torque", "top_speed_losses", "brake_heat"]
+tools = ["gear_train"]
+
+[[topic]]
+id = "structures"
+name = "Structures"
+blurb = "Sections, bending, axial load, buckling, bolts, pressure, levers and trusses"
+hue = "gold"
+formulas = ["tube_section", "square_tube_section", "rect_section", "sandwich_section", "three_point_bend", "bend_yield_load", "cantilever",
+            "axial", "euler_buckling", "thin_wall_pressure", "bolt_shear", "edge_distance", "lever"]
+tools = ["truss"]
+
+[[topic]]
+id = "thermo"
+name = "Thermo and fluids"
+blurb = "Heat, gases, cycles, cooling, flow, acoustics"
+hue = "teal"
+formulas = ["heat_capacity", "heat_flow", "latent_heat", "thermal_expansion", "ideal_gas", "gas_states", "adiabatic",
+            "pneumatic_bottle", "stirling_cycle", "carnot", "heat_pump", "joule_refrigerator", "newton_cooling",
+            "lumped_cooling", "lmtd", "continuity_bernoulli", "pipe_continuity", "floating_body", "reynolds",
+            "closed_pipe"]
+tools = ["gauge", "db_sum"]
+
+[[topic]]
+id = "hv"
+name = "Accumulator and HV"
+blurb = "Pack under load, energy, discharge rule, segment limits, TS rules"
+hue = "gold"
+formulas = ["battery_load", "max_power_transfer", "pack_energy", "energy_power", "power_ramp", "drive_range",
+            "ts_discharge", "cap_energy", "peukert", "balancing_time"]
+tools = ["segment_max_cells", "ts_rules", "pcb_spacing", "charge_time", "packs_needed", "ts_breaker"]
+
+[[topic]]
+id = "circuits"
+name = "Circuits and electronics"
+blurb = "Ohm, wiring, transients, filters, sensors, op-amps, converters"
+hue = "teal"
+formulas = ["ohm", "wire_resistance", "cable_drop", "resistance_temperature", "resistor_self_heating",
+            "rc_transient", "inductor_step", "inductor_energy", "reactance", "rc_lowpass", "vswr", "divider",
+            "ntc", "howland", "buck", "busbar_match"]
+tools = ["nodal", "e_series", "gamma", "cable_fuse"]
+
+[[topic]]
+id = "signals"
+name = "Signals and comms"
+blurb = "Sampling, ADCs, timers, CAN and UART timing, binary"
+hue = "teal"
+formulas = ["nyquist", "adc", "adc_temp_step", "timer_arr"]
+tools = ["alias", "twos", "uart_time", "can_frame_bits", "can_transfer"]
+
+[[topic]]
+id = "scoring"
+name = "Rules and scoring"
+blurb = "Event scores (2027, 2026, legacy), penalties, statics, rounding"
+hue = "gold"
+formulas = []
+tools = ["corrected_time", "event_score", "cones_from_score", "dv_rank_score", "dc_autocross_score",
+         "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to"]
+
+[[topic]]
+id = "business"
+name = "Business and finance"
+blurb = "Exchange-rate exposure, ROI, earned value"
+hue = "gold"
+formulas = ["fx_exposure", "roi_fx", "earned_value"]
+tools = []

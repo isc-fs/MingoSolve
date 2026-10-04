@@ -1,0 +1,13 @@
+# Procedural tools that exist only in the Rust engine. The legacy Python engine (quiz-day fallback until after the
+# January 2027 quizzes) reads the same data, so it has every formula, but tools are code and are not ported twice.
+# Both the Rust CLI comparison and the Python example test skip commands that use exactly these tools.
+rust_only_tools = ["charge_time", "packs_needed", "cable_fuse", "ts_breaker", "can_transfer", "wheel_slip", "truss",
+                   "endurance_energy"]
+
+# Corpus cases where Rust is allowed to differ from the Python engine, each with a reviewed reason.
+# key = "<formula>:<hidden vars joined by +>"
+[differences]
+
+# CLI commands where Rust intentionally differs from the Python snapshot. key = the command line
+[cli]
+"chain F_yld D_o=25mm t_wall=2.5mm c_y=12.5mm L_b=400mm" = "Rust's chain skips formulas whose equations can't all hold with the known values; Python solves square_tube_section backwards from the round tube's area and then reports the conflict that creates"

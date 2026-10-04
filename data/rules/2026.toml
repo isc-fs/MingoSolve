@@ -1,0 +1,42 @@
+year = "2026"
+source = "FS-Rules 2026 v1.1"
+dynamic_formula = "squared"   # D 9.1.1: (Pmax - Pmin) ((Tmax - Tteam)/(Tmax - Tmin))^2 + Pmin
+
+[points]
+bpp = 75
+cost = 100
+design = 150
+skidpad = 50
+accel = 50
+autocross = 100
+endurance = 250
+efficiency = 75
+dv_skidpad = 75
+dv_accel = 75
+dc_autocross = 100
+trackdrive = 200
+
+# Tmax = tmax * Tmin, Pmin = pmin * Pmax. DC events take Pmax from dv_*.
+[tmax_pmin]
+skidpad = { tmax = 1.35, pmin = 0.05 }
+accel = { tmax = 1.7, pmin = 0.05 }
+autocross = { tmax = 1.4, pmin = 0.1 }
+endurance = { tmax = 1.5, pmin = 0.1 }
+dc_skidpad = { tmax = 1.7, pmin = 0.05, points = "dv_skidpad" }
+dc_accel = { tmax = 2.25, pmin = 0.05, points = "dv_accel" }
+
+[static_nonfinalist]
+bpp = 70
+cost = 80
+
+# columns: voltage max, clearance, creepage, creepage under conformal coating [mm]
+[pcb_spacing]
+modes = ["clearance", "creepage", "coated"]
+rows = [[50, 1.0, 4, 1.0], [150, 1.0, 5, 1.0], [300, 1.5, 10, 2.0], [600, 3.0, 20, 4.0]]
+
+[ts]
+insulation_tiers = [[250, 250], [1e9, 500]]
+tsal_uses = "nominal"
+section_v = 120
+section_j = 6e6
+section_kg = 12

@@ -1,0 +1,116 @@
+# electrical: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "rho_a"
+unit = "ohm*m"
+desc = "resistivity of conductor a (round cable)"
+
+[[var]]
+name = "rho_b"
+unit = "ohm*m"
+desc = "resistivity of conductor b (flat busbar)"
+
+[[var]]
+name = "d_a"
+unit = "m"
+desc = "diameter of round conductor a"
+
+[[var]]
+name = "A_a"
+unit = "m**2"
+desc = "cross-section of conductor a"
+
+[[var]]
+name = "A_b"
+unit = "m**2"
+desc = "cross-section of conductor b"
+
+[[var]]
+name = "w_bb"
+unit = "m"
+desc = "busbar width"
+
+[[var]]
+name = "t_bb"
+unit = "m"
+desc = "busbar thickness"
+
+[[var]]
+name = "S_T"
+unit = "V/K"
+desc = "temperature sensor sensitivity (LM135: 10 mV/K, absolute)"
+
+[[var]]
+name = "T_hi"
+unit = "K"
+desc = "highest temperature to measure, scaled to V_ref (type degC)"
+
+[[var]]
+name = "dT_lsb"
+unit = "K"
+desc = "temperature change per ADC LSB"
+
+[[var]]
+name = "N_arr"
+unit = "dimensionless"
+desc = "timer counts to the auto-reload value (ARR)"
+
+[[var]]
+name = "f_clk"
+unit = "Hz"
+desc = "timer input clock"
+
+[[var]]
+name = "k_psc"
+unit = "dimensionless"
+desc = "prescaler divide factor (register PSC = k_psc - 1)"
+
+[[var]]
+name = "dSoC"
+unit = "dimensionless"
+desc = "state-of-charge change (0..1, 5 % = 0.05)"
+
+[[var]]
+name = "I_bal"
+unit = "A"
+desc = "cell balancing (bleed) current"
+
+[[formula]]
+key = "busbar_match"
+title = "Busbar with the same resistance per length as a round cable"
+eqs = [
+    "A_a = pi*d_a**2/4",
+    "A_b = w_bb*t_bb",
+    "rho_a/A_a = rho_b/A_b",
+]
+tags = ["electrical", "busbar", "cable", "aluminium", "copper", "resistance", "length", "width", "section"]
+notes = "Same R/length means rho/A equal. Q489 uses rho Cu = 1.72e-8, Al = 2.65e-8 ohm m. For two round wires pass A_b directly."
+
+[[formula]]
+key = "adc_temp_step"
+title = "Temperature step per ADC LSB (sensor scaled so T_hi hits V_ref)"
+eqs = [
+    "q_lsb = V_ref/2**n_bits",
+    "S_T*T_hi*k_div = V_ref",
+    "dT_lsb = q_lsb/(S_T*k_div)",
+]
+tags = ["electrical", "adc", "temperature", "sensor", "lm135", "resolution", "lsb", "bit"]
+notes = "LM135/LM335 output is 10 mV per KELVIN (absolute): at 150 degC it gives 4.23 V, so a divider k_div scales it to V_ref and dT_lsb = T_hi/2^n (Q1007: 423.15 K/1024 = 0.413 K). Without the divider (k_div = 1) the step is q_lsb/S_T."
+
+[[formula]]
+key = "timer_arr"
+title = "Timer auto-reload value for a delay"
+eqs = [
+    "N_arr = t*f_clk/k_psc",
+]
+tags = ["electrical", "timer", "arr", "prescaler", "microcontroller", "delay", "counter", "stm32"]
+notes = "Quiz keys use the prescaler as the literal divide factor and ARR = counts (Q319: 0.9 s x 80 MHz / 2 = 36e6). On real STM32 hardware write PSC = k_psc - 1 and ARR = N_arr - 1."
+
+[[formula]]
+key = "balancing_time"
+title = "Cell balancing time"
+eqs = [
+    "t = dSoC*C_cell/I_bal",
+]
+tags = ["electrical", "battery", "balancing", "bms", "ams", "soc", "bleed", "time"]
+notes = "Only the cell capacity counts (series string): 27s1p is irrelevant. Q754: 5 % of 15 Ah at 0.5 A = 1.5 h."

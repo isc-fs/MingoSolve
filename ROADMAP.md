@@ -7,13 +7,16 @@
 
 # Project roadmap
 
-Phased delivery plan for this repository. Each phase is a cluster of feat branches cut from `dev`; a milestone tag on `main` closes the phase once every branch in it has merged. Branch status badges (✅ / 🔄 / 🔜) are derived from each branch's tracking issue state in GitHub Issues.
+ISC MingoSolve has to be installed and rehearsed before the January 2027 registration quizzes. Feature freeze on 15 December 2026; only fixes after 1 January. Each phase is a cluster of branches cut from `dev`; a tag on `main` closes the phase once every branch in it has merged. Status badges (✅ / 🔄 / 🔜) come from each branch's tracking issue.
 
 ## Phase summary
 
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
-| 1 | TODO — first phase title | 🔜 planned `feat/1-todo-branch-name` | `v0.1.0` |
+| 1 | Rust engine and desktop app | 🔜 planned `feat/1-mingosolve-app` | `v0.1.0` |
+| 2 | Release and quiz-day features | 🔜 planned `feat/2-release-pipeline` · 🔜 planned `feat/3-known-key-warning` | `v0.2.0` |
+| 3 | Quiz rehearsal | 🔜 planned `feat/4-mock-quiz-fixes` | `v1.0.0` |
+| 4 | After the quizzes | 🔜 planned `feat/5-drop-python-fallback` · 🔜 planned `feat/6-repl` | `v1.1.0` |
 
 ## Branch diagram
 
@@ -25,13 +28,48 @@ gitGraph
     branch dev
     checkout dev
 
-    %% Phase 1 — TODO — first phase title
-    branch feat/1-todo-branch-name
-    commit id: "○ One-line description of what this branch delivers"
+    %% Phase 1 — Rust engine and desktop app
+    branch feat/1-mingosolve-app
+    commit id: "○ Rust engine, Tauri app, 145 past questions, tests at every layer"
     checkout dev
-    merge feat/1-todo-branch-name
+    merge feat/1-mingosolve-app
     checkout main
     merge dev tag: "v0.1.0"
+    checkout dev
+
+    %% Phase 2 — Release and quiz-day features
+    branch feat/2-release-pipeline
+    commit id: "○ Signed macOS, Windows and Linux builds published to iskapps, with updates"
+    checkout dev
+    merge feat/2-release-pipeline
+    branch feat/3-known-key-warning
+    commit id: "○ Warn when a pasted problem matches a past question whose official key is wrong"
+    checkout dev
+    merge feat/3-known-key-warning
+    checkout main
+    merge dev tag: "v0.2.0"
+    checkout dev
+
+    %% Phase 3 — Quiz rehearsal
+    branch feat/4-mock-quiz-fixes
+    commit id: "○ Fixes from two timed mock quizzes; version pinned for the quizzes"
+    checkout dev
+    merge feat/4-mock-quiz-fixes
+    checkout main
+    merge dev tag: "v1.0.0"
+    checkout dev
+
+    %% Phase 4 — After the quizzes
+    branch feat/5-drop-python-fallback
+    commit id: "○ Remove legacy/python once the Rust engine has carried a quiz season"
+    checkout dev
+    merge feat/5-drop-python-fallback
+    branch feat/6-repl
+    commit id: "○ Full interactive command line with history and completion"
+    checkout dev
+    merge feat/6-repl
+    checkout main
+    merge dev tag: "v1.1.0"
     checkout dev
 
 ```

@@ -1,0 +1,57 @@
+# FS Rules <= 2025 as used by most FS-Quiz answer keys. Reconstructed from the keys (see docs/archetypes/rules-scoring.md).
+year = "legacy"
+source = "FS Rules 2017-2025 (as reproduced by FS-Quiz keys)"
+dynamic_formula = "legacy"
+
+[points]
+bpp = 75
+cost = 100
+design = 150
+skidpad = 75
+accel = 75
+autocross = 100
+endurance = 325
+efficiency = 100
+
+# score = scale * ((tmax/t)^exponent - 1) / divisor + floor, tmax = tmax_factor * tmin
+[legacy_scoring.skidpad]
+tmax_factor = 1.25
+scale = 71.5
+floor = 3.5
+exponent = 2
+divisor = 0.5625
+
+[legacy_scoring.accel]
+tmax_factor = 1.5
+scale = 71.5
+floor = 3.5
+exponent = 1
+divisor = 0.5
+
+[legacy_scoring.autocross]
+tmax_factor = 1.25
+scale = 95.5
+floor = 4.5
+exponent = 1
+divisor = 0.25
+
+[legacy_scoring.endurance]
+tmax_factor = 1.333
+scale = 300
+floor = 25
+exponent = 1
+divisor = 0.333
+
+[static_nonfinalist]
+bpp = 75
+bpp_minus_finalists = true
+cost = 95
+
+# columns: voltage max, over surface, through air (with cut), under coating [mm]
+[pcb_spacing]
+modes = ["surface", "air", "coated"]
+rows = [[50, 1.6, 1.6, 1.0], [150, 6.4, 3.2, 2.0], [300, 9.5, 6.4, 3.0], [600, 12.7, 9.5, 4.0]]
+
+[ts]
+insulation_tiers = [[250, 250], [1e9, 500]]
+tsal_uses = "max"

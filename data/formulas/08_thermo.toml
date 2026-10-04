@@ -1,0 +1,237 @@
+# thermo: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "mdot"
+unit = "kg/s"
+desc = "mass flow rate"
+
+[[var]]
+name = "Qdot_h"
+unit = "W"
+desc = "heat flow rate"
+
+[[var]]
+name = "U_h"
+unit = "W/(m**2*K)"
+desc = "overall heat transfer coefficient"
+
+[[var]]
+name = "h_c"
+unit = "W/(m**2*K)"
+desc = "convective heat transfer coefficient"
+
+[[var]]
+name = "A_h"
+unit = "m**2"
+desc = "heat transfer area"
+
+[[var]]
+name = "dT_1"
+unit = "K"
+desc = "temperature difference between the streams at end 1 of the exchanger"
+
+[[var]]
+name = "dT_2"
+unit = "K"
+desc = "temperature difference between the streams at end 2 of the exchanger"
+
+[[var]]
+name = "dT_lm"
+unit = "K"
+desc = "log-mean temperature difference"
+
+[[var]]
+name = "Qdot_hot"
+unit = "W"
+desc = "heat flow rejected to the hot side (heat pump / fridge)"
+
+[[var]]
+name = "Qdot_cold"
+unit = "W"
+desc = "heat flow taken from the cold side (heat pump / fridge)"
+
+[[var]]
+name = "P_comp"
+unit = "W"
+desc = "compressor / pump power input"
+
+[[var]]
+name = "COP_hp"
+unit = "dimensionless"
+desc = "heating coefficient of performance Q_hot / W"
+
+[[var]]
+name = "COP_r"
+unit = "dimensionless"
+desc = "cooling coefficient of performance Q_cold / W"
+
+[[var]]
+name = "p_hi"
+unit = "Pa"
+desc = "high pressure of a gas cycle, ABSOLUTE"
+
+[[var]]
+name = "p_lo"
+unit = "Pa"
+desc = "low pressure of a gas cycle, ABSOLUTE"
+
+[[var]]
+name = "p_3"
+unit = "Pa"
+desc = "pressure state 3, ABSOLUTE"
+
+[[var]]
+name = "p_4"
+unit = "Pa"
+desc = "pressure state 4, ABSOLUTE"
+
+[[var]]
+name = "p_b1"
+unit = "Pa"
+desc = "bottle pressure before, GAUGE"
+
+[[var]]
+name = "p_b2"
+unit = "Pa"
+desc = "bottle pressure after, GAUGE"
+
+[[var]]
+name = "p_atm"
+unit = "Pa"
+desc = "atmospheric pressure (760 mmHg = 1.01325 bar)"
+default = 101325
+
+[[var]]
+name = "V_bot"
+unit = "m**3"
+desc = "gas bottle inner volume"
+
+[[var]]
+name = "V_exp"
+unit = "m**3"
+desc = "gas taken out, as volume at atmospheric pressure"
+
+[[var]]
+name = "n_sh"
+unit = "dimensionless"
+desc = "number of shots (gear shifts, actuations)"
+
+[[var]]
+name = "V_sh"
+unit = "m**3"
+desc = "gas volume per shot at atmospheric pressure"
+
+[[var]]
+name = "d_1"
+unit = "m"
+desc = "pipe inner diameter at section 1"
+
+[[var]]
+name = "d_2"
+unit = "m"
+desc = "pipe inner diameter at section 2"
+
+[[var]]
+name = "Q_v"
+unit = "m**3/s"
+desc = "volume flow rate"
+
+[[var]]
+name = "rho_s"
+unit = "kg/m**3"
+desc = "density of a floating solid"
+
+[[var]]
+name = "f_above"
+unit = "dimensionless"
+desc = "volume fraction of a floating body above the surface"
+
+[[formula]]
+key = "heat_flow"
+title = "Heat flow carried by a fluid stream"
+eqs = [
+    "Qdot_h = mdot*c_p*dT",
+]
+tags = ["thermo", "heat", "flow", "coolant", "radiator", "cooling", "mass", "rate"]
+notes = "dT = inlet - outlet of the stream. Water c_p 4186 J/kgK; per hour: @Qdot_h=kJ/h."
+
+[[formula]]
+key = "lmtd"
+title = "Heat exchanger, log-mean temperature difference"
+eqs = [
+    "dT_lm = (dT_1 - dT_2)/log(dT_1/dT_2)",
+    "Qdot_h = U_h*A_h*dT_lm",
+]
+tags = ["thermo", "heat", "exchanger", "lmtd", "log", "mean", "counterflow", "steam", "area"]
+notes = "dT_1, dT_2 are hot minus cold at each END (counterflow: hot in vs cold out, hot out vs cold in). Correction factor F = 1. Chain with heat_flow for the duty (Q689). dT_1 = dT_2 is the limit dT_lm = dT_1."
+
+[[formula]]
+key = "lumped_cooling"
+title = "Lumped body cooling (Newton, k = h A / m c)"
+eqs = [
+    "k_cool = h_c*A_h/(m*c_p)",
+    "T = T_amb + (T_i - T_amb)*exp(-k_cool*t)",
+]
+tags = ["thermo", "cooling", "newton", "convection", "lumped", "block", "heat", "transfer", "coefficient"]
+notes = "A_h counts only the faces exposed to the air (Q927: block on an insulating table, base excluded). Type T in degC. If k is given directly use newton_cooling."
+
+[[formula]]
+key = "heat_pump"
+title = "Heat pump / refrigerator, COP"
+eqs = [
+    "Qdot_hot = Qdot_cold + P_comp",
+    "COP_hp = Qdot_hot/P_comp",
+    "COP_r = Qdot_cold/P_comp",
+]
+tags = ["thermo", "heat", "pump", "refrigerator", "fridge", "cop", "coefficient", "performance", "cooling"]
+notes = "COP_r = COP_hp - 1. Q10: pump 150 W rejecting 1000 W -> cooling COP 850/150 = 5.667."
+
+[[formula]]
+key = "joule_refrigerator"
+title = "Reverse Joule (Brayton) gas refrigerator"
+eqs = [
+    "Qdot_hot = Qdot_cold*(p_hi/p_lo)**((kappa - 1)/kappa)",
+    "Qdot_hot = Qdot_cold + P_comp",
+]
+tags = ["thermo", "joule", "brayton", "refrigerator", "gas", "cycle", "air", "isobaric", "cooling"]
+notes = "Isentropic compression/expansion, so Q_hot/Q_cold = T ratio = pressure ratio^((k-1)/k). Manometer readings are GAUGE: add p_atm (750 mmHg = 0.99992 bar). Q860: 0.5/2.5 bar g, 10 kW -> 12.74 kW rejected, 2.74 kW input (the key signs both negative, cold-store view)."
+
+[[formula]]
+key = "stirling_cycle"
+title = "Stirling cycle (two isotherms, two isochores)"
+eqs = [
+    "p_1*V_1 = p_2*V_2",
+    "p_2*T_cold = p_3*T_hot",
+    "p_4*T_hot = p_1*T_cold",
+]
+tags = ["thermo", "stirling", "cycle", "isothermal", "isochoric", "gas", "pressure", "volume"]
+notes = "1->2 isotherm at T_hot, 2->3 isochoric (V_3 = V_2), 3->4 isotherm at T_cold, 4->1 isochoric (V_4 = V_1), so p_3 V_2 = p_4 V_1 follows. The cycle shape is only in the figure: assume this when the text says V1 = V4, V2 = V3. Absolute pressures, T in K."
+
+[[formula]]
+key = "pneumatic_bottle"
+title = "Compressed gas bottle: gas taken out (isothermal)"
+eqs = [
+    "(p_b1 - p_b2)*V_bot = p_atm*V_exp",
+    "V_exp = n_sh*V_sh",
+]
+tags = ["thermo", "pneumatic", "bottle", "shifter", "shifts", "compressed", "air", "gas", "boyle", "isothermal"]
+notes = "Bottle pressures GAUGE: gas leaves until the bottle reaches atmospheric (p_b2 = 0 for the shot count). Temperature cancels. Q733 115 bar, 0.6 l, 0.5 l per shift, 750 mmHg -> 138; Q79 50 bar g, 4 l, 20 l at 1 bar out -> 45 bar g."
+
+[[formula]]
+key = "pipe_continuity"
+title = "Continuity in a round pipe (incompressible)"
+eqs = [
+    "d_1**2*v_1 = d_2**2*v_2",
+    "Q_v = pi/4*d_1**2*v_1",
+]
+tags = ["fluids", "continuity", "pipe", "diameter", "taper", "nozzle", "flow", "speed", "volume"]
+notes = "Doubling the speed needs d_2 = d_1 / sqrt(2) (Q162). Pressures: continuity_bernoulli."
+
+[[formula]]
+key = "floating_body"
+title = "Floating body (Archimedes)"
+eqs = [
+    "rho_s = rho_f*(1 - f_above)",
+]
+tags = ["fluids", "buoyancy", "archimedes", "float", "density", "submerged"]
+notes = "A body denser than the fluid sinks (f_above would come out negative: it is fully submerged, 0 above). FS coolant must be plain water: rho_f 1000."

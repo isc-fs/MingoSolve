@@ -1,0 +1,531 @@
+//! Question finder: paste a quiz question, get the formulas, tools and past examples that fit, ranked by word
+//! overlap and by the physical dimensions of the quantities in the text ("280 kg ... 100 km/h ... 4 s" = mass,
+//! speed, time). Formula hits come with a pre-fill: each quantity mapped to the variable of that dimension whose
+//! description best matches the words around it.
+
+use std::collections::{HashMap, HashSet};
+
+use serde::Serialize;
+
+use crate::answer::known_keys;
+use crate::cli::examples;
+use crate::registry::registry;
+use crate::tools::tools;
+use crate::units::{self, Dims, DIMENSIONLESS};
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct Quantity {
+    pub text: String,
+    pub dims: Dims,
+    /// Words just around the quantity ("cells in series at" for "3.8 V"), used to pick between variables.
+    pub context: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Hit {
+    pub kind: &'static str,
+    pub id: String,
+    pub title: String,
+    pub score: f64,
+    /// (variable, value as typed in the question) for formula hits.
+    pub prefill: Vec<(String, String)>,
+    /// The variable the question asks for ("What current is drawn...?" -> I), when the words make it clear.
+    pub target: Option<String>,
+    pub warning: Option<String>,
+}
+
+const STOP: &[&str] = &[
+    "the",
+    "and",
+    "for",
+    "with",
+    "what",
+    "which",
+    "how",
+    "are",
+    "is",
+    "its",
+    "that",
+    "this",
+    "from",
+    "into",
+    "your",
+    "you",
+    "team",
+    "car",
+    "vehicle",
+    "given",
+    "calculate",
+    "determine",
+    "following",
+    "value",
+    "answer",
+    "assume",
+    "has",
+    "have",
+    "will",
+    "can",
+    "per",
+    "when",
+    "than",
+    "then",
+    "there",
+    "their",
+    "they",
+    "was",
+    "were",
+    "been",
+    "much",
+    "many",
+    "does",
+    "should",
+    "would",
+    "could",
+    "one",
+    "two",
+    "all",
+    "any",
+    "each",
+    "use",
+    "using",
+    "only",
+];
+
+fn words(text: &str) -> HashSet<String> {
+    text.split(|c: char| !c.is_alphanumeric() && c != '_')
+        .map(str::to_lowercase)
+        .filter(|w| {
+            w.len() >= 3 && !w.chars().all(|c| c.is_ascii_digit()) && !STOP.contains(&w.as_str())
+        })
+        .map(|w| {
+            w.strip_suffix('s')
+                .filter(|s| s.len() >= 3)
+                .map(str::to_string)
+                .unwrap_or(w)
+        })
+        .collect()
+}
+
+/// Numbers with units in free text ("100 km/h", "1,5 kN", "20Ah", "60 °C", "10 mm²").
+pub fn quantities(text: &str) -> Vec<Quantity> {
+    let t = text
+        .replace('²', "**2")
+        .replace('³', "**3")
+        .replace("°C", "degC")
+        .replace('°', "deg");
+    let chars: Vec<char> = t.chars().collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < chars.len() {
+        let starts_number =
+            chars[i].is_ascii_digit() && (i == 0 || !chars[i - 1].is_alphanumeric());
+        if !starts_number {
+            i += 1;
+            continue;
+        }
+        let mut j = i;
+        while j < chars.len()
+            && (chars[j].is_ascii_digit()
+                || ((chars[j] == '.' || chars[j] == ',')
+                    && chars.get(j + 1).is_some_and(|c| c.is_ascii_digit())))
+        {
+            j += 1;
+        }
+        let number: String = chars[i..j].iter().collect::<String>().replace(',', ".");
+        let mut k = j;
+        while k < chars.len() && chars[k] == ' ' {
+            k += 1;
+        }
+        let mut end = k;
+        while end < chars.len() && (chars[end].is_alphanumeric() || "/*%µΩ_".contains(chars[end]))
+        {
+            end += 1;
+        }
+        // the whole word must be a unit; "in" (inch) and "t" (tonne) are too often plain English ("0 to 100 in 4 s")
+        let unit: String = chars[k..end].iter().collect();
+        let unit = unit.trim_end_matches(['/', '*']);
+        let with_unit = if unit.is_empty() || ["in", "t"].contains(&unit) {
+            None
+        } else {
+            units::parse_quantity(&format!("{number} {unit}"))
+                .ok()
+                .filter(|q| q.dims != DIMENSIONLESS || unit == "%")
+                .map(|q| (format!("{number} {unit}"), q.dims))
+        };
+        // a bare number ("103 cells", "friction coefficient of 1.4") is kept as a dimensionless candidate; it only
+        // fills a variable whose description matches the words around it
+        let found = with_unit.or_else(|| Some((number.clone(), DIMENSIONLESS)));
+        if let Some((text, dims)) = found {
+            let before: String = chars[i.saturating_sub(50)..i].iter().collect();
+            let after: String = chars[end..(end + 20).min(chars.len())].iter().collect();
+            let context = words(&format!("{before} {after}")).into_iter().collect();
+            out.push(Quantity {
+                text,
+                dims,
+                context,
+            });
+        }
+        i = end.max(j).max(i + 1);
+    }
+    out
+}
+
+fn var_dims(name: &str) -> Dims {
+    units::unit_of(&registry().var(name).unit)
+        .map(|q| q.dims)
+        .unwrap_or(DIMENSIONLESS)
+}
+
+fn text_score(question: &HashSet<String>, strong: &str, weak: &str) -> f64 {
+    let (s, w) = (words(strong), words(weak));
+    question
+        .iter()
+        .map(|q| {
+            if s.contains(q) {
+                2.0
+            } else if w.contains(q) {
+                1.0
+            } else {
+                0.0
+            }
+        })
+        .sum()
+}
+
+/// Map quantities to variables of the same dimension. Several candidates: the one whose description shares most
+/// words with the quantity's context, then the plainest (shortest description); a remaining tie stays unfilled.
+fn prefill(names: &[String], qs: &[Quantity]) -> Vec<(String, String)> {
+    let r = registry();
+    let mut taken: HashSet<&String> = HashSet::new();
+    let mut out = Vec::new();
+    for q in qs {
+        let bare = q.dims == DIMENSIONLESS;
+        let mut cands: Vec<(usize, usize, &String)> = names
+            .iter()
+            .filter(|n| !taken.contains(n) && var_dims(n) == q.dims)
+            .map(|n| {
+                let d = words(&r.var(n).desc);
+                let overlap = q.context.iter().filter(|w| d.contains(*w)).count();
+                (overlap, r.var(n).desc.len(), n)
+            })
+            .collect();
+        if bare {
+            // unitless numbers need the words to name the variable, and no tie-break by plainness
+            cands.retain(|c| c.0 > 0);
+            cands.iter_mut().for_each(|c| c.1 = 0);
+        }
+        cands.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+        let pick = match cands.as_slice() {
+            [] => None,
+            [only] => Some(only.2),
+            [a, b, ..] => (a.0 != b.0 || a.1 != b.1).then_some(a.2),
+        };
+        if let Some(n) = pick {
+            taken.insert(n);
+            out.push((n.clone(), q.text.clone()));
+        }
+    }
+    out
+}
+
+/// The sentence that asks something: the one ending in "?" or opening with what/how/calculate/determine/find
+/// (the last such sentence; quiz questions put the ask at the end).
+fn ask_sentence(text: &str) -> Option<String> {
+    let sentences: Vec<&str> = text
+        .split_inclusive(['.', '?', '!'])
+        .map(str::trim)
+        .collect();
+    sentences
+        .iter()
+        .rev()
+        .find(|s| {
+            let l = s.to_lowercase();
+            s.ends_with('?')
+                || [
+                    "what",
+                    "how",
+                    "calculate",
+                    "determine",
+                    "find",
+                    "compute",
+                    "estimate",
+                ]
+                .iter()
+                .any(|w| l.starts_with(w))
+        })
+        .map(|s| s.to_string())
+}
+
+/// Quantity words a question asks for, and the unit that quantity is measured in.
+const ASKED_QUANTITIES: &[(&str, &str)] = &[
+    ("speed", "m/s"),
+    ("velocity", "m/s"),
+    ("acceleration", "m/s**2"),
+    ("deceleration", "m/s**2"),
+    ("force", "N"),
+    ("load", "N"),
+    ("power", "W"),
+    ("energy", "J"),
+    ("work", "J"),
+    ("heat", "J"),
+    ("current", "A"),
+    ("voltage", "V"),
+    ("resistance", "ohm"),
+    ("capacitance", "F"),
+    ("inductance", "H"),
+    ("time", "s"),
+    ("duration", "s"),
+    ("distance", "m"),
+    ("length", "m"),
+    ("height", "m"),
+    ("radius", "m"),
+    ("diameter", "m"),
+    ("mass", "kg"),
+    ("torque", "N*m"),
+    ("pressure", "Pa"),
+    ("stress", "Pa"),
+    ("temperature", "K"),
+    ("frequency", "Hz"),
+    ("charge", "C"),
+];
+
+/// The not-yet-known variable the question asks for: it must carry the dimension of a quantity named in the asking
+/// sentence ("What is the maximum speed?" -> a velocity) or, failing that, share description words with it.
+/// Description words break ties between candidates of the same dimension; a remaining tie means no guess.
+fn target(names: &[String], prefill: &[(String, String)], question: &str) -> Option<String> {
+    let sentence = ask_sentence(question)?;
+    let ask = words(&sentence);
+    let raw: HashSet<String> = sentence
+        .split(|c: char| !c.is_alphanumeric())
+        .map(str::to_lowercase)
+        .collect();
+    let asked_dims: Vec<Dims> = ASKED_QUANTITIES
+        .iter()
+        .filter(|(w, _)| raw.contains(*w))
+        .filter_map(|(_, u)| units::unit_of(u).ok().map(|q| q.dims))
+        .collect();
+    let r = registry();
+    let mut scored: Vec<(usize, &String)> = names
+        .iter()
+        .filter(|n| !prefill.iter().any(|(p, _)| p == *n) && r.var(n).default.is_none())
+        .map(|n| {
+            let by_dims = asked_dims.contains(&var_dims(n));
+            let overlap = words(&r.var(n).desc)
+                .iter()
+                .filter(|w| ask.contains(*w))
+                .count();
+            (if by_dims { 10 + overlap } else { overlap }, n)
+        })
+        .filter(|(c, _)| *c > 0)
+        .collect();
+    scored.sort_by_key(|s| std::cmp::Reverse(s.0));
+    match scored.as_slice() {
+        [] => None,
+        [only] => Some(only.1.clone()),
+        [a, b, ..] => (a.0 > b.0).then(|| a.1.clone()),
+    }
+}
+
+pub fn find(question: &str, limit: usize) -> Vec<Hit> {
+    let q = words(question);
+    let qs = quantities(question);
+    let q_dims: HashSet<Dims> = qs
+        .iter()
+        .map(|x| x.dims)
+        .filter(|d| *d != DIMENSIONLESS)
+        .collect();
+    let r = registry();
+    let mut hits = Vec::new();
+
+    for f in &r.formulas {
+        let descs: Vec<&str> = f.names.iter().map(|n| r.var(n).desc.as_str()).collect();
+        let mut score = text_score(
+            &q,
+            &format!(
+                "{} {} {}",
+                f.key.replace('_', " "),
+                f.title,
+                f.tags.join(" ")
+            ),
+            &format!("{} {}", f.notes, descs.join(" ")),
+        );
+        let f_dims: HashSet<Dims> = f.names.iter().map(|n| var_dims(n)).collect();
+        score += 1.5 * q_dims.intersection(&f_dims).count() as f64;
+        if score <= 0.0 {
+            continue;
+        }
+        let prefill = prefill(&f.names, &qs);
+        let target = target(&f.names, &prefill, question);
+        hits.push(Hit {
+            kind: "formula",
+            id: f.key.clone(),
+            title: f.title.clone(),
+            score,
+            prefill,
+            target,
+            warning: None,
+        });
+    }
+
+    for t in tools() {
+        let score = text_score(&q, &t.name.replace('_', " "), t.doc);
+        if score > 0.0 {
+            hits.push(Hit {
+                kind: "tool",
+                id: t.name.into(),
+                title: t.doc.into(),
+                score,
+                prefill: vec![],
+                target: None,
+                warning: None,
+            });
+        }
+    }
+
+    let keys: HashMap<u32, String> = known_keys().into_iter().map(|k| (k.id, k.note)).collect();
+    for e in examples() {
+        let score = text_score(&q, &e.what, &e.cmd.replace('_', " "));
+        if score > 0.0 {
+            hits.push(Hit {
+                kind: "example",
+                id: format!("Q{}", e.id),
+                title: e.what.clone(),
+                score: score * 0.9,
+                prefill: vec![],
+                target: None,
+                warning: keys.get(&e.id).cloned(),
+            });
+        }
+    }
+
+    hits.sort_by(|a, b| b.score.total_cmp(&a.score));
+    hits.truncate(limit);
+    hits
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extracts_quantities_with_units() {
+        let qs = quantities(
+            "A car of 280 kg accelerates from 0 to 100 km/h in 4,2 s. The motor gives 80 kW.",
+        );
+        let texts: Vec<&str> = qs
+            .iter()
+            .filter(|q| q.dims != DIMENSIONLESS)
+            .map(|q| q.text.as_str())
+            .collect();
+        assert_eq!(texts, ["280 kg", "100 km/h", "4.2 s", "80 kW"]);
+        assert!(qs.iter().any(|q| q.text == "0" && q.dims == DIMENSIONLESS));
+        let qs = quantities("tube 25 x 2.5 mm, area 10 mm² at 60 °C");
+        assert!(qs.iter().any(|q| q.text == "10 mm**2"));
+        assert!(qs.iter().any(|q| q.text == "60 degC"));
+    }
+
+    #[test]
+    fn ranks_the_right_formula_and_prefills() {
+        let hits = find(
+            "The accumulator has 103 cells in series at 3.8 V and an internal resistance of 0.08 Ω. \
+             What current is drawn at 30 kW?",
+            8,
+        );
+        let top: Vec<&str> = hits.iter().map(|h| h.id.as_str()).collect();
+        assert!(top[..3].contains(&"battery_load"), "{top:?}");
+        let hit = hits.iter().find(|h| h.id == "battery_load").unwrap();
+        assert!(
+            hit.prefill.contains(&("P".into(), "30 kW".into())),
+            "{:?}",
+            hit.prefill
+        );
+        assert!(
+            hit.prefill.contains(&("V_cell".into(), "3.8 V".into())),
+            "{:?}",
+            hit.prefill
+        );
+        assert!(
+            !hit.prefill.iter().any(|(_, v)| v == "0.08 Ω"),
+            "R_cell vs R_pack is a real tie: {:?}",
+            hit.prefill
+        );
+        let hits = find(
+            "Skidpad: what is the maximum cornering speed with downforce, mu 1.4, 240 kg?",
+            5,
+        );
+        assert!(
+            hits.iter().any(|h| h.id == "cornering_downforce"),
+            "{:?}",
+            hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn unitless_numbers_fill_only_when_named() {
+        let hits = find(
+            "A car of mass 240 kg with ClA 3.2 m² drives the skidpad (radius 9.125 m). With a tyre friction \
+             coefficient of 1.4, what is the maximum speed?",
+            5,
+        );
+        let hit = hits
+            .iter()
+            .find(|h| h.id == "cornering_downforce")
+            .expect("cornering_downforce");
+        assert!(
+            hit.prefill.contains(&("mu".into(), "1.4".into())),
+            "{:?}",
+            hit.prefill
+        );
+        let hits = find(
+            "The accumulator has 103 cells in series at 3.8 V. What is the current at 30 kW?",
+            5,
+        );
+        let hit = hits.iter().find(|h| h.id == "battery_load").unwrap();
+        assert!(
+            hit.prefill.contains(&("N_s".into(), "103".into())),
+            "{:?}",
+            hit.prefill
+        );
+        assert!(
+            !hit.prefill.iter().any(|(n, _)| n == "N_p"),
+            "{:?}",
+            hit.prefill
+        );
+    }
+
+    #[test]
+    fn the_asked_variable_becomes_the_target() {
+        let hits = find("The accumulator has 103 cells in series at 3.8 V and 0.08 Ω. What current is drawn at 30 kW?", 5);
+        assert_eq!(
+            hits.iter()
+                .find(|h| h.id == "battery_load")
+                .unwrap()
+                .target
+                .as_deref(),
+            Some("I")
+        );
+        let hits = find(
+            "A car of mass 240 kg with ClA 3.2 m² drives the skidpad (radius 9.125 m), friction coefficient 1.4. \
+             What is the maximum speed?",
+            5,
+        );
+        assert_eq!(
+            hits.iter()
+                .find(|h| h.id == "cornering_downforce")
+                .unwrap()
+                .target
+                .as_deref(),
+            Some("v")
+        );
+        // no question sentence, no guess
+        let hits = find("battery 103 cells 3.8 V 30 kW", 5);
+        assert!(hits.iter().all(|h| h.target.is_none()));
+    }
+
+    #[test]
+    fn examples_carry_known_key_warnings() {
+        let hits = find("endurance time score without finish points legacy", 10);
+        let ex = hits.iter().find(|h| h.id == "Q171").expect("Q171 example");
+        assert!(ex.warning.as_deref().unwrap().contains("+25"));
+    }
+}

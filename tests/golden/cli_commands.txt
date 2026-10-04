@@ -1,0 +1,42 @@
+# Extra commands for the structured CLI comparison (the data/examples.toml commands are always included).
+speed s=75m t=3.5s
+speed v_avg=100km/h t=3
+uniform_accel v0=0 s=75 v=100km/h
+uniform_accel v0=0 s=75 t=3.8s @v=km/h
+chain t v0=0 s=75 v=100km/h
+chain a v0=0 s=75 v=100km/h
+battery_load N_s=103 V_cell=3.8V R_pack=0.08ohm P=30kW
+battery_load N_s=112 V_cell=3.8V R_pack=0.10667ohm P=35kW
+ts_discharge V_0=396V V_c=60V t=5s C=1800uF
+ts_discharge V_0=336V V_c=60V t=5s C=1800uF
+chain V R_0=1ohm alpha=10ppm/K R_th=1K/W T_amb=25degC T_0=25degC I=13A @V=mV
+rc_lowpass f=200Hz f_c=300Hz @phi=deg
+rc_transient V_0=12V V_f=0 V_c=3V R=10kohm C=100uF
+cornering_downforce mu=1.4 m=240kg ClA=3.2 rho_air=1.1 R_c=9.125m
+chain v h_cg=0.205m R_c=14.5m t_tr=1.24m @v=km/h
+static_axle_loads m=280kg L_wb=1.53m a_cg=0.8m
+wheel_rate k_s=55N/mm MR=1.2 k_t=95N/mm m_c=70kg
+coil_spring G_sh=80GPa d_wire=8mm D_m=58mm k_s=42N/mm
+gear_drive omega_m=8000rpm i_g=11.5 r_w=0.23m Tq_m=120N*m @v=km/h
+engine_geometry B_bore=67mm S_k=42.5mm n_cyl=1 CR=12 @V_cc=cm**3
+three_point_bend F=4kN L_b=400mm c_y=12.5mm I_a=1.2e-8m**4
+tube_section D_o=25.4mm t_wall=1.6mm
+gas_states p_1=1.713bar T_1=20degC T_2=60degC V_1=1 V_2=1 @p_2=bar
+adiabatic p_1=1bar V_1=1l p_2=5bar
+continuity_bernoulli A_1=3e-4 A_2=1e-4 v_1=1m/s p_1=1.2bar rho_f=1000 dz=0
+ackermann t_tr=1.2m L_wb=1.53m delta_i=25deg @delta_o=deg
+peukert C1=10Ah I1=1A I2=10A k_p=1.2 @C2=Ah
+vswr VSWR=2.21
+ntc R_25=10kohm B_ntc=3950K T=60degC
+calc 0.5*300kg*(100km/h)**2 -> kJ
+calc 4.2V*20Ah -> MJ
+event_score skidpad 5.6 5.1 legacy
+event_score autocross 72 60
+event_score endurance 1500 1400 2026
+cones_from_score autocross 73.1 86.3 87.1 legacy
+trackdrive_score 250 200 laps=10
+efficiency_score t=1500 e=20000000 ef_min=3e13
+ts_rules 550 v_nom=480
+nodal "R1 1 2 3; R2 2 0 3; R3 1 0 3; V1 1 0 10"
+nodal "R1 a b 1; R2 b 0 2; R3 a 0 4; V1 a 0 1"
+two_dof 800 60 17000 180000

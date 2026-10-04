@@ -1,0 +1,59 @@
+# FS-Quiz official answers that don't match the physics or the rules, from the archetype review
+# (docs/archetypes). The app warns when a question matches one: pick by option elimination.
+[[key]]
+id = 167
+note = "Efficiency score key 96.15 is not reproducible with any legacy or 2026 variant (legacy formula gives 74.05)."
+[[key]]
+id = 169
+note = "Key 72.63 = 75*92/95 contradicts Q200's rule (77.45); the key is what the quiz accepted."
+[[key]]
+id = 171
+note = "Key leaves out the +25 endurance finish points (use finish=0)."
+[[key]]
+id = 202
+note = "Key 5.897 m/s not reproduced: sliding gives 7.746, rolling sphere 6.55."
+[[key]]
+id = 584
+note = "Key 0.09; the standard SPI computes to 0.77 (also an option)."
+[[key]]
+id = 911
+note = "Key 1860 only works if the driver change is not subtracted and the blue flag carries no penalty."
+[[key]]
+id = 125
+note = "Key 60 DOF; a quadratic tetrahedron has 10 nodes x 3 = 30."
+[[key]]
+id = 824
+note = "Key ignores the 2026+ rule that losing a part on track is a DQ for the run."
+[[key]]
+id = 596
+note = "Key 2.09 bar not reproduced (1.43 gauge / 2.41 abs)."
+[[key]]
+id = 727
+note = "Key 0.50 bar not reproduced (1.05 gauge / 2.03 abs)."
+[[key]]
+id = 602
+note = "Physics gives 21.54 m; the key is the nearest option, 21.97 m."
+[[key]]
+id = 115
+note = "Naive answer 79.7 km/h; key 81.3 needs the sketch geometry."
+[[key]]
+id = 29
+note = "Steering torque model gives 11.0 N m; key 8.5."
+[[key]]
+id = 451
+note = "Key 5.0 bar implies 6.5 m/s2 required deceleration; with 8 m/s2 the result is 6.19 bar."
+[[key]]
+id = 408
+note = "Key 154 Hz fits ~14 coils; its twin Q128 matches with 12."
+[[key]]
+id = 410
+note = "Key 9531 N; method unclear (head bearing 10885 N is a distractor)."
+[[key]]
+id = 114
+note = "Key 35 g; method unclear (implies 49.4 kg)."
+[[key]]
+id = 863
+note = "Parts 2-3 (17 runs, 0.356 kWh) don't come out of a regen model; ~30.7 % recovered back-solved."
+[[key]]
+id = 1008
+note = "Key 3617 implies ~132.5 A; the stated 120 A gives 3568."
