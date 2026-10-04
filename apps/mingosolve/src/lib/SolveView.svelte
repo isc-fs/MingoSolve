@@ -109,10 +109,10 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: 0 var(--space-3) var(--space-6);
+        padding: 0 var(--space-5) var(--space-6);
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
+        gap: var(--space-4);
     }
     .problem {
         padding: var(--space-3) var(--space-4) var(--space-4);
@@ -187,7 +187,7 @@
     .topics {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        gap: var(--space-3);
+        gap: var(--space-4);
     }
     .topic {
         appearance: none;

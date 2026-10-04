@@ -44,12 +44,10 @@
     --space-6: 24px;
     --space-8: 32px;
 
-    /* Panels in the window corners are concentric with it: radius = window radius (macOS ~16 px) - gap. */
-    --gap: 6px;
-    --r-sm: 6px;
-    --r-md: 8px;
-    --r-lg: 9px;
-    --r-xl: 10px;
+    --r-sm: 10px;
+    --r-md: 13px;
+    --r-lg: 18px;
+    --r-xl: 22px;
     --r-pill: 999px;
 
     --blur: 22px;

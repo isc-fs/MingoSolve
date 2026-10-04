@@ -109,26 +109,28 @@
 </aside>
 
 <style>
+    /* full height and flush with the window edge, so the window's own corners are the rail's */
     .rail {
         width: 236px;
         flex: 0 0 236px;
-        margin: var(--gap) 0 var(--gap) var(--gap);
         padding: var(--space-3);
-        border-radius: var(--r-xl);
+        border-width: 0 1px 0 0;
+        border-radius: 0;
+        box-shadow: none;
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
         min-height: 0;
         overflow-y: auto;
     }
-    /* the window buttons sit inside the rail's top-left corner (trafficLightPosition in tauri.macos.conf.json) */
+    /* room for the window buttons (trafficLightPosition in tauri.macos.conf.json) */
     .rail.mac {
-        padding-top: 46px;
+        padding-top: 48px;
     }
     .drag {
         position: absolute;
         inset: 0 0 auto 0;
-        height: 46px;
+        height: 48px;
     }
     .brand {
         display: flex;
