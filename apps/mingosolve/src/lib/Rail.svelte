@@ -138,12 +138,10 @@
         gap: var(--space-3);
         padding: var(--space-2) var(--space-2) var(--space-3);
     }
+    /* the app icon itself (its rounded tile is part of the image) */
     .brand img {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        background: var(--isc-gold);
-        padding: 4px;
+        width: 40px;
+        height: 40px;
     }
     .brand strong {
         display: block;
