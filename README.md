@@ -29,8 +29,8 @@ npx tauri icon src-tauri/icons/icon.png   # once: platform icons are generated, 
 npm run tauri:dev
 ```
 
-Installers will be published through [isc-fs/iskapps](https://github.com/isc-fs/iskapps) once the release pipeline
-lands (see the [roadmap](ROADMAP.md)).
+Teammates: installers for macOS, Windows and Linux are on [isc-fs/iskapps](https://github.com/isc-fs/iskapps/releases);
+see [docs/INSTALL.md](docs/INSTALL.md). Maintainers: [docs/RELEASING.md](docs/RELEASING.md).
 
 ## The command line
 
