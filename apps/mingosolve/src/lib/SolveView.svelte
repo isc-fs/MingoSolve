@@ -10,7 +10,7 @@
     import ScriptSheet from './ScriptSheet.svelte';
     import { catalog, shortName } from './catalog.svelte';
     import { findQuestion } from './finder';
-    import { openScript, session } from './session.svelte';
+    import { openScript, prettyQuantity, session } from './session.svelte';
     import type { Hit } from './types';
 
     let hits = $state<Hit[]>([]);
@@ -44,6 +44,16 @@
         }, 160);
     });
 
+    // With a script open, a chip is "used" when one of the sheet's fields holds that value (as pre-filled or typed).
+    const sheetValues = $derived(
+        session.script !== null && session.sheet?.nonce === session.script.nonce
+            ? Object.values(session.sheet.values)
+                  .filter((v) => v.trim().length > 0)
+                  .map((v) => prettyQuantity(v).replace(/\s+/g, ''))
+            : null,
+    );
+    const used = (q: string): boolean | null => (sheetValues === null ? null : sheetValues.includes(q.replace(/\s+/g, '')));
+
     const hasProblem = $derived(session.problem.trim().length > 0);
 </script>
 
@@ -66,7 +76,15 @@
         ></textarea>
         {#if quantities.length > 0}
             <div class="chips" aria-label="Values found in the problem">
-                {#each quantities as q (q)}<span class="chip">{q}</span>{/each}
+                {#each quantities as q (q)}
+                    {@const u = used(q)}
+                    <span class="chip" class:used={u === true} class:unused={u === false}>
+                        {#if u === true}<Icon name="check" size={12} />{/if}
+                        {q}
+                        {#if u === true}<span class="sr-only">used in this script</span>{/if}
+                        {#if u === false}<span class="not-used">not used</span>{/if}
+                    </span>
+                {/each}
             </div>
         {/if}
         {#if hasProblem}
@@ -79,7 +97,7 @@
                         class:best={i === 0}
                         class:on={session.script?.id === h.id}
                         title={catalog.scripts.get(h.id)?.title ?? h.id}
-                        onclick={() => openScript(h.id, h.prefill, { target: h.target })}
+                        onclick={() => openScript(h.id)}
                     >
                         <span>{shortName(h.id)}</span>
                         {#if h.prefill.length > 0}<span class="fills">{h.prefill.length}</span>{/if}
@@ -141,6 +159,28 @@
     .matches {
         padding-top: var(--space-2);
         border-top: 1px solid var(--glass-edge);
+    }
+    .chip.used {
+        background: var(--good-soft);
+        color: var(--good);
+    }
+    .chip.unused {
+        background: transparent;
+        color: var(--text-2);
+        border: 1px dashed var(--warn);
+    }
+    .not-used {
+        font-family: var(--font-sans);
+        color: var(--warn);
+        font-weight: 600;
+    }
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
     }
     .match {
         appearance: none;

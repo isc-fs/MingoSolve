@@ -22,6 +22,7 @@
 
     let values = $state<Record<string, string>>({});
     let display = $state<Record<string, string>>({});
+    let fromProblem = $state<Record<string, string>>({});
     let result = $state<SolveResult | null>(null);
     let toolOut = $state<string | null>(null);
     let error = $state<string | null>(null);
@@ -45,11 +46,13 @@
             if (saved !== null && saved.nonce === nonce) {
                 values = { ...saved.values };
                 display = { ...saved.display };
+                fromProblem = { ...saved.fromProblem };
                 picked = saved.picked;
                 options = saved.options;
                 showOptions = saved.options.length > 0;
             } else {
                 const given = Object.fromEntries(open.values);
+                fromProblem = { ...(open.fromProblem ?? {}) };
                 if (s.formula !== undefined) {
                     values = Object.fromEntries(s.formula.vars.map((v) => [v.name, given[v.name] ?? '']));
                     display = Object.fromEntries(s.formula.vars.map((v) => [v.name, open.display?.[v.name] ?? '']));
@@ -81,7 +84,7 @@
     $effect(() => {
         const open = session.script;
         if (open === null) return;
-        const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, picked, options };
+        const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, fromProblem: { ...fromProblem }, picked, options };
         untrack(() => {
             session.sheet = state;
         });
@@ -179,7 +182,7 @@
             });
         matching = null;
         if (opts.trim().length > 0) {
-            void matchOptions(a.n, opts)
+            void matchOptions(a.shown, opts)
                 .then((m) => {
                     if (seq === latestFormat) matching = m;
                 })
@@ -197,6 +200,7 @@
 
     function clear(): void {
         for (const k of Object.keys(values)) values[k] = k === 'rules' ? settings.rules : '';
+        fromProblem = {};
     }
 
     const pinned = $derived(script !== null && settings.pinned.includes(script.id));
@@ -238,12 +242,18 @@
                 {#each script.formula.vars as v (v.name)}
                     {@const solved = result?.found.find((f) => f.name === v.name)}
                     <label class="field" data-var={v.name}>
-                        <span class="flabel"><span class="sym"><Tex tex={v.tex} /></span> {v.desc}</span>
+                        <span class="flabel">
+                            <span class="fdesc"><span class="sym"><Tex tex={v.tex} /></span> {v.desc}</span>
+                            {#if fromProblem[v.name] !== undefined}
+                                <span class="from" title="Taken from the problem: {fromProblem[v.name]}">from the problem<span class="sr-only"> ({fromProblem[v.name]})</span></span>
+                            {/if}
+                        </span>
                         <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                             class="input mono"
                             class:filled={values[v.name]?.trim().length > 0}
                             class:solved={solved !== undefined}
                             bind:value={values[v.name]}
+                            oninput={() => delete fromProblem[v.name]}
                             placeholder={solved !== undefined ? `= ${solved.shown[0]}` : v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit_shown}]`}
                         />
                     </label>
@@ -439,8 +449,33 @@
     .flabel {
         font-size: var(--text-sm);
         color: var(--text-2);
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+    .fdesc {
+        flex: 0 1 auto;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .from {
+        flex: none;
+        padding: 0 6px;
+        border-radius: var(--r-pill);
+        background: var(--accent-soft);
+        color: var(--ink-accent);
+        font-size: var(--text-xs);
+        font-weight: 500;
+    }
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
         white-space: nowrap;
     }
     .input.filled {

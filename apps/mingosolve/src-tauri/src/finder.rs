@@ -35,15 +35,12 @@ pub fn find_question_impl(text: &str) -> Found {
 }
 
 #[tauri::command]
-pub async fn match_options(value: f64, options: String) -> Result<Matching, String> {
-    crate::blocking(move || match_options_impl(value, &options)).await
+pub async fn match_options(answer: String, options: String) -> Result<Matching, String> {
+    crate::blocking(move || Ok(match_options_impl(&answer, &options))).await
 }
 
-pub fn match_options_impl(value: f64, options: &str) -> Result<Matching, String> {
-    if !value.is_finite() {
-        return Err(fsq::units::NOT_FINITE.into());
-    }
-    Ok(answer::match_options(value, options))
+pub fn match_options_impl(answer: &str, options: &str) -> Matching {
+    answer::match_options(answer, options)
 }
 
 #[tauri::command]

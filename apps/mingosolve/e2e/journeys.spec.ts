@@ -16,6 +16,12 @@ test('Q90: paste a problem anywhere, open the top match pre-filled, copy the ans
     await top.click();
     await expect(field(app, 'mu')).toHaveValue('1.4');
     await expect(field(app, 'm')).toHaveValue('240 kg');
+    // pre-filled fields say where the value came from, and every detected value is used by this sheet
+    await expect(app.locator('label.field[data-var="mu"] .from')).toContainText('from the problem');
+    await expect(app.getByLabel('Values found in the problem').getByText('not used')).toHaveCount(0);
+    await field(app, 'mu').fill('1.5');
+    await expect(app.locator('label.field[data-var="mu"] .from')).toHaveCount(0);
+    await field(app, 'mu').fill('1.4');
     await expect(answer(app)).toHaveText(/^11\.759\d* m\/s$/);
     await app.getByRole('button', { name: /Copy 11\.76/ }).click();
     expect(await copied(app)).toEqual(['11.76']);
@@ -60,6 +66,9 @@ test('Q34: multiple-choice check and the copy format follow Settings', async ({ 
     await app.getByRole('button', { name: /^Q34 ·/ }).click();
     await expect(answer(app)).toHaveText(/^77\.887\d* A$/);
     await app.getByRole('button', { name: 'Check against options' }).click();
+    // options in another prefix of the same unit, with a space as thousands separator
+    await app.getByPlaceholder(/a\) 73\.4 A/).fill('a) 73 400 mA\nb) 77 887 mA\nc) 80.4 A');
+    await expect(app.locator('.opts li.best')).toContainText('b) 77 887 mA');
     await app.getByPlaceholder(/a\) 73\.4 A/).fill('a) 73.4 A\nb) 77.9 A\nc) 80.4 A\nd) 4815 A');
     await expect(app.locator('.opts li.best')).toContainText('b) 77.9 A');
 

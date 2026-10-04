@@ -126,6 +126,31 @@ describe('live solving', () => {
     });
 });
 
+describe('checking the answer against pasted options', () => {
+    it('sends the answer as shown, with its unit, so options in kN or ms can be compared', async () => {
+        const engine = fakeEngine({
+            ...common,
+            solve_formula: solveMotion,
+            match_options: () => ({
+                options: [
+                    { text: 'a) 36 km/h', value: 10, rel_diff: 0, best: true },
+                    { text: 'b) 5 kg', value: null, rel_diff: null, best: false },
+                ],
+                warning: 'skipped, the unit is not the answer\'s: b) 5 kg',
+            }),
+        });
+        openScript('uniform_motion', [['s', '100 m'], ['t', '10 s']]);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('10 m/s'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        await fireEvent.input(document.querySelector('textarea.input')!, { target: { value: 'a) 36 km/h\nb) 5 kg' } });
+        await waitFor(() => expect(document.querySelector('.opts li.best')?.textContent).toContain('a) 36 km/h'));
+        const call = engine.calls.filter((c) => c.cmd === 'match_options').at(-1)!;
+        expect(call.args).toEqual({ answer: '10 m/s', options: 'a) 36 km/h\nb) 5 kg' });
+        expect(document.querySelector('.note-warn')?.textContent).toContain('b) 5 kg');
+    });
+});
+
 describe('which root the answer slab shows', () => {
     const twoRoots: SolveResult = {
         found: [
@@ -201,5 +226,34 @@ describe('sheet state', () => {
         openScript('uniform_motion');
         render(ScriptSheet);
         expect(field('s').value).toBe('');
+    });
+});
+
+describe('values taken from the pasted problem', () => {
+    const marker = (name: string) => document.querySelector(`label.field[data-var="${name}"] .from`);
+
+    it('marks only the fields the problem filled, with the source text, and drops the mark when the field is edited', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        session.problemFills = { uniform_motion: { values: [['s', '100 m']], target: null } };
+        openScript('uniform_motion');
+        render(ScriptSheet);
+        expect(field('s').value).toBe('100 m');
+        expect(marker('s')?.textContent).toContain('from the problem');
+        expect(marker('s')?.getAttribute('title')).toContain('100 m');
+        expect(marker('t')).toBeNull();
+        await userEvent.type(field('t'), '5 s');
+        expect(marker('t')).toBeNull();
+        expect(marker('s')).not.toBeNull();
+        await userEvent.type(field('s'), '0');
+        expect(marker('s')).toBeNull();
+    });
+
+    it('values loaded from a worked example never carry the mark', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        session.problemFills = { uniform_motion: { values: [['s', '100 m']], target: null } };
+        openCommand('uniform_motion s=75m t=3.8s');
+        render(ScriptSheet);
+        expect(field('s').value).toBe('75m');
+        expect(document.querySelector('.from')).toBeNull();
     });
 });

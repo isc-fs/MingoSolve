@@ -49,10 +49,10 @@ fn dispatch_inner(cmd: &str, a: &Value) -> Result<Value, String> {
         "find_question" => ok(json!(finder::find_question_impl(&arg::<String>(
             a, "text"
         )?))),
-        "match_options" => {
-            finder::match_options_impl(arg(a, "value")?, &arg::<String>(a, "options")?)
-                .map(|r| json!(r))
-        }
+        "match_options" => ok(json!(finder::match_options_impl(
+            &arg::<String>(a, "answer")?,
+            &arg::<String>(a, "options")?
+        ))),
         "format_answer" => fsq::answer::format_answer(
             arg(a, "value")?,
             arg(a, "precision")?,
