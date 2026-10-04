@@ -7,7 +7,7 @@
     import { tick } from 'svelte';
 
     import Icon from './Icon.svelte';
-    import { catalog, searchScripts, symbols, type Script } from './catalog.svelte';
+    import { catalog, searchScripts, type Script } from './catalog.svelte';
     import { openScript, session, togglePin } from './session.svelte';
     import { settings } from './settings.svelte';
 
@@ -147,7 +147,7 @@
                                 {#if searching}<span class="dot"></span>{/if}{s.title}
                                 {#if s.kind === 'tool'}<span class="chip chip-quiet">tool</span>{/if}
                             </span>
-                            <span class="sub mono">{searching ? `${s.topic?.name ?? ''}${symbols(s) ? ' · ' + symbols(s) : ''}` : symbols(s)}</span>
+                            {#if searching}<span class="sub">{s.topic?.name ?? ''}</span>{/if}
                         </button>
                         <button type="button" class="pin" class:pinned onclick={() => togglePin(s.id)} aria-pressed={pinned} aria-label={pinned ? `Unpin ${s.title}` : `Pin ${s.title}`} title={pinned ? 'Unpin from the rail' : 'Pin to the rail'}>
                             <Icon name="pin" size={14} />

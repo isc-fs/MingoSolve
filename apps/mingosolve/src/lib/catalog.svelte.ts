@@ -130,12 +130,6 @@ function withinOneEdit(a: string, b: string): boolean {
     return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
 }
 
-/** A formula's variable symbols ("v · s · t"), how people recognise it at a glance; empty for tools. */
-export function symbols(s: Script, max = 6): string {
-    const names = s.formula?.vars.map((v) => v.name) ?? [];
-    return names.slice(0, max).join(' · ') + (names.length > max ? ' …' : '');
-}
-
 /** Short label for compact lists: the script id in words ("battery_load" -> "Battery load"). */
 export function shortName(id: string): string {
     const words = id.replaceAll('_', ' ');

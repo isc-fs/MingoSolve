@@ -6,7 +6,7 @@
     import { tick } from 'svelte';
 
     import Icon from './Icon.svelte';
-    import { searchScripts, symbols } from './catalog.svelte';
+    import { searchScripts } from './catalog.svelte';
     import { openScript, session } from './session.svelte';
     import { settings } from './settings.svelte';
 
@@ -95,7 +95,7 @@
                     <!-- svelte-ignore a11y_click_events_have_key_events -->
                     <li role="option" id="palette-opt-{i}" aria-selected={i === index} class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
                         <span class="dot" data-hue={r.topic?.hue ?? 'green'}></span>
-                        <span class="title">{r.title}{#if symbols(r)}<span class="syms mono">{symbols(r)}</span>{/if}</span>
+                        <span class="title">{r.title}</span>
                         <span class="muted small">{r.topic?.name ?? ''}</span>
                     </li>
                 {/each}
@@ -167,13 +167,6 @@
     }
     .title {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .syms {
-        font-size: var(--text-xs);
-        color: var(--muted);
     }
     .dot {
         width: 8px;
