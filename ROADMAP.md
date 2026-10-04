@@ -13,7 +13,7 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
-| 1 | Rust engine and desktop app | 🔜 planned `feat/1-mingosolve-app` | `v0.1.0` |
+| 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
 | 2 | Release and quiz-day features | 🔜 planned `feat/2-release-pipeline` · 🔜 planned `feat/3-known-key-warning` | `v0.2.0` |
 | 3 | Quiz rehearsal | 🔜 planned `feat/4-mock-quiz-fixes` | `v1.0.0` |
 | 4 | After the quizzes | 🔜 planned `feat/5-drop-python-fallback` · 🔜 planned `feat/6-repl` | `v1.1.0` |
@@ -30,7 +30,7 @@ gitGraph
 
     %% Phase 1 — Rust engine and desktop app
     branch feat/1-mingosolve-app
-    commit id: "○ Rust engine, Tauri app, 145 past questions, tests at every layer"
+    commit id: "✔ Rust engine, Tauri app, 145 past questions, tests at every layer"
     checkout dev
     merge feat/1-mingosolve-app
     checkout main
