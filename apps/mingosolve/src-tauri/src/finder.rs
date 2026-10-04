@@ -15,14 +15,18 @@ pub struct Found {
 
 /// Scripts (formulas and tools) that fit a pasted problem; past-question hits are left out of the app.
 #[tauri::command]
-pub fn find_question(text: String) -> Found {
-    let hits = find(&text, 24)
+pub async fn find_question(text: String) -> Result<Found, String> {
+    crate::blocking(move || Ok(find_question_impl(&text))).await
+}
+
+pub fn find_question_impl(text: &str) -> Found {
+    let hits = find(text, 24)
         .into_iter()
         .filter(|h| h.kind != "example")
         .take(8)
         .collect();
     // chips show only values with units; unitless numbers still pre-fill when their words name a variable
-    let quantities = quantities(&text)
+    let quantities = quantities(text)
         .into_iter()
         .filter(|q| q.dims != DIMENSIONLESS)
         .map(|q| pretty_unit(&q.text))
@@ -31,11 +35,22 @@ pub fn find_question(text: String) -> Found {
 }
 
 #[tauri::command]
-pub fn match_options(value: f64, options: String) -> Matching {
-    answer::match_options(value, &options)
+pub async fn match_options(value: f64, options: String) -> Result<Matching, String> {
+    crate::blocking(move || match_options_impl(value, &options)).await
+}
+
+pub fn match_options_impl(value: f64, options: &str) -> Result<Matching, String> {
+    if !value.is_finite() {
+        return Err(fsq::units::NOT_FINITE.into());
+    }
+    Ok(answer::match_options(value, options))
 }
 
 #[tauri::command]
-pub fn format_answer(value: f64, precision: Precision, decimal_comma: bool) -> String {
-    answer::format_answer(value, precision, decimal_comma)
+pub async fn format_answer(
+    value: f64,
+    precision: Precision,
+    decimal_comma: bool,
+) -> Result<String, String> {
+    crate::blocking(move || answer::format_answer(value, precision, decimal_comma)).await
 }

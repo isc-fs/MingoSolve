@@ -30,8 +30,14 @@
                 session.problemFills = {};
                 return;
             }
-            const found = await findQuestion(q);
+            const found = await findQuestion(q).catch(() => null);
             if (seq !== latest) return;
+            if (found === null) {
+                hits = [];
+                quantities = [];
+                session.problemFills = {};
+                return;
+            }
             hits = found.hits;
             quantities = found.quantities;
             session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));
