@@ -1,13 +1,14 @@
 // Auto-update wrappers around `@tauri-apps/plugin-updater` +
-// `@tauri-apps/plugin-process`, mirroring the thin-wrapper convention
-// in `swd.ts` / `provision.ts`.
+// `@tauri-apps/plugin-process`.
 //
-// The app checks the GitHub release `latest.json` (configured in
+// The app checks the iskapps `mingosolve/latest.json` (configured in
 // tauri.conf.json → plugins.updater.endpoints) against the running
-// version. `checkForUpdate()` is best-effort: it swallows every error
-// — offline, no manifest published yet (pre-activation), an invalid
-// placeholder pubkey, or running outside the Tauri runtime (a plain
-// `vite preview`) — and returns null so the UI simply shows nothing.
+// version. App.svelte calls this on launch only when the "Check for
+// updates automatically" setting is on; the Settings button always
+// works. `checkForUpdate()` is best-effort: it swallows every error —
+// offline, no manifest published yet, an invalid pubkey, or running
+// outside the Tauri runtime (a plain `vite preview`) — and returns null
+// so the UI simply shows nothing.
 
 import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';

@@ -49,6 +49,7 @@ it('a file from an older version keeps its choices and takes defaults for everyt
     expect(m.settings.theme).toBe('light');
     expect(m.settings.precision).toEqual({ kind: 'sig', n: 3 });
     expect(m.settings.rules).toBe('2027');
+    expect(m.settings.autoUpdateCheck).toBe(true);
     expect(m.settings.pinned).toEqual(m.defaultSettings().pinned);
 });
 

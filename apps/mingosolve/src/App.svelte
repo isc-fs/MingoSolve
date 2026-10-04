@@ -1,12 +1,12 @@
 <!--
     ISC MingoSolve: root layout. A lit, grainy ground behind three glass columns: the rail, the active view, and the
-    calculator. Loads settings and the script catalogue, applies the theme, checks for updates (best effort).
+    calculator. Loads settings and the script catalogue, applies the theme, checks for updates on launch unless the setting is off (best effort).
     Global keys: Cmd/Ctrl+K opens the palette; pasting text outside any field starts a problem in Solve.
 -->
 <script lang="ts">
     import { onMount } from 'svelte';
 
-    import { loadSettings, registerAutosaveEffect } from './lib/settings.svelte';
+    import { loadSettings, registerAutosaveEffect, settings } from './lib/settings.svelte';
     import { platform, registerThemeEffect } from './lib/theme.svelte';
     import { loadCatalog } from './lib/catalog.svelte';
     import { session } from './lib/session.svelte';
@@ -33,7 +33,7 @@
             failed = String(e);
         }
         ready = true;
-        checkForUpdate().then((u) => (update = u));
+        if (settings.autoUpdateCheck) checkForUpdate().then((u) => (update = u));
     });
 
     registerAutosaveEffect();
