@@ -66,6 +66,9 @@ test('Q34: multiple-choice check and the copy format follow Settings', async ({ 
     await app.getByRole('button', { name: /^Q34 ·/ }).click();
     await expect(answer(app)).toHaveText(/^77\.887\d* A$/);
     await app.getByRole('button', { name: 'Check against options' }).click();
+    // options in another prefix of the same unit, with a space as thousands separator
+    await app.getByPlaceholder(/a\) 73\.4 A/).fill('a) 73 400 mA\nb) 77 887 mA\nc) 80.4 A');
+    await expect(app.locator('.opts li.best')).toContainText('b) 77 887 mA');
     await app.getByPlaceholder(/a\) 73\.4 A/).fill('a) 73.4 A\nb) 77.9 A\nc) 80.4 A\nd) 4815 A');
     await expect(app.locator('.opts li.best')).toContainText('b) 77.9 A');
 
