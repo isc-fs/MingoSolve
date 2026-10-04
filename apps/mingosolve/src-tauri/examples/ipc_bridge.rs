@@ -61,27 +61,35 @@ fn main() {
         Header::from_bytes("Access-Control-Allow-Headers", "content-type").unwrap(),
         Header::from_bytes("Content-Type", "application/json").unwrap(),
     ];
+    // one thread per request: a slow solve must not hold up the other browsers' requests behind it
     for mut req in server.incoming_requests() {
-        let url = req.url().to_string();
-        let (status, body) = if req.method().as_str() == "OPTIONS" {
-            (204, String::new())
-        } else if url == "/health" {
-            (200, "\"ok\"".to_string())
-        } else if let Some(cmd) = url.strip_prefix("/invoke/") {
-            let mut raw = String::new();
-            let _ = req.as_reader().read_to_string(&mut raw);
-            let args: Value = serde_json::from_str(&raw).unwrap_or(json!({}));
-            match dispatch(cmd, &args) {
-                Ok(v) => (200, v.to_string()),
-                Err(e) => (400, json!(e).to_string()),
+        let cors = cors.clone();
+        std::thread::spawn(move || {
+            let url = req.url().to_string();
+            let started = std::time::Instant::now();
+            let (status, body) = if req.method().as_str() == "OPTIONS" {
+                (204, String::new())
+            } else if url == "/health" {
+                (200, "\"ok\"".to_string())
+            } else if let Some(cmd) = url.strip_prefix("/invoke/") {
+                let mut raw = String::new();
+                let _ = req.as_reader().read_to_string(&mut raw);
+                let args: Value = serde_json::from_str(&raw).unwrap_or(json!({}));
+                match dispatch(cmd, &args) {
+                    Ok(v) => (200, v.to_string()),
+                    Err(e) => (400, json!(e).to_string()),
+                }
+            } else {
+                (404, "\"not found\"".to_string())
+            };
+            if started.elapsed().as_secs_f64() > 1.0 {
+                eprintln!("slow: {url} took {:.1} s", started.elapsed().as_secs_f64());
             }
-        } else {
-            (404, "\"not found\"".to_string())
-        };
-        let mut resp = Response::from_string(body).with_status_code(status);
-        for h in &cors {
-            resp.add_header(h.clone());
-        }
-        let _ = req.respond(resp);
+            let mut resp = Response::from_string(body).with_status_code(status);
+            for h in cors {
+                resp.add_header(h);
+            }
+            let _ = req.respond(resp);
+        });
     }
 }
