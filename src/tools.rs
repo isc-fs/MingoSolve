@@ -517,6 +517,10 @@ fn uart_time(a: &Args) -> Result<String, String> {
 }
 
 fn can_frame_bits(a: &Args) -> Result<String, String> {
+    Ok(g6(frame_bits(a)?))
+}
+
+fn frame_bits(a: &Args) -> Result<f64, String> {
     let base = if a.num("extended")? != 0.0 {
         64.0
     } else {
@@ -527,7 +531,78 @@ fn can_frame_bits(a: &Args) -> Result<String, String> {
     } else {
         0.0
     };
-    Ok(g6(base + extra + a.num("ifs")?.floor()))
+    Ok(base + extra + a.num("ifs")?.floor())
+}
+
+fn can_transfer(a: &Args) -> Result<String, String> {
+    let fb = frame_bits(a)?;
+    let frames = (a.num("bits")? / (8.0 * a.num("data_bytes")?.floor()) - 1e-9).ceil();
+    Ok(format!(
+        "{} frames x {} bit  time {} s",
+        g6(frames),
+        g6(fb),
+        g6(frames * fb / a.num("bitrate")?)
+    ))
+}
+
+fn charge_time(a: &Args) -> Result<String, String> {
+    let (p_ch, p_i) = (a.num("p_charger")?, a.num("i_set")? * a.num("v_batt")?);
+    let p = p_ch.min(p_i);
+    let t = (a.num("soc1")? - a.num("soc0")?) * a.num("e_nom")? / p;
+    let limit = if p_ch <= p_i {
+        "charger power"
+    } else {
+        "current setpoint"
+    };
+    Ok(format!(
+        "power {} W ({limit} limit)  time {} s = {} min = {} h",
+        g6(p),
+        g6(t),
+        g6(t / 60.0),
+        g6(t / 3600.0)
+    ))
+}
+
+fn packs_needed(a: &Args) -> Result<String, String> {
+    let q = |k: &str| units::parse_quantity(a.str(k)).map_err(|e| format!("{k}: {e}"));
+    let (need, per) = (q("need")?, q("per_pack")?);
+    if need.dims != per.dims {
+        return Err("need and per_pack must have the same unit (both Ah or both kWh)".into());
+    }
+    let x = need.value / (per.value * a.num("usable")?);
+    Ok(format!("{} packs -> {}", g6(x), g6((x - 1e-9).ceil())))
+}
+
+fn cable_fuse(a: &Args) -> Result<String, String> {
+    let (area, t_ins, t_max) = (a.num("a")?, a.num("t_ins")?, a.num("t_max")?);
+    let rho_t = a.num("rho")? * (1.0 + a.num("alpha")? * (t_max - a.num("t0")?));
+    let d_avg = (4.0 * area / std::f64::consts::PI).sqrt() + t_ins;
+    let q = a.num("lam")? * std::f64::consts::PI * d_avg * (t_max - a.num("t_amb")?) / t_ins;
+    let i = (q * area / rho_t).sqrt();
+    let step = a.num("step")?;
+    Ok(format!(
+        "I_max {} A -> fuse {} A",
+        g6(i),
+        g6((i / step + 1e-9).floor() * step)
+    ))
+}
+
+fn ts_breaker(a: &Args) -> Result<String, String> {
+    let (v0, r_i) = (a.num("v0")?, a.num("r_i")?);
+    let r_w = a.num("k_wire")? * 2.0 * a.num("l")? / (a.num("kappa")? * a.num("a")?);
+    let i_min = v0 / (r_i + r_w);
+    let i_max = v0 / r_i;
+    let (s_in, s_cn) = (a.num("step_in")?, a.num("step_icn")?);
+    let i_n = (i_min / a.num("k_trip")? / s_in + 1e-9).floor() * s_in;
+    let i_cn = (i_max / s_cn - 1e-9).ceil() * s_cn;
+    Ok(format!(
+        "R_wire {} ohm  I_sc min {} A -> In {} A  I_sc max {} A -> Icn {} A",
+        g6(r_w),
+        g6(i_min),
+        g6(i_n),
+        g6(i_max),
+        g6(i_cn)
+    ))
 }
 
 fn db_sum(a: &Args) -> Result<String, String> {
@@ -796,6 +871,16 @@ pub fn tools() -> &'static [Tool] {
               "n_bytes:n baud:n data:n=8 parity:n=0 stop:n=1", uart_time),
             t("can_frame_bits", "Bits per classic CAN frame (incl. IFS). stuffing=1 adds worst-case stuff bits.",
               "data_bytes:n=8 extended:n=0 ifs:n=3 stuffing:n=0", can_frame_bits),
+            t("can_transfer", "Classic CAN frames and time to move a payload of `bits` (best case: full 8-byte frames, no stuffing).",
+              "bits:n bitrate:n data_bytes:n=8 extended:n=0 ifs:n=3 stuffing:n=0", can_transfer),
+            t("charge_time", "Charging time: power = min(charger power, current setpoint x battery voltage), t = (soc1 - soc0) x E_nom / power. SoC as 0..1.",
+              "e_nom:n soc0:n soc1:n p_charger:n i_set:n v_batt:n", charge_time),
+            t("packs_needed", "Whole packs needed: ceil(need / (per_pack x usable)). Type need as 4.2A*8h or 15kWh; usable = depth of discharge (to 14 % -> 0.86).",
+              "need:n per_pack:n usable:n=1", packs_needed),
+            t("cable_fuse", "Cable ampacity (steady state, heat through the insulation): I^2 rho(T_max)/A = lam pi (d + t_ins) (T_max - T_amb)/t_ins, d = sqrt(4A/pi); fuse floored to the step. rho given at t0.",
+              "a:n t_ins:n t_amb:n t_max:n lam:n rho:n alpha:n t0:n=20degC step:n=1", cable_fuse),
+            t("ts_breaker", "Main breaker for a TS cable: R_wire = k_wire 2 l/(kappa A) (go + return); In = floor(V0/(Ri + R_wire)/k_trip) to step_in; Icn = ceil(V0/Ri) to step_icn. kappa in S/m (56 m/(ohm mm2) = 56e6).",
+              "v0:n r_i:n l:n a:n kappa:n=56e6 k_wire:n=1.3 k_trip:n=10 step_in:n=10 step_icn:n=10000", ts_breaker),
             t("db_sum", "Incoherent sum of sound levels: db_sum 90,92,85.", "levels:s", db_sum),
             t("nodal", "Exact DC nodal analysis. Elements separated by ';': R<name> a b ohms | V<name> plus minus volts | I<name> from to amps. Node 0 is ground. ask=Rab:a,b gives the equivalent resistance. Example: nodal \"R1 1 2 3; R2 2 0 3; R3 1 0 3; V1 1 0 10\".",
               "netlist:s ask:s=", nodal),
@@ -909,6 +994,53 @@ mod tests {
         );
         assert_eq!(run("accel_then_cruise", &["75", "4", "56km/h"]), "6.76587");
         assert!(run("gamma", &["50.13", "-40.84"]).contains("VSWR 2.2137"));
+    }
+
+    #[test]
+    fn electrical_tools_reproduce_quiz_keys() {
+        // Q609 key 40 min: 12 A x 510 V = 6.12 kW > 5.5 kW, so 0.6 x 6.1 kWh / 5.5 kW = 0.6655 h = 39.93 min
+        assert!(run(
+            "charge_time",
+            &["6.1kWh", "0.2", "0.8", "5.5kW", "12A", "510V"]
+        )
+        .contains("39.9273 min"));
+        // Q954 key 4: 4.2 A x 8 h / (10 Ah x 0.86) = 3.907; Q997 key 3: 2.5 kW/0.63 x 235 min / 6.5 kWh = 2.39
+        assert!(run("packs_needed", &["4.2A*8h", "10Ah", "0.86"]).ends_with("-> 4"));
+        assert!(run("packs_needed", &["2.5kW/0.63*235min", "6.5kWh"]).ends_with("-> 3"));
+        assert!(tool("packs_needed")
+            .unwrap()
+            .call(&["10Ah", "1kWh"])
+            .is_err());
+        // Q71 key 11 A: d = 1.596 mm, q = 6e-3 pi 1.956e-3 x 20/0.36e-3 = 2.048 W/m,
+        // rho(70 degC) = 26.4n x 1.205, I = sqrt(2.048 x 2e-6/3.181e-8) = 11.35 A
+        let out = run(
+            "cable_fuse",
+            &[
+                "2mm**2",
+                "0.36mm",
+                "50degC",
+                "70degC",
+                "6mW/(K*m)",
+                "26.4e-9",
+                "0.0041",
+            ],
+        );
+        assert!(
+            out.starts_with("I_max 11.34") && out.ends_with("fuse 11 A"),
+            "{out}"
+        );
+        // Q617 key "560, 30": R_w = 1.3 x 20/(56e6 x 6e-6) = 77.4 mOhm, 600/0.1059 = 5667 A -> 560 A,
+        // 600/0.0285 = 21053 A -> 30 kA
+        let out = run("ts_breaker", &["600", "28.5mohm", "10m", "6mm**2"]);
+        assert!(
+            out.contains("In 560 A") && out.ends_with("Icn 30000 A"),
+            "{out}"
+        );
+        // Q675 key "580000, 129": 290 s x 128 kbit/s / 64 bit per frame, 111 bit frames at 500 kbit/s
+        assert_eq!(
+            run("can_transfer", &["290*128000", "500000"]),
+            "580000 frames x 111 bit  time 128.76 s"
+        );
     }
 
     #[test]

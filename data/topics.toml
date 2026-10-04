@@ -15,7 +15,7 @@ name = "Vehicle dynamics"
 blurb = "Axle loads, load transfer, cornering, rollover, steering"
 hue = "green"
 formulas = ["static_axle_loads", "longitudinal_transfer", "lateral_transfer", "rollover", "inside_wheel_fraction",
-            "front_lift", "traction_limit", "cornering", "cornering_downforce", "ackermann"]
+            "front_lift", "traction_limit", "cornering", "cornering_downforce", "skidpad_lap", "ackermann"]
 tools = []
 
 [[topic]]
@@ -66,9 +66,9 @@ id = "hv"
 name = "Accumulator and HV"
 blurb = "Pack under load, energy, discharge rule, segment limits, TS rules"
 hue = "gold"
-formulas = ["battery_load", "max_power_transfer", "pack_energy", "energy_power", "ts_discharge", "cap_energy",
-            "peukert"]
-tools = ["segment_max_cells", "ts_rules", "pcb_spacing"]
+formulas = ["battery_load", "max_power_transfer", "pack_energy", "energy_power", "power_ramp", "drive_range",
+            "ts_discharge", "cap_energy", "peukert", "balancing_time"]
+tools = ["segment_max_cells", "ts_rules", "pcb_spacing", "charge_time", "packs_needed", "ts_breaker"]
 
 [[topic]]
 id = "circuits"
@@ -77,16 +77,16 @@ blurb = "Ohm, wiring, transients, filters, sensors, op-amps, converters"
 hue = "teal"
 formulas = ["ohm", "wire_resistance", "cable_drop", "resistance_temperature", "resistor_self_heating",
             "rc_transient", "inductor_step", "inductor_energy", "reactance", "rc_lowpass", "vswr", "divider",
-            "ntc", "howland", "buck"]
-tools = ["nodal", "e_series", "gamma"]
+            "ntc", "howland", "buck", "busbar_match"]
+tools = ["nodal", "e_series", "gamma", "cable_fuse"]
 
 [[topic]]
 id = "signals"
 name = "Signals and comms"
-blurb = "Sampling, ADCs, CAN and UART timing, binary"
+blurb = "Sampling, ADCs, timers, CAN and UART timing, binary"
 hue = "teal"
-formulas = ["nyquist", "adc"]
-tools = ["alias", "twos", "uart_time", "can_frame_bits"]
+formulas = ["nyquist", "adc", "adc_temp_step", "timer_arr"]
+tools = ["alias", "twos", "uart_time", "can_frame_bits", "can_transfer"]
 
 [[topic]]
 id = "scoring"
@@ -96,3 +96,11 @@ hue = "gold"
 formulas = []
 tools = ["corrected_time", "event_score", "cones_from_score", "dv_rank_score", "dc_autocross_score",
          "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to"]
+
+[[topic]]
+id = "business"
+name = "Business and finance"
+blurb = "Exchange-rate exposure, ROI, earned value"
+hue = "gold"
+formulas = ["fx_exposure", "roi_fx", "earned_value"]
+tools = []

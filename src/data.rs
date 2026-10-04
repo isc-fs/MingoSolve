@@ -25,6 +25,10 @@ pub const FORMULAS: &[(&str, &str)] = &[
         include_str!("../data/formulas/07_structures.toml"),
     ),
     ("08_thermo", include_str!("../data/formulas/08_thermo.toml")),
+    (
+        "09_finance",
+        include_str!("../data/formulas/09_finance.toml"),
+    ),
 ];
 
 pub const RULES: &[(&str, &str)] = &[
