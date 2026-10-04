@@ -41,7 +41,7 @@
     {#if isMac}<div class="drag" data-tauri-drag-region></div>{/if}
 
     <div class="brand" data-tauri-drag-region>
-        <img src="/icon.png" alt="" />
+        <span class="mark" aria-hidden="true"></span>
         <div>
             <strong>MingoSolve</strong>
             <span class="mono small muted">{version !== '' ? `v${version}` : 'ISC'} · rules {settings.rules}</span>
@@ -138,10 +138,14 @@
         gap: var(--space-3);
         padding: var(--space-2) var(--space-2) var(--space-3);
     }
-    /* the app icon itself (its rounded tile is part of the image) */
-    .brand img {
-        width: 40px;
-        height: 40px;
+    /* the flat ISC mark, coloured by the theme (the glossy tile is only the Dock icon) */
+    .mark {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        background: var(--ink-accent);
+        -webkit-mask: url('/mark.png') center / contain no-repeat;
+        mask: url('/mark.png') center / contain no-repeat;
     }
     .brand strong {
         display: block;
