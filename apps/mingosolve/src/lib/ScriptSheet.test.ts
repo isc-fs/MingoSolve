@@ -126,6 +126,31 @@ describe('live solving', () => {
     });
 });
 
+describe('checking the answer against pasted options', () => {
+    it('sends the answer as shown, with its unit, so options in kN or ms can be compared', async () => {
+        const engine = fakeEngine({
+            ...common,
+            solve_formula: solveMotion,
+            match_options: () => ({
+                options: [
+                    { text: 'a) 36 km/h', value: 10, rel_diff: 0, best: true },
+                    { text: 'b) 5 kg', value: null, rel_diff: null, best: false },
+                ],
+                warning: 'skipped, the unit is not the answer\'s: b) 5 kg',
+            }),
+        });
+        openScript('uniform_motion', [['s', '100 m'], ['t', '10 s']]);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('10 m/s'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        await fireEvent.input(document.querySelector('textarea.input')!, { target: { value: 'a) 36 km/h\nb) 5 kg' } });
+        await waitFor(() => expect(document.querySelector('.opts li.best')?.textContent).toContain('a) 36 km/h'));
+        const call = engine.calls.filter((c) => c.cmd === 'match_options').at(-1)!;
+        expect(call.args).toEqual({ answer: '10 m/s', options: 'a) 36 km/h\nb) 5 kg' });
+        expect(document.querySelector('.note-warn')?.textContent).toContain('b) 5 kg');
+    });
+});
+
 describe('which root the answer slab shows', () => {
     const twoRoots: SolveResult = {
         found: [

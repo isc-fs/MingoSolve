@@ -356,7 +356,15 @@ fn answer_helpers_follow_the_frontend_argument_names() {
     let m = invoke(
         &w,
         "match_options",
-        json!({"value": 77.8879, "options": "a) 73.4 A\nb) 77.9 A\nc) 80.4 A"}),
+        json!({"answer": "77.887 A", "options": "a) 73.4 A\nb) 77.9 A\nc) 80.4 A"}),
+    )
+    .unwrap();
+    assert_eq!(m["options"][1]["best"], true);
+    assert_eq!(m["warning"], Value::Null);
+    let m = invoke(
+        &w,
+        "match_options",
+        json!({"answer": "131.79 N", "options": "121.79 N\n0.1318 kN\n1.317 kN\n1.708 kN"}),
     )
     .unwrap();
     assert_eq!(m["options"][1]["best"], true);

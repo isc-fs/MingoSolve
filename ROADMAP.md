@@ -14,7 +14,7 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
-| 2 | Quiz-day correctness and installers | 🔄 active `fix/2-prefill-safety` · 🔄 active `fix/3-option-matching` · 🔄 active `fix/4-crash-proof` · 🔄 active `feat/2-release-pipeline` · 🔄 active `feat/3-coverage-gaps` | `v0.2.0` |
+| 2 | Quiz-day correctness and installers | 🔄 active `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · 🔄 active `fix/4-crash-proof` · 🔄 active `feat/2-release-pipeline` · 🔄 active `feat/3-coverage-gaps` | `v0.2.0` |
 | 3 | Quiz-day features | 🔜 planned `feat/4-past-question-recognition` · 🔜 planned `feat/5-question-formatting` · 🔜 planned `fix/5-answer-path` · 🔜 planned `feat/6-help-and-session-log` · 🔜 planned `feat/7-plain-language-tools` · 🔜 planned `fix/6-accessibility` · 🔜 planned `feat/8-chain-and-calc-examples` · 🔜 planned `feat/9-rules-search` | `v0.3.0` |
 | 4 | Quiz rehearsal | 🔜 planned `feat/10-mock-quiz-fixes` | `v1.0.0` |
 | 5 | After the quizzes | 🔜 planned `feat/11-drop-python-fallback` · 🔜 planned `feat/12-repl` · 🔜 planned `feat/13-contributor-guide` | `v1.1.0` |
@@ -44,7 +44,7 @@ gitGraph
     checkout dev
     merge fix/2-prefill-safety
     branch fix/3-option-matching
-    commit id: "… Match options with units, thousands separators and list labels"
+    commit id: "✔ Match options with units, thousands separators and list labels"
     checkout dev
     merge fix/3-option-matching
     branch fix/4-crash-proof
