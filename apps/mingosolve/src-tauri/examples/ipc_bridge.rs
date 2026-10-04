@@ -8,7 +8,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::time::Instant;
 
-use mingosolve_lib::{finder, solve, tools, topics};
+use mingosolve_lib::{finder, guarded, solve, tools, topics};
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
 
@@ -18,36 +18,47 @@ fn arg<T: DeserializeOwned>(args: &Value, name: &str) -> Result<T, String> {
 }
 
 fn dispatch(cmd: &str, a: &Value) -> Result<Value, String> {
+    guarded(|| dispatch_inner(cmd, a))
+}
+
+fn dispatch_inner(cmd: &str, a: &Value) -> Result<Value, String> {
     let ok = |v: Value| Ok(v);
     match cmd {
         "engine_version" => ok(json!(env!("CARGO_PKG_VERSION"))),
         "list_formulas" => ok(json!(solve::list_formulas())),
-        "solve_formula" => solve::solve_formula(
+        "solve_formula" => solve::solve_formula_impl(
             arg(a, "key")?,
             arg(a, "given")?,
             arg::<HashMap<String, String>>(a, "display")?,
         )
         .map(|r| json!(r)),
-        "chain_formulas" => solve::chain_formulas(
+        "chain_formulas" => solve::chain_formulas_impl(
             arg(a, "target")?,
             arg(a, "given")?,
             arg(a, "only")?,
             arg(a, "display")?,
         )
         .map(|r| json!(r)),
-        "calc" => ok(json!(solve::calc(arg(a, "expr")?))),
+        "calc" => ok(json!(solve::calc_impl(&arg::<String>(a, "expr")?))),
         "list_tools" => ok(json!(tools::list_tools())),
-        "run_tool" => tools::run_tool(arg(a, "name")?, arg(a, "args")?).map(|r| json!(r)),
-        "find_question" => ok(json!(finder::find_question(arg(a, "text")?))),
-        "match_options" => ok(json!(finder::match_options(
-            arg(a, "answer")?,
-            arg(a, "options")?
+        "run_tool" => tools::run_tool_impl(
+            &arg::<String>(a, "name")?,
+            &arg::<Vec<(String, String)>>(a, "args")?,
+        )
+        .map(|r| json!(r)),
+        "find_question" => ok(json!(finder::find_question_impl(&arg::<String>(
+            a, "text"
+        )?))),
+        "match_options" => ok(json!(finder::match_options_impl(
+            &arg::<String>(a, "answer")?,
+            &arg::<String>(a, "options")?
         ))),
-        "format_answer" => ok(json!(finder::format_answer(
+        "format_answer" => fsq::answer::format_answer(
             arg(a, "value")?,
             arg(a, "precision")?,
-            arg(a, "decimalComma")?
-        ))),
+            arg(a, "decimalComma")?,
+        )
+        .map(|r| json!(r)),
         "list_topics" => ok(json!(topics::list_topics())),
         "script_examples" => ok(json!(topics::script_examples(arg(a, "script")?))),
         other => Err(format!("unknown command {other}")),

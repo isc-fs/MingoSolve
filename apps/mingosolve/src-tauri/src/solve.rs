@@ -100,7 +100,15 @@ fn show_all(
 }
 
 #[tauri::command]
-pub fn solve_formula(
+pub async fn solve_formula(
+    key: String,
+    given: Vec<(String, String)>,
+    display: HashMap<String, String>,
+) -> Result<SolveResult, String> {
+    crate::blocking(move || solve_formula_impl(key, given, display)).await
+}
+
+pub fn solve_formula_impl(
     key: String,
     given: Vec<(String, String)>,
     display: HashMap<String, String>,
@@ -171,7 +179,16 @@ pub struct ChainResult {
 }
 
 #[tauri::command]
-pub fn chain_formulas(
+pub async fn chain_formulas(
+    target: String,
+    given: Vec<(String, String)>,
+    only: Vec<String>,
+    display: HashMap<String, String>,
+) -> Result<ChainResult, String> {
+    crate::blocking(move || chain_formulas_impl(target, given, only, display)).await
+}
+
+pub fn chain_formulas_impl(
     target: String,
     given: Vec<(String, String)>,
     only: Vec<String>,
@@ -230,6 +247,10 @@ pub fn chain_formulas(
 }
 
 #[tauri::command]
-pub fn calc(expr: String) -> String {
+pub async fn calc(expr: String) -> Result<String, String> {
+    crate::blocking(move || Ok(calc_impl(&expr))).await
+}
+
+pub fn calc_impl(expr: &str) -> String {
     fsq::cli::run(&format!("calc {expr}")).trim().to_string()
 }
