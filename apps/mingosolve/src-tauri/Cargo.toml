@@ -30,5 +30,4 @@ serde_json           = "1"
 fsq = { path = "../../.." }
 
 [dev-dependencies]
-tiny_http = "0.12"
 tauri = { version = "2", features = ["macos-private-api", "test"] }
