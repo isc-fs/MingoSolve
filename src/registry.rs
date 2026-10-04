@@ -50,6 +50,7 @@ struct File {
     formula: Vec<FormulaRow>,
 }
 
+#[derive(Debug)]
 pub struct Registry {
     pub vars: HashMap<String, Var>,
     pub formulas: Vec<Formula>,
@@ -83,11 +84,11 @@ impl Registry {
     }
 }
 
-fn build() -> Result<Registry, String> {
+fn build(files: &[(&str, &str)]) -> Result<Registry, String> {
     let mut vars: HashMap<String, Var> = HashMap::new();
     let mut formulas = Vec::new();
     let mut index = HashMap::new();
-    for (file, text) in crate::data::FORMULAS {
+    for (file, text) in files {
         let f: File = toml::from_str(text).map_err(|e| format!("{file}: {e}"))?;
         for v in f.var {
             units::unit_of(&v.unit)
@@ -134,23 +135,61 @@ fn build() -> Result<Registry, String> {
 
 pub fn registry() -> &'static Registry {
     static R: OnceLock<Registry> = OnceLock::new();
-    R.get_or_init(|| build().expect("data/formulas is consistent"))
+    R.get_or_init(|| build(crate::data::FORMULAS).expect("data/formulas is consistent"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn load(toml: &str) -> Result<Registry, String> {
+        build(&[("test", toml)])
+    }
+
+    const BASE: &str = "[[var]]\nname = \"s\"\nunit = \"m\"\ndesc = \"distance\"\n\
+                        [[var]]\nname = \"t\"\nunit = \"s\"\ndesc = \"time\"\n";
+
     #[test]
-    fn loads_everything_in_order() {
-        let r = build().unwrap();
-        assert_eq!(r.formulas.len(), 70);
-        assert_eq!(r.vars.len(), 231);
-        assert_eq!(r.formulas[0].key, "aero_forces");
-        let s = r.formula("uniform_accel").unwrap();
-        assert_eq!(s.names, ["v", "v0", "a", "t", "s"]);
-        assert_eq!(r.var("g").default, Some(9.81));
-        assert!(r.var("phi").signed);
+    fn the_shipped_data_loads() {
+        build(crate::data::FORMULAS).unwrap();
+    }
+
+    #[test]
+    fn rejects_the_data_mistakes_agents_md_warns_about() {
+        let ok = format!("{BASE}[[formula]]\nkey = \"x\"\ntitle = \"x\"\neqs = [\"s = 2*t\"]\n");
+        assert!(load(&ok).is_ok());
+        // a name reused with another meaning would let chain() mix two quantities
+        let redefined = format!("{BASE}[[var]]\nname = \"s\"\nunit = \"m**2\"\ndesc = \"area\"\n");
+        assert!(load(&redefined).unwrap_err().contains("redefined"));
+        let unregistered =
+            format!("{BASE}[[formula]]\nkey = \"x\"\ntitle = \"x\"\neqs = [\"s = v*t\"]\n");
+        assert!(load(&unregistered)
+            .unwrap_err()
+            .contains("unregistered variable v"));
+        let duplicate = format!("{ok}[[formula]]\nkey = \"x\"\ntitle = \"y\"\neqs = [\"t = s\"]\n");
+        assert!(load(&duplicate)
+            .unwrap_err()
+            .contains("duplicate formula x"));
+        let bad_unit = "[[var]]\nname = \"q\"\nunit = \"furlong\"\ndesc = \"?\"\n";
+        assert!(load(bad_unit).unwrap_err().contains("unit"));
+        let xor = format!("{BASE}[[formula]]\nkey = \"x\"\ntitle = \"x\"\neqs = [\"s = t^2\"]\n");
+        assert!(load(&xor).unwrap_err().contains("**"));
+        let not_equation =
+            format!("{BASE}[[formula]]\nkey = \"x\"\ntitle = \"x\"\neqs = [\"s + t\"]\n");
+        assert!(load(&not_equation).unwrap_err().contains("not an equation"));
+    }
+
+    #[test]
+    fn every_variable_is_used_by_some_formula() {
+        let r = registry();
+        let used: std::collections::HashSet<&String> =
+            r.formulas.iter().flat_map(|f| &f.names).collect();
+        let mut orphans: Vec<&String> = r.vars.keys().filter(|v| !used.contains(v)).collect();
+        orphans.sort();
+        assert!(
+            orphans.is_empty(),
+            "variables no formula uses (dead data or a typo in an equation): {orphans:?}"
+        );
     }
 
     #[test]

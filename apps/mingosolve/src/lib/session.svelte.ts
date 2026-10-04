@@ -10,6 +10,10 @@ export interface OpenScript {
     display?: Record<string, string>;
     /** Positional tool arguments (from worked examples). */
     positional?: string[];
+    /** Variable the question asks for: the answer slab shows it instead of the first solved variable. */
+    target?: string | null;
+    /** Known answer (worked examples): the slab shows the root that matches it. */
+    answer?: number;
     /** Bumped on every open so the sheet resets even when the same script is reopened. */
     nonce: number;
 }
@@ -22,15 +26,27 @@ export const session = $state({
     /** Topic to expand when the Topics view opens. */
     topic: null as string | null,
     calcInput: '',
-    /** Values each script can take from the pasted problem (finder pre-fill), by script id. */
-    problemFills: {} as Record<string, [string, string][]>,
+    /** The open sheet's working state, kept here so switching views doesn't lose typed values. */
+    sheet: null as null | {
+        nonce: number;
+        values: Record<string, string>;
+        display: Record<string, string>;
+        picked: { name: string; index: number } | null;
+        options: string;
+    },
+    /** What each script can take from the pasted problem (finder pre-fill and asked variable), by script id. */
+    problemFills: {} as Record<string, { values: [string, string][]; target: string | null }>,
 });
 
 let nonce = 0;
 
 /** Open a script; with no values given, it takes whatever the pasted problem fills in for it. */
 export function openScript(id: string, values: [string, string][] = [], extra: Partial<OpenScript> = {}): void {
-    if (values.length === 0 && extra.positional === undefined) values = session.problemFills[id] ?? [];
+    const fromProblem = session.problemFills[id];
+    if (values.length === 0 && extra.positional === undefined && fromProblem !== undefined) {
+        values = fromProblem.values;
+        extra = { target: fromProblem.target, ...extra };
+    }
     nonce += 1;
     session.script = { id, values, ...extra, nonce };
     session.activeView = 'solve';
@@ -68,7 +84,7 @@ export function splitCommand(line: string): string[] {
 }
 
 /** Open a worked example (an engine command such as "battery_load N_s=103 P=30kW @I=A") in its script. */
-export function openCommand(cmd: string): void {
+export function openCommand(cmd: string, answer?: number): void {
     const [head, ...rest] = splitCommand(cmd);
     if (head === undefined) return;
     if (head === 'calc') {
@@ -89,5 +105,5 @@ export function openCommand(cmd: string): void {
         }
     }
     if (head === 'chain') return;
-    openScript(head, values, { display, positional });
+    openScript(head, values, { display, positional, answer });
 }

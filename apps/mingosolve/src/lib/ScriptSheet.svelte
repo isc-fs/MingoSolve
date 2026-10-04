@@ -5,6 +5,8 @@
     Worked examples (past FS-Quiz questions that use this script) load their inputs in one click.
 -->
 <script lang="ts">
+    import { untrack } from 'svelte';
+
     import Icon from './Icon.svelte';
     import { catalog } from './catalog.svelte';
     import { solveFormula } from './solve';
@@ -30,36 +32,56 @@
     let formatted = $state('');
     let copied = $state(false);
 
-    // Reset and pre-fill whenever a script is opened (nonce changes even for the same script).
+    // Reset and pre-fill whenever a script is opened (nonce changes even for the same script); coming back to the
+    // same opened script from another view restores what was typed.
     $effect(() => {
         const open = session.script;
         const s = script;
         if (open === null || s === null) return;
-        void open.nonce;
-        const given = Object.fromEntries(open.values);
-        if (s.formula !== undefined) {
-            values = Object.fromEntries(s.formula.vars.map((v) => [v.name, given[v.name] ?? '']));
-            display = Object.fromEntries(s.formula.vars.map((v) => [v.name, open.display?.[v.name] ?? '']));
-        } else if (s.tool !== undefined) {
-            const vals: Record<string, string> = Object.fromEntries(s.tool.params.map((p) => [p.name, '']));
-            if ('rules' in vals) vals.rules = settings.rules;
-            (open.positional ?? []).forEach((v, i) => {
-                const p = s.tool!.params[i];
-                if (p !== undefined) vals[p.name] = v;
-            });
-            for (const [k, v] of open.values) vals[k] = v;
-            values = vals;
-            display = {};
-        }
-        result = null;
-        toolOut = null;
-        error = null;
-        picked = null;
-        options = '';
-        matching = null;
-        showOptions = false;
-        void scriptExamples(s.id).then((ex) => (examples = ex));
-        if (s.tool !== undefined && (open.positional?.length ?? 0) + open.values.length > 0) void run();
+        const nonce = open.nonce;
+        untrack(() => {
+            const saved = session.sheet;
+            if (saved !== null && saved.nonce === nonce) {
+                values = { ...saved.values };
+                display = { ...saved.display };
+                picked = saved.picked;
+                options = saved.options;
+                showOptions = saved.options.length > 0;
+            } else {
+                const given = Object.fromEntries(open.values);
+                if (s.formula !== undefined) {
+                    values = Object.fromEntries(s.formula.vars.map((v) => [v.name, given[v.name] ?? '']));
+                    display = Object.fromEntries(s.formula.vars.map((v) => [v.name, open.display?.[v.name] ?? '']));
+                } else if (s.tool !== undefined) {
+                    const vals: Record<string, string> = Object.fromEntries(s.tool.params.map((p) => [p.name, '']));
+                    if ('rules' in vals) vals.rules = settings.rules;
+                    (open.positional ?? []).forEach((v, i) => {
+                        const p = s.tool!.params[i];
+                        if (p !== undefined) vals[p.name] = v;
+                    });
+                    for (const [k, v] of open.values) vals[k] = v;
+                    values = vals;
+                    display = {};
+                }
+                picked = null;
+                options = '';
+                showOptions = false;
+            }
+            result = null;
+            toolOut = null;
+            error = null;
+            matching = null;
+            void scriptExamples(s.id).then((ex) => (examples = ex));
+            if (s.tool !== undefined && Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules)) void run();
+        });
+    });
+
+    // Keep the working state in the session so leaving and coming back doesn't lose it.
+    $effect(() => {
+        const open = session.script;
+        if (open === null) return;
+        const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, picked, options };
+        untrack(() => (session.sheet = state));
     });
 
     // Formula scripts solve live.
@@ -75,7 +97,7 @@
                 result = await solveFormula(s.id, given, disp);
                 error = null;
                 if (picked === null || !result.found.some((f) => f.name === picked!.name)) {
-                    picked = result.found.length > 0 ? { name: result.found[0].name, index: 0 } : null;
+                    picked = preferred(result);
                 }
             } catch (e) {
                 result = null;
@@ -83,6 +105,21 @@
             }
         }, 110);
     });
+
+    /** What the answer slab shows first: the root matching a worked example's official answer, else the variable
+     *  the question asks for, else the first solved variable. */
+    function preferred(r: SolveResult): { name: string; index: number } | null {
+        const open = session.script;
+        if (open?.answer !== undefined) {
+            for (const f of r.found) {
+                const i = f.shown.findIndex((s) => Math.abs(parseFloat(s) - open.answer!) <= 0.005 * Math.abs(open.answer!) + 1e-9);
+                if (i >= 0) return { name: f.name, index: i };
+            }
+        }
+        const t = open?.target;
+        if (t && r.found.some((f) => f.name === t)) return { name: t, index: 0 };
+        return r.found.length > 0 ? { name: r.found[0].name, index: 0 } : null;
+    }
 
     async function run(): Promise<void> {
         const s = script;
@@ -283,7 +320,7 @@
             <footer>
                 <span class="label">Worked examples</span>
                 {#each examples as ex (ex.id)}
-                    <button type="button" class="chip chip-quiet" title={ex.what} onclick={() => openCommand(ex.cmd)}>
+                    <button type="button" class="chip chip-quiet" title={ex.what} onclick={() => openCommand(ex.cmd, ex.answer)}>
                         Q{ex.id} · {ex.what.length > 34 ? ex.what.slice(0, 34) + '…' : ex.what}
                     </button>
                 {/each}

@@ -29,7 +29,7 @@
             const found = await findQuestion(q);
             hits = found.hits;
             quantities = found.quantities;
-            session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, h.prefill]));
+            session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));
         }, 160);
     });
 
@@ -73,7 +73,7 @@
                         class:best={i === 0}
                         class:on={session.script?.id === h.id}
                         title={catalog.scripts.get(h.id)?.title ?? h.id}
-                        onclick={() => openScript(h.id, h.prefill)}
+                        onclick={() => openScript(h.id, h.prefill, { target: h.target })}
                     >
                         <span>{shortName(h.id)}</span>
                         {#if h.prefill.length > 0}<span class="fills">{h.prefill.length}</span>{/if}

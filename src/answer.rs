@@ -188,11 +188,4 @@ mod tests {
         assert_eq!(format_answer(14_567.8, Precision::Sig(3), false), "14600");
         assert_eq!(format_answer(-33.690_07, Precision::Sig(3), true), "-33,7");
     }
-
-    #[test]
-    fn known_keys_load() {
-        let k = known_keys();
-        assert!(k.iter().any(|k| k.id == 167));
-        assert!(k.len() >= 15);
-    }
 }

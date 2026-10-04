@@ -1,0 +1,47 @@
+// Automated accessibility audit (axe-core) of the main screens in both themes, glass and solid: no serious or
+// critical violations, colour contrast included. Readability is a hard requirement for this app.
+import AxeBuilder from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+
+import { expect, field, openFromPalette, test } from './fixtures';
+
+async function audit(page: Page, label: string): Promise<void> {
+    const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    const bad = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+    const summary = bad.map((v) => `${v.id} (${v.impact}): ${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')}`);
+    expect(summary, `${label}`).toEqual([]);
+}
+
+for (const theme of ['Night glass', 'Paper glass'] as const) {
+    test(`${theme}: home, a solved script, Topics, Chain and Settings pass axe`, async ({ app }) => {
+        await app.getByRole('button', { name: 'Settings' }).click();
+        await app.getByRole('radio', { name: new RegExp(theme) }).click();
+        await audit(app, `${theme} settings`);
+        await app.getByRole('button', { name: 'Solve' }).click();
+        await audit(app, `${theme} home`);
+        await openFromPalette(app, 'battery load', /Battery/);
+        await app.getByRole('button', { name: /^Q34 ·/ }).click();
+        await expect(field(app, 'N_s')).toHaveValue('103');
+        await audit(app, `${theme} solved sheet`);
+        await app.getByRole('button', { name: 'Topics' }).click();
+        await audit(app, `${theme} topics`);
+        await app.getByRole('button', { name: 'Chain' }).click();
+        await audit(app, `${theme} chain`);
+    });
+}
+
+test('the palette is a labelled dialog that keyboard users can drive', async ({ app }) => {
+    await app.keyboard.press('ControlOrMeta+k');
+    const dialog = app.getByRole('dialog', { name: 'Find a script' });
+    await expect(dialog).toBeVisible();
+    await expect(app.getByRole('textbox', { name: 'Search scripts' })).toBeFocused();
+    await app.keyboard.type('spring');
+    await app.keyboard.press('ArrowDown');
+    await expect(app.getByRole('option', { selected: true })).toContainText(/Helical spring|Quarter car/);
+    await app.keyboard.press('Enter');
+    await expect(dialog).toBeHidden();
+    await expect(app.locator('.sheet h2')).toContainText(/spring|Quarter/i);
+    await app.keyboard.press('ControlOrMeta+k');
+    await app.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+});

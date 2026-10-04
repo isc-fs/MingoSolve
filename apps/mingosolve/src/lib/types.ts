@@ -69,6 +69,8 @@ export interface Hit {
     title: string;
     score: number;
     prefill: [string, string][];
+    /** Variable the question asks for, when the finder could tell. */
+    target: string | null;
     warning: string | null;
 }
 

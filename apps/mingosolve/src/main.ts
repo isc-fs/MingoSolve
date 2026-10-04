@@ -15,4 +15,10 @@ if (target === null) {
     throw new Error('#app target not found in index.html');
 }
 
-mount(App, { target });
+// End-to-end tests build with VITE_IPC_BRIDGE so the UI talks to the real engine over a local test bridge; in
+// normal builds the condition is a compile-time constant and the e2e module is not bundled.
+const ready = import.meta.env.VITE_IPC_BRIDGE
+    ? import('./e2e-ipc').then((m) => m.installBridge(import.meta.env.VITE_IPC_BRIDGE!))
+    : Promise.resolve();
+
+void ready.then(() => mount(App, { target }));

@@ -29,6 +29,8 @@ pub struct Hit {
     pub score: f64,
     /// (variable, value as typed in the question) for formula hits.
     pub prefill: Vec<(String, String)>,
+    /// The variable the question asks for ("What current is drawn...?" -> I), when the words make it clear.
+    pub target: Option<String>,
     pub warning: Option<String>,
 }
 
@@ -226,6 +228,104 @@ fn prefill(names: &[String], qs: &[Quantity]) -> Vec<(String, String)> {
     out
 }
 
+/// The sentence that asks something: the one ending in "?" or opening with what/how/calculate/determine/find
+/// (the last such sentence; quiz questions put the ask at the end).
+fn ask_sentence(text: &str) -> Option<String> {
+    let sentences: Vec<&str> = text
+        .split_inclusive(['.', '?', '!'])
+        .map(str::trim)
+        .collect();
+    sentences
+        .iter()
+        .rev()
+        .find(|s| {
+            let l = s.to_lowercase();
+            s.ends_with('?')
+                || [
+                    "what",
+                    "how",
+                    "calculate",
+                    "determine",
+                    "find",
+                    "compute",
+                    "estimate",
+                ]
+                .iter()
+                .any(|w| l.starts_with(w))
+        })
+        .map(|s| s.to_string())
+}
+
+/// Quantity words a question asks for, and the unit that quantity is measured in.
+const ASKED_QUANTITIES: &[(&str, &str)] = &[
+    ("speed", "m/s"),
+    ("velocity", "m/s"),
+    ("acceleration", "m/s**2"),
+    ("deceleration", "m/s**2"),
+    ("force", "N"),
+    ("load", "N"),
+    ("power", "W"),
+    ("energy", "J"),
+    ("work", "J"),
+    ("heat", "J"),
+    ("current", "A"),
+    ("voltage", "V"),
+    ("resistance", "ohm"),
+    ("capacitance", "F"),
+    ("inductance", "H"),
+    ("time", "s"),
+    ("duration", "s"),
+    ("distance", "m"),
+    ("length", "m"),
+    ("height", "m"),
+    ("radius", "m"),
+    ("diameter", "m"),
+    ("mass", "kg"),
+    ("torque", "N*m"),
+    ("pressure", "Pa"),
+    ("stress", "Pa"),
+    ("temperature", "K"),
+    ("frequency", "Hz"),
+    ("charge", "C"),
+];
+
+/// The not-yet-known variable the question asks for: it must carry the dimension of a quantity named in the asking
+/// sentence ("What is the maximum speed?" -> a velocity) or, failing that, share description words with it.
+/// Description words break ties between candidates of the same dimension; a remaining tie means no guess.
+fn target(names: &[String], prefill: &[(String, String)], question: &str) -> Option<String> {
+    let sentence = ask_sentence(question)?;
+    let ask = words(&sentence);
+    let raw: HashSet<String> = sentence
+        .split(|c: char| !c.is_alphanumeric())
+        .map(str::to_lowercase)
+        .collect();
+    let asked_dims: Vec<Dims> = ASKED_QUANTITIES
+        .iter()
+        .filter(|(w, _)| raw.contains(*w))
+        .filter_map(|(_, u)| units::unit_of(u).ok().map(|q| q.dims))
+        .collect();
+    let r = registry();
+    let mut scored: Vec<(usize, &String)> = names
+        .iter()
+        .filter(|n| !prefill.iter().any(|(p, _)| p == *n) && r.var(n).default.is_none())
+        .map(|n| {
+            let by_dims = asked_dims.contains(&var_dims(n));
+            let overlap = words(&r.var(n).desc)
+                .iter()
+                .filter(|w| ask.contains(*w))
+                .count();
+            (if by_dims { 10 + overlap } else { overlap }, n)
+        })
+        .filter(|(c, _)| *c > 0)
+        .collect();
+    scored.sort_by(|a, b| b.0.cmp(&a.0));
+    match scored.as_slice() {
+        [] => None,
+        [only] => Some(only.1.clone()),
+        [a, b, ..] => (a.0 > b.0).then(|| a.1.clone()),
+    }
+}
+
 pub fn find(question: &str, limit: usize) -> Vec<Hit> {
     let q = words(question);
     let qs = quantities(question);
@@ -255,12 +355,14 @@ pub fn find(question: &str, limit: usize) -> Vec<Hit> {
             continue;
         }
         let prefill = prefill(&f.names, &qs);
+        let target = target(&f.names, &prefill, question);
         hits.push(Hit {
             kind: "formula",
             id: f.key.clone(),
             title: f.title.clone(),
             score,
             prefill,
+            target,
             warning: None,
         });
     }
@@ -274,6 +376,7 @@ pub fn find(question: &str, limit: usize) -> Vec<Hit> {
                 title: t.doc.into(),
                 score,
                 prefill: vec![],
+                target: None,
                 warning: None,
             });
         }
@@ -289,6 +392,7 @@ pub fn find(question: &str, limit: usize) -> Vec<Hit> {
                 title: e.what.clone(),
                 score: score * 0.9,
                 prefill: vec![],
+                target: None,
                 warning: keys.get(&e.id).cloned(),
             });
         }
@@ -387,6 +491,35 @@ mod tests {
             "{:?}",
             hit.prefill
         );
+    }
+
+    #[test]
+    fn the_asked_variable_becomes_the_target() {
+        let hits = find("The accumulator has 103 cells in series at 3.8 V and 0.08 Ω. What current is drawn at 30 kW?", 5);
+        assert_eq!(
+            hits.iter()
+                .find(|h| h.id == "battery_load")
+                .unwrap()
+                .target
+                .as_deref(),
+            Some("I")
+        );
+        let hits = find(
+            "A car of mass 240 kg with ClA 3.2 m² drives the skidpad (radius 9.125 m), friction coefficient 1.4. \
+             What is the maximum speed?",
+            5,
+        );
+        assert_eq!(
+            hits.iter()
+                .find(|h| h.id == "cornering_downforce")
+                .unwrap()
+                .target
+                .as_deref(),
+            Some("v")
+        );
+        // no question sentence, no guess
+        let hits = find("battery 103 cells 3.8 V 30 kW", 5);
+        assert!(hits.iter().all(|h| h.target.is_none()));
     }
 
     #[test]
