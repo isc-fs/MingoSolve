@@ -1,0 +1,33 @@
+[project]
+name = "fsq-solver"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Álvaro González", email = "202100765@alu.comillas.edu" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pint>=0.26.1",
+    "sympy>=1.14.0",
+]
+
+[project.scripts]
+fsq = "fsq_solver.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+"src/fsq_solver/core.py" = ["BLE001", "S112"]
+"src/fsq_solver/cli.py" = ["BLE001"]

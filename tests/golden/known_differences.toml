@@ -1,0 +1,3 @@
+# Corpus cases where Rust is allowed to differ from the Python engine, each with a reviewed reason.
+# key = "<formula>:<hidden vars joined by +>"
+[differences]
