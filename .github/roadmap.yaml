@@ -27,26 +27,54 @@ phases:
       - name: feat/1-mingosolve-app
         scope: Rust engine, Tauri app, 145 past questions, tests at every layer
   - number: 2
-    title: Release and quiz-day features
+    title: Quiz-day correctness and installers
     tag: v0.2.0
     branches:
+      - name: fix/2-prefill-safety
+        scope: Pre-fill only what the problem clearly says, and show where each value came from
+      - name: fix/3-option-matching
+        scope: Match options with units, thousands separators and list labels
+      - name: fix/4-crash-proof
+        scope: Bad input can't freeze or crash the app
       - name: feat/2-release-pipeline
-        scope: Signed macOS, Windows and Linux builds published to iskapps, with updates
-      - name: feat/3-known-key-warning
-        scope: Warn when a pasted problem matches a past question whose official key is wrong
+        scope: Installers for macOS, Windows and Linux with updates
+      - name: feat/3-coverage-gaps
+        scope: New archetypes from the question bank with verified past questions
   - number: 3
+    title: Quiz-day features
+    tag: v0.3.0
+    branches:
+      - name: feat/4-past-question-recognition
+        scope: Recognise pasted past questions and warn about known-wrong keys
+      - name: feat/5-question-formatting
+        scope: Read rounding and units from the question
+      - name: fix/5-answer-path
+        scope: Answer always visible, copy shortcut, safe Esc, multi-line tool results, rule year shown
+      - name: feat/6-help-and-session-log
+        scope: In-app help, cheat sheet and an exportable answer log
+      - name: feat/7-plain-language-tools
+        scope: Tool forms with labels, units and choices
+      - name: fix/6-accessibility
+        scope: Focus, contrast, live regions, zoom
+      - name: feat/8-chain-and-calc-examples
+        scope: Chain and calculator past questions one click away
+      - name: feat/9-rules-search
+        scope: Search the rulebook from a locally loaded PDF
+  - number: 4
     title: Quiz rehearsal
     tag: v1.0.0
     branches:
-      - name: feat/4-mock-quiz-fixes
+      - name: feat/10-mock-quiz-fixes
         scope: Fixes from two timed mock quizzes; version pinned for the quizzes
-  - number: 4
+  - number: 5
     title: After the quizzes
     tag: v1.1.0
     branches:
-      - name: feat/5-drop-python-fallback
-        scope: Remove legacy/python once the Rust engine has carried a quiz season
-      - name: feat/6-repl
-        scope: Full interactive command line with history and completion
+      - name: feat/11-drop-python-fallback
+        scope: Remove legacy/python after a handover
+      - name: feat/12-repl
+        scope: Full interactive command line
+      - name: feat/13-contributor-guide
+        scope: Contributor guide, issue templates and fsq validate
 
 sidequests: []
