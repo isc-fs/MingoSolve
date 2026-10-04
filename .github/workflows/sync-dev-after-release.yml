@@ -1,0 +1,51 @@
+name: Sync dev after release
+
+# Manual recovery handle for the `sync-dev` job in release.yml: fast-forwards `dev` to `main` when that job did not
+# run (a release published by hand, or a partial re-run). Trigger it from the Actions tab or with
+# `gh workflow run sync-dev-after-release.yml`. The default GITHUB_TOKEN is enough: it only fast-forwards or adds a
+# merge commit, never force-pushes.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sync-dev-after-release
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Configure git as github-actions[bot]
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch main
+        run: git fetch origin main
+
+      - name: Sync dev with main
+        run: |
+          set -e
+          # behind main: fast-forward. Ahead of main: nothing to do. Diverged: merge commit (a conflict fails the
+          # step loudly and a human picks it up).
+          if git merge-base --is-ancestor HEAD origin/main; then
+            git merge --ff-only origin/main
+            echo "fast-forwarded dev to origin/main"
+          elif git merge-base --is-ancestor origin/main HEAD; then
+            echo "dev is already ahead of main, nothing to do"
+            exit 0
+          else
+            echo "dev and main have diverged, creating a merge commit"
+            git merge --no-edit origin/main
+          fi
+
+      - name: Push dev
+        run: git push origin dev
