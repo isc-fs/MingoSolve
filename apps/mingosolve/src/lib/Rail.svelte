@@ -142,7 +142,7 @@
         width: 38px;
         height: 38px;
         border-radius: 12px;
-        background: var(--isc-green);
+        background: var(--isc-gold);
         padding: 4px;
     }
     .brand strong {
