@@ -19,7 +19,7 @@ path = "src/lib.rs"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri                = { version = "2", features = ["macos-private-api"] }
+tauri                = { version = "2", features = [] }
 tauri-plugin-store   = { version = "2" }
 tauri-plugin-updater = { version = "2" }
 tauri-plugin-process = { version = "2" }
@@ -31,4 +31,9 @@ fsq = { path = "../../.." }
 
 [dev-dependencies]
 tiny_http = "0.12"
-tauri = { version = "2", features = ["macos-private-api", "test"] }
+tauri = { version = "2", features = ["test"] }
+
+# The transparent window needs the private API on macOS only; tauri-build rejects the feature on other platforms,
+# where tauri.macos.conf.json (macOSPrivateApi) is not merged.
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
