@@ -1,7 +1,8 @@
 name: CI
 
 # Every layer on every pull request: the engine, the app's command contract, the frontend, the end-to-end
-# journeys in Chromium and WebKit, the Python fallback, and the app crate on macOS and Windows.
+# journeys in Chromium and WebKit, a launch of the packaged Linux binary, the Python fallback, and the app crate on
+# macOS and Windows.
 
 on:
   pull_request:
@@ -59,6 +60,35 @@ jobs:
           name: playwright-report
           path: apps/mingosolve/test-results/
           retention-days: 7
+
+  smoke:
+    name: Packaged app smoke test (Linux)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/app-prereqs
+      - run: sudo apt-get install -y xvfb
+      - name: Build the real app binary (same config and CSP as the installers)
+        working-directory: apps/mingosolve
+        run: npx tauri build --debug --no-bundle
+      - name: Start it headless and check it stays up
+        env:
+          WEBKIT_DISABLE_DMABUF_RENDERER: '1'
+        run: |
+          set +e
+          xvfb-run -a timeout 25 target/debug/mingosolve 2> app-stderr.log
+          code=$?
+          set -e
+          cat app-stderr.log
+          if [ "$code" -ne 124 ]; then
+            echo "::error::the app exited with code $code before the 25 s timeout (124 means still running)"
+            exit 1
+          fi
+          if grep -q panicked app-stderr.log; then
+            echo "::error::the app panicked"
+            exit 1
+          fi
+          echo "the app was still running after 25 s and did not panic"
 
   python:
     name: Python fallback
