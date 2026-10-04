@@ -18,13 +18,55 @@ from fsq_solver.core import FORMULAS, VARS, solve_step
 OUT = Path(__file__).resolve().parents[3] / "tests" / "golden" / "solve_corpus.json"
 POINTS_PER_FORMULA = 3
 TYPICAL = {  # SI magnitude for a variable's unit; anything else ~1
-    "Pa": 1e5, "F": 1e-4, "H": 1e-5, "m**4": 1e-8, "m**2": 1e-3, "m**3": 1e-4, "1/K": 1e-3, "ohm*m": 1e-7,
-    "N/m": 3e4, "J": 1e4, "W": 1e3, "Hz": 1e2, "kg*m**2": 1e-1, "K": 300, "C": 3e4, "N": 1e3, "rad/s": 300,
-    "A/s": 1e5, "N*s/m": 2e3, "J/(kg*K)": 1e3, "J/kg": 3e5, "Pa*s": 1e-3, "kg/m**3": 1e3,
+    "Pa": 1e5,
+    "F": 1e-4,
+    "H": 1e-5,
+    "m**4": 1e-8,
+    "m**2": 1e-3,
+    "m**3": 1e-4,
+    "1/K": 1e-3,
+    "ohm*m": 1e-7,
+    "N/m": 3e4,
+    "J": 1e4,
+    "W": 1e3,
+    "Hz": 1e2,
+    "kg*m**2": 1e-1,
+    "K": 300,
+    "C": 3e4,
+    "N": 1e3,
+    "rad/s": 300,
+    "A/s": 1e5,
+    "N*s/m": 2e3,
+    "J/(kg*K)": 1e3,
+    "J/kg": 3e5,
+    "Pa*s": 1e-3,
+    "kg/m**3": 1e3,
 }
-SPECIFIC = {"E_y": 2e11, "G_sh": 8e10, "sigma_y": 3e8, "bmep": 1e6, "alpha": 4e-3, "alpha_th": 1e-5, "mu_r": 1e3,
-            "n_bits": 12, "N_s": 100, "eta": 0.8, "eta_g": 0.9, "eta_tx": 0.5, "Gm": 0.3, "frac_in": 0.3, "MR": 1.2,
-            "D": 0.4, "H": 0.7, "eps": 1e-3, "kappa": 1.4, "k_p": 1.2, "CR": 12, "k_ord": 2, "n_h": 2}
+SPECIFIC = {
+    "E_y": 2e11,
+    "G_sh": 8e10,
+    "sigma_y": 3e8,
+    "bmep": 1e6,
+    "alpha": 4e-3,
+    "alpha_th": 1e-5,
+    "mu_r": 1e3,
+    "n_bits": 12,
+    "N_s": 100,
+    "eta": 0.8,
+    "eta_g": 0.9,
+    "eta_tx": 0.5,
+    "Gm": 0.3,
+    "frac_in": 0.3,
+    "MR": 1.2,
+    "D": 0.4,
+    "H": 0.7,
+    "eps": 1e-3,
+    "kappa": 1.4,
+    "k_p": 1.2,
+    "CR": 12,
+    "k_ord": 2,
+    "n_h": 2,
+}
 
 
 def sample(name: str, rng: random.Random) -> float:
@@ -51,7 +93,7 @@ def truth_point(f, rng: random.Random) -> dict[str, float] | None:
 
 
 def main() -> None:
-    core.TIMEOUT_SCALE = float(__import__('os').environ.get('FSQ_TIMEOUT_SCALE', '3'))
+    core.TIMEOUT_SCALE = float(__import__("os").environ.get("FSQ_TIMEOUT_SCALE", "3"))
     rng = random.Random(20261004)
     cases, misses = [], 0
     only = set(sys.argv[1:])
@@ -77,9 +119,16 @@ def main() -> None:
                         for n in hidden
                     )
                     misses += not found
-                    cases.append({"formula": key, "given": given, "hidden": list(hidden),
-                                  "truth": {n: point[n] for n in hidden},
-                                  "python": {n: v for n, v in got.items()}, "python_finds_truth": found})
+                    cases.append(
+                        {
+                            "formula": key,
+                            "given": given,
+                            "hidden": list(hidden),
+                            "truth": {n: point[n] for n in hidden},
+                            "python": {n: v for n, v in got.items()},
+                            "python_finds_truth": found,
+                        }
+                    )
         print(f"{key}: {sum(c['formula'] == key for c in cases)} cases", file=sys.stderr)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"seed": 20261004, "cases": cases}, indent=1))

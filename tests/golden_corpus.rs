@@ -52,7 +52,16 @@ fn rust_finds_every_truth_python_found() {
             degenerate += 1;
             continue;
         }
-        let found = solve_step(f, &c.given);
+        // as the app and the CLI do: variables with a default (g, mu_0...) take it when the case doesn't give them
+        let mut given = c.given.clone();
+        for n in &f.names {
+            if !given.contains_key(n) && !c.hidden.contains(n) {
+                if let Some(d) = registry().var(n).default {
+                    given.insert(n.clone(), d);
+                }
+            }
+        }
+        let found = solve_step(f, &given);
         let hits = c.hidden.iter().all(|n| {
             found.get(n).is_some_and(|rs| {
                 rs.iter()
@@ -67,7 +76,7 @@ fn rust_finds_every_truth_python_found() {
             rust_better += 1;
         }
         // every carried-forward root must satisfy the whole formula
-        let mut vals = c.given.clone();
+        let mut vals = given.clone();
         for (n, rs) in &found.0 {
             vals.insert(n.clone(), rs[0]);
         }

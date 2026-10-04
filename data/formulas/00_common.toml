@@ -1182,6 +1182,18 @@ name = "n_h"
 unit = "dimensionless"
 desc = "harmonic index (1, 2, ...)"
 
+[[var]]
+name = "mu_0"
+unit = "H/m"
+desc = "vacuum permeability (4 pi 1e-7 H/m)"
+default = 1.2566370614359173e-06
+
+[[var]]
+name = "T_25"
+unit = "K"
+desc = "NTC reference temperature (25 degC)"
+default = 298.15
+
 [[formula]]
 key = "aero_forces"
 title = "Downforce and drag: F = 1/2 rho C A v^2"
@@ -1456,7 +1468,7 @@ tags = ["electrical", "inductance", "di/dt", "cable", "step"]
 key = "inductor_energy"
 title = "Coil inductance and stored energy"
 eqs = [
-    "L = 4e-7*pi*mu_r*N_t**2*A_core/l_core",
+    "L = mu_0*mu_r*N_t**2*A_core/l_core",
     "E = L*I**2/2",
 ]
 tags = ["electrical", "inductance", "coil", "solenoid", "energy"]
@@ -1522,7 +1534,7 @@ tags = ["electrical", "divider", "sensor", "ntc", "ptc"]
 key = "ntc"
 title = "NTC beta model (T absolute: type degC)"
 eqs = [
-    "R_T = R_25*exp(B_ntc*(1/T - 1/298.15))",
+    "R_T = R_25*exp(B_ntc*(1/T - 1/T_25))",
 ]
 tags = ["electrical", "ntc", "thermistor", "temperature", "sensor"]
 

@@ -23,12 +23,15 @@ struct Parsed {
 struct Entry {
     cmd: String,
     python: Parsed,
+    raw: String,
 }
 
 #[derive(Deserialize)]
 struct Known {
     #[serde(default)]
     cli: BTreeMap<String, String>,
+    #[serde(default)]
+    rust_only_tools: Vec<String>,
 }
 
 fn parse(out: &str) -> Parsed {
@@ -162,6 +165,16 @@ fn rust_cli_matches_python_snapshot() {
     let known: Known = toml::from_str(include_str!("golden/known_differences.toml")).unwrap();
     let mut failures = Vec::new();
     for e in &snap {
+        let head = e.cmd.split_whitespace().next().unwrap_or("");
+        if known.rust_only_tools.iter().any(|t| t == head) {
+            // Python can't run it; make sure it says so rather than silently answering something else
+            assert!(
+                e.raw.contains("unknown command"),
+                "{} is listed as Rust-only but Python ran it",
+                e.cmd
+            );
+            continue;
+        }
         let d = diff(&e.python, &parse(&run(&e.cmd)));
         if !d.is_empty() && !known.cli.contains_key(&e.cmd) {
             failures.push(format!("{}\n    {}", e.cmd, d.join("\n    ")));

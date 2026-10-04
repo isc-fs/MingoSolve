@@ -244,6 +244,15 @@ pub fn chain(
         let mut progress = false;
         for f in &pool {
             let new = solve_step(f, &known);
+            // a formula whose equations can't all hold with what is known doesn't describe this problem (a square
+            // tube's area solved backwards from a round tube's): use none of its values
+            let mut trial = known.clone();
+            trial.extend(new.0.iter().map(|(n, v)| (n.clone(), v[0])));
+            if f.names.iter().all(|n| trial.contains_key(n))
+                && !conflicts_in(f, &trial, 1e-6).is_empty()
+            {
+                continue;
+            }
             for (n, vals) in new.0 {
                 if known.contains_key(&n) {
                     continue;
@@ -408,6 +417,21 @@ mod tests {
         .map(|(k, v)| (k.to_string(), v))
         .into();
         assert!(!conflicts(&bad).is_empty());
+        // a formula that only fits backwards (square tube from a round tube's area) is not used
+        let c = chain(
+            "F_yld",
+            &[
+                ("D_o", "25mm"),
+                ("t_wall", "2.5mm"),
+                ("c_y", "12.5mm"),
+                ("L_b", "400mm"),
+            ],
+            None,
+        )
+        .unwrap();
+        assert!(approx(c.known["F_yld"], 2762.27, 1e-5), "FS-Quiz Q481");
+        assert!(!c.known.contains_key("B_sq"));
+        assert!(conflicts(&c.known).is_empty());
         let c = chain(
             "V",
             &[

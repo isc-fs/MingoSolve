@@ -208,14 +208,9 @@ fn every_script_is_in_exactly_one_topic_with_matching_kind_and_title() {
 
 /// Parse an example command the way the frontend's openCommand does: key=value pairs, @var=unit display units,
 /// bare words as positional tool arguments, double quotes grouping.
-fn parse(
-    cmd: &str,
-) -> (
-    String,
-    Vec<(String, String)>,
-    Vec<(String, String)>,
-    Vec<String>,
-) {
+type Pairs = Vec<(String, String)>;
+
+fn parse(cmd: &str) -> (String, Pairs, Pairs, Vec<String>) {
     let mut parts = Vec::new();
     let (mut cur, mut quoted, mut any) = (String::new(), false, false);
     for c in cmd.chars() {

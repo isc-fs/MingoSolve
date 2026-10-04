@@ -177,7 +177,7 @@ answer = 0.2923
 [[example]]
 id = 481
 what = "3-point bend load at yield, 25x2.5 tube, 400 mm"
-cmd = "chain F D_o=25mm t_wall=2.5mm c_y=12.5mm L_b=400mm sigma=305MPa"
+cmd = "chain F_yld D_o=25mm t_wall=2.5mm c_y=12.5mm L_b=400mm"
 answer = 2762
 
 [[example]]
@@ -801,7 +801,7 @@ answer = 133.33
 [[example]]
 id = 473
 what = "3-point bend load at yield, 25x25x2.2 square tube, 400 mm"
-cmd = "chain F B_sq=25mm t_wall=2.2mm c_y=12.5mm L_b=400mm sigma=305MPa @F=kN"
+cmd = "chain F_yld B_sq=25mm t_wall=2.2mm c_y=12.5mm L_b=400mm @F_yld=kN"
 answer = 4.28
 
 [[example]]

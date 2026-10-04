@@ -51,7 +51,7 @@ id = "structures"
 name = "Structures"
 blurb = "Sections, bending, axial load, buckling, bolts, pressure, levers and trusses"
 hue = "gold"
-formulas = ["tube_section", "square_tube_section", "rect_section", "sandwich_section", "three_point_bend", "cantilever",
+formulas = ["tube_section", "square_tube_section", "rect_section", "sandwich_section", "three_point_bend", "bend_yield_load", "cantilever",
             "axial", "euler_buckling", "thin_wall_pressure", "bolt_shear", "edge_distance", "lever"]
 tools = ["truss"]
 
