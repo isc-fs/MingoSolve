@@ -203,3 +203,32 @@ describe('sheet state', () => {
         expect(field('s').value).toBe('');
     });
 });
+
+describe('values taken from the pasted problem', () => {
+    const marker = (name: string) => document.querySelector(`label.field[data-var="${name}"] .from`);
+
+    it('marks only the fields the problem filled, with the source text, and drops the mark when the field is edited', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        session.problemFills = { uniform_motion: { values: [['s', '100 m']], target: null } };
+        openScript('uniform_motion');
+        render(ScriptSheet);
+        expect(field('s').value).toBe('100 m');
+        expect(marker('s')?.textContent).toContain('from the problem');
+        expect(marker('s')?.getAttribute('title')).toContain('100 m');
+        expect(marker('t')).toBeNull();
+        await userEvent.type(field('t'), '5 s');
+        expect(marker('t')).toBeNull();
+        expect(marker('s')).not.toBeNull();
+        await userEvent.type(field('s'), '0');
+        expect(marker('s')).toBeNull();
+    });
+
+    it('values loaded from a worked example never carry the mark', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        session.problemFills = { uniform_motion: { values: [['s', '100 m']], target: null } };
+        openCommand('uniform_motion s=75m t=3.8s');
+        render(ScriptSheet);
+        expect(field('s').value).toBe('75m');
+        expect(document.querySelector('.from')).toBeNull();
+    });
+});

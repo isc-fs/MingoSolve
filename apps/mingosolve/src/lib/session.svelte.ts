@@ -10,6 +10,8 @@ export interface OpenScript {
     display?: Record<string, string>;
     /** Positional tool arguments (from worked examples). */
     positional?: string[];
+    /** Variables filled from the pasted problem, with the quantity text each came from ("240 kg"). */
+    fromProblem?: Record<string, string>;
     /** Variable the question asks for: the answer slab shows it instead of the first solved variable. */
     target?: string | null;
     /** Known answer (worked examples): the slab shows the root that matches it. */
@@ -31,6 +33,8 @@ export const session = $state({
         nonce: number;
         values: Record<string, string>;
         display: Record<string, string>;
+        /** Fields still holding the value taken from the problem (the user has not edited them). */
+        fromProblem: Record<string, string>;
         picked: { name: string; index: number } | null;
         options: string;
     },
@@ -45,7 +49,7 @@ export function openScript(id: string, values: [string, string][] = [], extra: P
     const fromProblem = session.problemFills[id];
     if (values.length === 0 && extra.positional === undefined && fromProblem !== undefined) {
         values = fromProblem.values;
-        extra = { target: fromProblem.target, ...extra };
+        extra = { target: fromProblem.target, fromProblem: Object.fromEntries(fromProblem.values), ...extra };
     }
     nonce += 1;
     session.script = { id, values, ...extra, nonce };
@@ -57,6 +61,17 @@ export function togglePin(id: string): void {
     settings.pinned = settings.pinned.includes(id)
         ? settings.pinned.filter((p) => p !== id)
         : [...settings.pinned, id];
+}
+
+/** A quantity as the finder chips show it (m/s**2 -> m/s²), so a typed value can be compared with a chip. */
+export function prettyQuantity(q: string): string {
+    return q
+        .replace('**2', '²')
+        .replace('**3', '³')
+        .replace('**4', '⁴')
+        .replace('**-1', '⁻¹')
+        .replace('ohm', 'Ω')
+        .replace(/\*/g, '·');
 }
 
 /** Split an engine command line: whitespace separates, double quotes group. */
