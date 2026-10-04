@@ -61,9 +61,9 @@ const common = {
 beforeEach(() => {
     Object.assign(settings, defaultSettings());
     catalog.scripts = new Map([
-        ['uniform_motion', { id: 'uniform_motion', kind: 'formula', title: motion.title, topic: null, formula: motion }],
-        ['battery_load', { id: 'battery_load', kind: 'formula', title: battery.title, topic: null, formula: battery }],
-        ['event_score', { id: 'event_score', kind: 'tool', title: 'Event score', topic: null, tool: score }],
+        ['uniform_motion', { id: 'uniform_motion', kind: 'formula', title: motion.title, aliases: '', topic: null, formula: motion }],
+        ['battery_load', { id: 'battery_load', kind: 'formula', title: battery.title, aliases: '', topic: null, formula: battery }],
+        ['event_score', { id: 'event_score', kind: 'tool', title: 'Event score', aliases: '', topic: null, tool: score }],
     ]);
     session.problemFills = {};
     session.sheet = null;

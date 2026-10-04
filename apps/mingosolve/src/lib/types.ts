@@ -97,6 +97,8 @@ export interface ScriptRef {
     id: string;
     kind: 'formula' | 'tool';
     title: string;
+    /** Extra search words (data/topics.toml [aliases]). */
+    aliases: string;
 }
 
 export interface TopicInfo {

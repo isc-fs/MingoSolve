@@ -2,7 +2,7 @@
 
 use fsq::registry::registry;
 use fsq::tools::tool;
-use fsq::topics::{topics, worked_examples};
+use fsq::topics::{aliases, tool_title, topics, worked_examples};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -11,6 +11,8 @@ pub struct ScriptRef {
     id: String,
     kind: &'static str,
     title: String,
+    /// Extra search words (data/topics.toml [aliases]).
+    aliases: &'static str,
 }
 
 #[derive(Serialize)]
@@ -28,18 +30,14 @@ fn script_ref(id: &str) -> Option<ScriptRef> {
             id: id.into(),
             kind: "formula",
             title: f.title.clone(),
+            aliases: aliases(id),
         });
     }
     tool(id).map(|t| ScriptRef {
         id: id.into(),
         kind: "tool",
-        title: t
-            .doc
-            .split(['.', ':'])
-            .next()
-            .unwrap_or(t.doc)
-            .trim()
-            .to_string(),
+        title: tool_title(id).unwrap_or(t.name).to_string(),
+        aliases: aliases(id),
     })
 }
 

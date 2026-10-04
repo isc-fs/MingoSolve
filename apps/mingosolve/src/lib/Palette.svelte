@@ -6,22 +6,35 @@
     import { tick } from 'svelte';
 
     import Icon from './Icon.svelte';
-    import { searchScripts } from './catalog.svelte';
+    import { searchScripts, symbols } from './catalog.svelte';
     import { openScript, session } from './session.svelte';
+    import { settings } from './settings.svelte';
 
     let query = $state('');
     let index = $state(0);
     let input = $state<HTMLInputElement | null>(null);
+    let list = $state<HTMLElement | null>(null);
+    let returnTo: HTMLElement | null = null;
 
     const looksLikeProblem = $derived(query.trim().split(/\s+/).length >= 6);
-    const results = $derived(looksLikeProblem ? [] : searchScripts(query, 12));
+    const results = $derived(looksLikeProblem ? [] : searchScripts(query, 12, [...settings.pinned, ...settings.recent]));
 
     $effect(() => {
         if (session.paletteOpen) {
+            returnTo = document.activeElement as HTMLElement | null;
             query = '';
             index = 0;
             void tick().then(() => input?.focus());
+        } else if (returnTo !== null) {
+            returnTo.focus?.();
+            returnTo = null;
         }
+    });
+
+    // keep the highlighted row visible while moving with the arrows
+    $effect(() => {
+        const i = index;
+        void tick().then(() => list?.querySelector(`#palette-opt-${i}`)?.scrollIntoView({ block: 'nearest' }));
     });
 
     function choose(i: number): void {
@@ -31,6 +44,7 @@
         } else {
             const r = results[i];
             if (r === undefined) return;
+            returnTo = null;
             openScript(r.id);
         }
         session.paletteOpen = false;
@@ -58,8 +72,13 @@
                 bind:value={query}
                 oninput={() => (index = 0)}
                 onkeydown={key}
-                placeholder="Spring rate, discharge, skidpad score… or paste a whole problem"
+                placeholder="Spring rate, TSAL, gear ratio… or paste a whole problem"
                 aria-label="Search scripts"
+                role="combobox"
+                aria-expanded={!looksLikeProblem}
+                aria-controls="palette-list"
+                aria-autocomplete="list"
+                aria-activedescendant={!looksLikeProblem && results.length > 0 ? `palette-opt-${index}` : undefined}
             />
             <kbd>Esc</kbd>
         </div>
@@ -70,18 +89,18 @@
                 <span class="muted small">Enter</span>
             </button>
         {:else}
-            <ul role="listbox" aria-label="Scripts">
+            <ul role="listbox" id="palette-list" aria-label="Scripts" bind:this={list}>
                 {#each results as r, i (r.id)}
-                    <li role="option" aria-selected={i === index}>
-                        <button type="button" class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
-                            <span class="dot" data-hue={r.topic?.hue ?? 'green'}></span>
-                            <span class="title">{r.title}</span>
-                            <span class="muted small">{r.topic?.name ?? ''}</span>
-                        </button>
+                    <!-- keyboard selection lives on the combobox (aria-activedescendant); the click is for pointers -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <li role="option" id="palette-opt-{i}" aria-selected={i === index} class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
+                        <span class="dot" data-hue={r.topic?.hue ?? 'green'}></span>
+                        <span class="title">{r.title}{#if symbols(r)}<span class="syms mono">{symbols(r)}</span>{/if}</span>
+                        <span class="muted small">{r.topic?.name ?? ''}</span>
                     </li>
                 {/each}
                 {#if results.length === 0}
-                    <li class="empty muted">No script matches. Try fewer words, or a variable like <span class="mono">k_s</span>.</li>
+                    <li class="empty muted" role="presentation">No script matches. Try another word, or a variable like <span class="mono">k_s</span>.</li>
                 {/if}
             </ul>
         {/if}
@@ -148,6 +167,13 @@
     }
     .title {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .syms {
+        font-size: var(--text-xs);
+        color: var(--muted);
     }
     .dot {
         width: 8px;

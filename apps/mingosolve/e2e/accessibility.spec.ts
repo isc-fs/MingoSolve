@@ -24,7 +24,12 @@ for (const theme of ['Night glass', 'Paper glass'] as const) {
         await expect(field(app, 'N_s')).toHaveValue('103');
         await audit(app, `${theme} solved sheet`);
         await app.getByRole('button', { name: 'Topics' }).click();
-        await audit(app, `${theme} topics`);
+        await app.getByRole('textbox', { name: 'Search the library' }).fill('spring');
+        await audit(app, `${theme} topics, searching`);
+        await app.keyboard.press('ControlOrMeta+k');
+        await app.getByRole('combobox', { name: 'Search scripts' }).fill('tsal');
+        await audit(app, `${theme} palette open`);
+        await app.keyboard.press('Escape');
         await app.getByRole('button', { name: 'Chain' }).click();
         await audit(app, `${theme} chain`);
     });
@@ -34,13 +39,17 @@ test('the palette is a labelled dialog that keyboard users can drive', async ({ 
     await app.keyboard.press('ControlOrMeta+k');
     const dialog = app.getByRole('dialog', { name: 'Find a script' });
     await expect(dialog).toBeVisible();
-    await expect(app.getByRole('textbox', { name: 'Search scripts' })).toBeFocused();
+    await expect(app.getByRole('combobox', { name: 'Search scripts' })).toBeFocused();
     await app.keyboard.type('spring');
     await app.keyboard.press('ArrowDown');
-    await expect(app.getByRole('option', { selected: true })).toContainText(/Helical spring|Quarter car/);
+    const selected = dialog.getByRole('option', { selected: true });
+    await expect(selected).toContainText(/Helical spring|Wheel rate|Quarter car/);
+    // screen readers follow the highlighted row through the combobox, not through focus
+    const active = await app.getByRole('combobox', { name: 'Search scripts' }).getAttribute('aria-activedescendant');
+    await expect(selected).toHaveAttribute('id', active!);
     await app.keyboard.press('Enter');
     await expect(dialog).toBeHidden();
-    await expect(app.locator('.sheet h2')).toContainText(/spring|Quarter/i);
+    await expect(app.locator('.sheet h2')).toContainText(/spring|Wheel rate|Quarter/i);
     await app.keyboard.press('ControlOrMeta+k');
     await app.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
