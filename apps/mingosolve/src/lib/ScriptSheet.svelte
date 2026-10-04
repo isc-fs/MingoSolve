@@ -76,7 +76,9 @@
             error = null;
             matching = null;
             void scriptExamples(s.id).then((ex) => (examples = ex));
-            if (s.tool !== undefined && Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules)) void run();
+            // a worked example always runs (its answer may come from the defaults alone); a bare open waits for Run
+            const typed = Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules);
+            if (s.tool !== undefined && (typed || open.answer !== undefined)) void run();
         });
     });
 
