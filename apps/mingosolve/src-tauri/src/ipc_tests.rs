@@ -306,9 +306,14 @@ fn every_worked_example_button_reproduces_its_official_answer() {
             }
         }
     }
-    assert!(
-        checked >= 40,
-        "only {checked} worked examples reached through topics"
+    // every past question whose command opens a script (not chain/calc) must be reachable as a button
+    let expected = fsq::cli::examples()
+        .iter()
+        .filter(|e| !matches!(e.cmd.split_whitespace().next(), Some("chain" | "calc")))
+        .count();
+    assert_eq!(
+        checked, expected,
+        "worked examples not reachable through topics"
     );
     assert!(
         failures.is_empty(),

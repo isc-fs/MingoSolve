@@ -45,7 +45,7 @@ export function searchScripts(query: string, limit = 30): Script[] {
     return all
         .filter((s) => {
             const extra = s.formula?.vars.map((v) => `${v.name} ${v.desc}`).join(' ') ?? s.tool?.doc ?? '';
-            const hay = `${s.id.replaceAll('_', ' ')} ${s.title} ${s.topic?.name ?? ''} ${s.formula?.tags.join(' ') ?? ''} ${extra}`.toLowerCase();
+            const hay = `${s.id} ${s.id.replaceAll('_', ' ')} ${s.title} ${s.topic?.name ?? ''} ${s.formula?.tags.join(' ') ?? ''} ${extra}`.toLowerCase();
             return words.every((w) => hay.includes(w));
         })
         .slice(0, limit);

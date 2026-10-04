@@ -133,3 +133,32 @@ test('settings survive a reload (theme and answer format)', async ({ app }) => {
     await expect(app.locator('html')).toHaveAttribute('data-theme', 'light');
     await expect(app.locator('html')).toHaveAttribute('data-solid', '');
 });
+
+test('the searches the app suggests, and a script id as the CLI prints it, all find a script', async ({ app }) => {
+    // the empty sheet and the palette placeholder tell users to type these
+    for (const [query, title] of [
+        ['spring rate', /spring/i],
+        ['discharge', /discharge/i],
+        ['skidpad score', /skidpad|score/i],
+        ['battery_load', /battery/i],
+    ] as const) {
+        await app.keyboard.press('ControlOrMeta+k');
+        await app.getByRole('textbox', { name: 'Search scripts' }).fill(query);
+        await expect(app.getByRole('option').first(), query).toContainText(title);
+        await app.keyboard.press('Escape');
+    }
+});
+
+test('pasting into a field is left to the field; only a paste outside fields replaces the problem', async ({ app }) => {
+    await pasteAnywhere(app, SKIDPAD);
+    await app.getByLabel('Scripts that fit').getByRole('button').first().click();
+    const prevented = await field(app, 'mu').evaluate((el) => {
+        const data = new DataTransfer();
+        data.setData('text', '1.6');
+        const e = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true });
+        el.dispatchEvent(e);
+        return e.defaultPrevented;
+    });
+    expect(prevented).toBe(false);
+    await expect(app.locator('#problem')).toHaveValue(SKIDPAD);
+});

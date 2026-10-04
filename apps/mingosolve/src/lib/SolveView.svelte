@@ -15,11 +15,14 @@
     let hits = $state<Hit[]>([]);
     let quantities = $state<string[]>([]);
 
+    // Only the reply for the text on screen counts; a slower search for earlier text is dropped.
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let latest = 0;
     $effect(() => {
         const q = session.problem;
         if (timer !== null) clearTimeout(timer);
         timer = setTimeout(async () => {
+            const seq = ++latest;
             if (q.trim().length === 0) {
                 hits = [];
                 quantities = [];
@@ -27,6 +30,7 @@
                 return;
             }
             const found = await findQuestion(q);
+            if (seq !== latest) return;
             hits = found.hits;
             quantities = found.quantities;
             session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));

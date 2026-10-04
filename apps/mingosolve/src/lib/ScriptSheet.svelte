@@ -81,11 +81,14 @@
         const open = session.script;
         if (open === null) return;
         const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, picked, options };
-        untrack(() => (session.sheet = state));
+        untrack(() => {
+            session.sheet = state;
+        });
     });
 
-    // Formula scripts solve live.
+    // Formula scripts solve live; only the reply to the latest input is shown (a slower earlier solve must not win).
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let latest = 0;
     $effect(() => {
         const s = script;
         if (s === null || s.formula === undefined) return;
@@ -93,13 +96,17 @@
         const disp = { ...display };
         if (timer !== null) clearTimeout(timer);
         timer = setTimeout(async () => {
+            const seq = ++latest;
             try {
-                result = await solveFormula(s.id, given, disp);
+                const r = await solveFormula(s.id, given, disp);
+                if (seq !== latest) return;
+                result = r;
                 error = null;
                 if (picked === null || !result.found.some((f) => f.name === picked!.name)) {
                     picked = preferred(result);
                 }
             } catch (e) {
+                if (seq !== latest) return;
                 result = null;
                 error = String(e);
             }
@@ -147,20 +154,30 @@
         return { label: fv.name, shown, n: Number.isFinite(n) ? n : null, others: fv.shown.filter((_, i) => i !== picked!.index) };
     });
 
+    // The copy text must belong to the answer on screen, so stale formatting replies are dropped too.
+    let latestFormat = 0;
     $effect(() => {
         const a = answer;
         const prec = settings.precision.kind === 'sig' ? { sig: settings.precision.n } : { decimals: settings.precision.n };
         const comma = settings.decimalComma;
         const opts = options;
         copied = false;
+        const seq = ++latestFormat;
         if (a === null || a.n === null) {
             formatted = a?.shown ?? '';
             matching = null;
             return;
         }
-        void formatAnswer(a.n, prec, comma).then((f) => (formatted = f));
+        formatted = '';
+        void formatAnswer(a.n, prec, comma).then((f) => {
+            if (seq === latestFormat) formatted = f;
+        });
         matching = null;
-        if (opts.trim().length > 0) void matchOptions(a.n, opts).then((m) => (matching = m));
+        if (opts.trim().length > 0) {
+            void matchOptions(a.n, opts).then((m) => {
+                if (seq === latestFormat) matching = m;
+            });
+        }
     });
 
     function copy(): void {
