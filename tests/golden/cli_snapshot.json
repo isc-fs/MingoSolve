@@ -2734,19 +2734,6 @@
   "raw": "  unknown command 'document_penalty'; try help\n"
  },
  {
-  "cmd": "document_penalty hours_late=49 corr_late=77 rules=legacy",
-  "python": {
-   "defaults": {},
-   "solved": {},
-   "steps": [],
-   "target": null,
-   "conflicts": [],
-   "numbers": [],
-   "error": false
-  },
-  "raw": "  unknown command 'document_penalty'; try help\n"
- },
- {
   "cmd": "document_penalty hours_late=10",
   "python": {
    "defaults": {},
@@ -2916,7 +2903,7 @@
   "raw": "  unknown command 'skidpad_layout'; try help\n"
  },
  {
-  "cmd": "cg_shift L_wb=1.8m wr_0=0.64 d_cg=-144mm @wf_1=percent",
+  "cmd": "cg_shift L_wb=1.8m wr_0=0.64 d_cg=-144mm m_add=75kg @wf_1=percent",
   "python": {
    "defaults": {},
    "solved": {

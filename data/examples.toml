@@ -957,7 +957,7 @@ answer = 60
 [[example]]
 id = 56
 what = "front weight share after the driver shifts the CG 144 mm forward"
-cmd = "cg_shift L_wb=1.8m wr_0=0.64 d_cg=-144mm @wf_1=percent"
+cmd = "cg_shift L_wb=1.8m wr_0=0.64 d_cg=-144mm m_add=75kg @wf_1=percent"
 answer = 44
 
 [[example]]
