@@ -869,3 +869,309 @@ id = 830
 what = "firewood to heat a 4 m pool (0.95 m) + 15 l by 8 K at 35 %"
 cmd = "calc (pi/4*(4m)**2*0.95m + 15l)*1000kg/m**3*4184J/(kg*K)*8K/0.35/(4kWh/kg) -> kg"
 answer = 79.38
+
+[[example]]
+id = 452
+what = "days to de-registration for a late/uncorrected ASF (correction window)"
+cmd = "document_penalty"
+answer = 7
+
+[[example]]
+id = 512
+what = "group A document 49 h late, corrected version 77 h late (old rule)"
+cmd = "document_penalty hours_late=49 corr_late=77 rules=legacy"
+answer = 50
+
+[[example]]
+id = 892
+what = "points deducted per late submission"
+cmd = "document_penalty hours_late=10"
+answer = 10
+
+[[example]]
+id = 37
+what = "rear track limit for a 1440 mm front track (upper bound)"
+cmd = "track_range 1440mm"
+answer = 1920
+
+[[example]]
+id = 364
+what = "rear track limit for a 1240 mm front track (upper bound)"
+cmd = "track_range 1240mm"
+answer = 1653
+
+[[example]]
+id = 409
+what = "minimum tread depth of wet tires [mm]"
+cmd = "rule_value wet_tread_depth"
+answer = 2.4
+
+[[example]]
+id = 735
+what = "LV system DC voltage limit [V] (AC RMS limit is 50 V)"
+cmd = "rule_value lv_dc_max"
+answer = 60
+
+[[example]]
+id = 237
+what = "minimum wheelbase [mm]"
+cmd = "rule_value wheelbase_min"
+answer = 1525
+
+[[example]]
+id = 521
+what = "minimum static ground clearance [mm]"
+cmd = "rule_value ground_clearance_min"
+answer = 30
+
+[[example]]
+id = 964
+what = "baseline steel yield strength for SES [MPa]"
+cmd = "rule_value baseline_yield"
+answer = 305
+
+[[example]]
+id = 235
+what = "skidpad inner circle diameter [m]"
+cmd = "skidpad_layout"
+answer = 15.25
+
+[[example]]
+id = 99
+what = "skidpad diameter measured at the centre of the track [m]"
+cmd = "skidpad_layout"
+answer = 18.25
+
+[[example]]
+id = 134
+what = "cones on the skidpad track (old layout)"
+cmd = "skidpad_layout rules=legacy"
+answer = 58
+
+[[example]]
+id = 50
+what = "pylons for one circle pair of the skidpad (old layout)"
+cmd = "skidpad_layout rules=legacy"
+answer = 29
+
+[[example]]
+id = 893
+what = "most cones a driverless skidpad algorithm can see"
+cmd = "skidpad_layout"
+answer = 60
+
+[[example]]
+id = 56
+what = "front weight share after the driver shifts the CG 144 mm forward"
+cmd = "cg_shift L_wb=1.8m wr_0=0.64 d_cg=-144mm @wf_1=percent"
+answer = 44
+
+[[example]]
+id = 147
+what = "optimum front brake balance, 275 kg, 50/50, h 0.25 m, mu 1.5"
+cmd = "brake_balance b_cg=0.8m h_cg=0.25m mu=1.5 L_wb=1.6m @phi_f=percent"
+answer = 73.4
+
+[[example]]
+id = 296
+what = "fuel surface angle at 1.5 g lateral"
+cmd = "resultant_g_angle ay=1.5g0 @theta_g=deg"
+answer = 56.3
+
+[[example]]
+id = 64
+what = "tilt angle that aligns gravity with a 1.41 g lateral load"
+cmd = "resultant_g_angle ay=1.41g0 @theta_g=deg"
+answer = 54.7
+
+[[example]]
+id = 828
+what = "speed with zero side force on a 20 deg banked 50 m corner"
+cmd = "chain v theta_g=20deg R_c=50m @v=km/h"
+answer = 48.1
+
+[[example]]
+id = 490
+what = "CG height after raising the ride height from 30 to 55 mm"
+cmd = "chain h_cg2 h_cg=258mm m_s=187kg m_u=35kg dh=25mm @h_cg2=mm"
+answer = 279.059
+
+[[example]]
+id = 535
+what = "CG height change after raising the ride height 30 -> 50 mm"
+cmd = "sprung_cg_height m_s=190kg m_u=45kg dh=20mm @dh_cg=mm"
+answer = 16.2
+
+[[example]]
+id = 1065
+what = "front-left tyre load, 250 kg, 45 % front, 1.8 g right turn"
+cmd = "wheel_loads_total m=250kg f_ax=0.45 ay=1.8g0 h_cg=0.28m t_tr=1.2m"
+answer = 1015
+
+[[example]]
+id = 373
+what = "compression ratio from 649 cm3 total volume and the piston force"
+cmd = "cr_from_force p_g=80bar F_pist=31728N S_k=150mm V_tot=649cm**3"
+answer = 12
+
+[[example]]
+id = 1087
+what = "compression ratio, single cylinder, 80 bar and 31.7 kN on the piston"
+cmd = "cr_from_force p_g=80bar F_pist=31728N S_k=150mm V_tot=649cm**3"
+answer = 12.0
+
+[[example]]
+id = 575
+what = "current density in copper from 200 mV over 40 cm"
+cmd = "current_density sigma_c=57MS/m V=0.2V l_c=0.4m @J_cd=A/mm**2"
+answer = 28.5
+
+[[example]]
+id = 28
+what = "distance after 10 m at 10 m/s2, then coasting at 0.2 m/s2"
+cmd = "kin_profile a=10,s=10;a=-0.2,v=0"
+answer = 509.85
+
+[[example]]
+id = 460
+what = "stopping distance from 80 km/h with 1.5 s delay and 10 m/s2"
+cmd = "kin_profile a=0,t=1.5;a=-10,v=0 v0=80km/h"
+answer = 58
+
+[[example]]
+id = 570
+what = "1.473 s to 100 km/h, 3 s cruise, brake at 13.3 m/s2: distance"
+cmd = "kin_profile v=100km/h,t=1.473s;a=0,t=3s;a=-13.3,v=0"
+answer = 132.8
+
+[[example]]
+id = 500
+what = "3 s idle, 5 s at 4 m/s2, 5 s cruise: displacement in yards"
+cmd = "kin_profile a=0,t=3;a=4,t=5;a=0,t=5 unit=yd"
+answer = 164.042
+
+[[example]]
+id = 7
+what = "vehicle mass from a 54 km/h, 15 m stop with 1350 N"
+cmd = "calc 1350N/((54km/h)**2/(2*15m)) -> kg"
+answer = 180
+
+[[example]]
+id = 146
+what = "rope load with three cats (descending, climbing, steady)"
+cmd = "calc 5kg*(9.80665m/s**2-1.6m/s**2)+4kg*(9.80665m/s**2+0.9m/s**2)+3kg*9.80665m/s**2 -> N"
+answer = 113.3
+
+[[example]]
+id = 217
+what = "drag force when downforce equals weight, L/D 2.35, 250 kg"
+cmd = "calc 250kg*9.81m/s**2/2.35 -> N"
+answer = 1043.6
+
+[[example]]
+id = 222
+what = "finish speed of a 4 s, 75 m acceleration run, constant acceleration"
+cmd = "chain v v0=0 s=75m t=4s @v=km/h"
+answer = 135
+
+[[example]]
+id = 251
+what = "time for 75 m ending at 108 km/h, constant acceleration"
+cmd = "chain t v0=0 s=75m v=108km/h"
+answer = 5
+
+[[example]]
+id = 525
+what = "inertia of a full cylinder, same mass, half the diameter"
+cmd = "calc 1.08/4"
+answer = 0.27
+
+[[example]]
+id = 532
+what = "unknown parallel resistor from the total and one branch current"
+cmd = "calc 100V/(10A-(100V)/(25ohm)-1.25A-(100V)/(50ohm)) -> ohm"
+answer = 36.36
+
+[[example]]
+id = 667
+what = "cost per piece when making a part in-house"
+cmd = "calc (400000+5*20000)/1000+50"
+answer = 550
+
+[[example]]
+id = 970
+what = "days for a stopped car to fall into the Sun from 1 AU"
+cmd = "calc 1.11072*(1.5e11**3/(6.674e-11*1.99e30))**0.5/86400"
+answer = 65
+
+[[example]]
+id = 1020
+what = "moving mass of a Ferris wheel from motor energy 2 kW x 10 s"
+cmd = "calc 2000W*10s/(0.5*(0.2/s*10m)**2) -> kg"
+answer = 10000
+
+[[example]]
+id = 465
+what = "peak power with four cylinders, same displacement and piston speed"
+cmd = "calc 50*4**(1/3)"
+answer = 79.37
+
+[[example]]
+id = 1072
+what = "displacement per cylinder, bore 70 mm, stroke 120 mm"
+cmd = "engine_geometry n_cyl=1 B_bore=70mm S_k=120mm @V_d=cm**3"
+answer = 461.81
+
+[[example]]
+id = 419
+what = "adiabatic expansion of 1 l air to a tenth of the pressure"
+cmd = "adiabatic p_1=1e5 V_1=1l p_2=1e4 @V_2=l"
+answer = 5.18
+
+[[example]]
+id = 661
+what = "dominant vibration of an inline four at 4500 rpm"
+cmd = "engine_order omega_m=4500rpm k_ord=2"
+answer = 150
+
+[[example]]
+id = 227
+what = "RC low-pass phase at 150 Hz, cut-off 300 Hz"
+cmd = "rc_lowpass f=150Hz f_c=300Hz @phi=deg"
+answer = -26.57
+
+[[example]]
+id = 76
+what = "speed reached from rest with the energy of 30 -> 100 km/h"
+cmd = "calc (100**2-30**2)**0.5"
+answer = 95.4
+
+[[example]]
+id = 739
+what = "autocross score of team B (3 cones, 55.1 s) vs fastest 59.4 s, old rules"
+cmd = "event_score autocross 61.1 59.4 legacy"
+answer = 86.7
+
+[[example]]
+id = 850
+what = "acceleration Fred needs to catch Coco who starts 14 m ahead"
+cmd = "calc 2*75m/(2*61m/(6m/s**2)) -> m/s**2"
+answer = 7.4
+
+[[example]]
+id = 938
+what = "Young's modulus from a 20 mm square bar lengthening 0.5 mm at 45 kN"
+cmd = "axial F=45kN A_s=400mm**2 dL_b=0.5mm L_b=600mm @E_y=GPa"
+answer = 135
+
+[[example]]
+id = 107
+what = "hold-up capacitor for 200 ms at 120 mA, 5 V to 3.8 V"
+cmd = "calc 0.12A*0.2s/(5V-3.8V) -> uF"
+answer = 20000
+
+[[example]]
+id = 615
+what = "recoil speed of a 3.5 kg cat kicking a 0.05 kg ball at 2.3 m/s"
+cmd = "calc (0.05kg*2.3m/s)/(3.5kg) -> m/s"
+answer = 0.033
