@@ -27,7 +27,11 @@ pub fn list_tools() -> Vec<ToolInfo> {
             params: t
                 .params
                 .iter()
-                .map(|p| ParamInfo { name: p.name.into(), number: p.kind == Kind::Num, default: p.default.map(String::from) })
+                .map(|p| ParamInfo {
+                    name: p.name.into(),
+                    number: p.kind == Kind::Num,
+                    default: p.default.map(String::from),
+                })
                 .collect(),
         })
         .collect()

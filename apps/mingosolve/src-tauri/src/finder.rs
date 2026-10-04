@@ -36,6 +36,12 @@ pub fn list_examples() -> Vec<ExampleInfo> {
     let keys: HashMap<u32, String> = known_keys().into_iter().map(|k| (k.id, k.note)).collect();
     fsq::cli::examples()
         .into_iter()
-        .map(|e| ExampleInfo { warning: keys.get(&e.id).cloned(), id: e.id, what: e.what, cmd: e.cmd, answer: e.answer })
+        .map(|e| ExampleInfo {
+            warning: keys.get(&e.id).cloned(),
+            id: e.id,
+            what: e.what,
+            cmd: e.cmd,
+            answer: e.answer,
+        })
         .collect()
 }

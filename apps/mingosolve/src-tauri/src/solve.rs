@@ -42,7 +42,13 @@ pub fn list_formulas() -> Vec<FormulaInfo> {
                 .iter()
                 .map(|n| {
                     let v = r.var(n);
-                    VarInfo { name: n.clone(), unit: v.unit.clone(), desc: v.desc.clone(), signed: v.signed, default: v.default }
+                    VarInfo {
+                        name: n.clone(),
+                        unit: v.unit.clone(),
+                        desc: v.desc.clone(),
+                        signed: v.signed,
+                        default: v.default,
+                    }
                 })
                 .collect(),
         })
@@ -71,8 +77,15 @@ pub struct SolveResult {
     conflicts: Vec<String>,
 }
 
-fn show_all(name: &str, values: &[f64], display: &HashMap<String, String>) -> Result<Vec<String>, String> {
-    let unit = display.get(name).map(String::as_str).filter(|u| !u.trim().is_empty());
+fn show_all(
+    name: &str,
+    values: &[f64],
+    display: &HashMap<String, String>,
+) -> Result<Vec<String>, String> {
+    let unit = display
+        .get(name)
+        .map(String::as_str)
+        .filter(|u| !u.trim().is_empty());
     values.iter().map(|v| fmt_var(name, *v, unit)).collect()
 }
 
@@ -100,7 +113,12 @@ pub fn solve_formula(
     let mut defaults: Vec<Shown> = r
         .defaults
         .iter()
-        .map(|(n, v)| Ok(Shown { name: n.clone(), shown: fmt_var(n, *v, None)? }))
+        .map(|(n, v)| {
+            Ok(Shown {
+                name: n.clone(),
+                shown: fmt_var(n, *v, None)?,
+            })
+        })
         .collect::<Result<_, String>>()?;
     defaults.sort_by(|a, b| a.name.cmp(&b.name));
     // all variables known: report any equation the given values break (over-specified input)
@@ -113,8 +131,16 @@ pub fn solve_formula(
     for (n, vals) in &r.found.0 {
         known.insert(n.clone(), vals[0]);
     }
-    let conflicts = if f.names.iter().all(|n| known.contains_key(n)) { conflicts_in(f, &known, 1e-3) } else { vec![] };
-    Ok(SolveResult { found, defaults, conflicts })
+    let conflicts = if f.names.iter().all(|n| known.contains_key(n)) {
+        conflicts_in(f, &known, 1e-3)
+    } else {
+        vec![]
+    };
+    Ok(SolveResult {
+        found,
+        defaults,
+        conflicts,
+    })
 }
 
 #[derive(Serialize)]
@@ -148,22 +174,49 @@ pub fn chain_formulas(
         .collect();
     let only: Option<HashSet<String>> = (!only.is_empty()).then(|| only.into_iter().collect());
     let c = engine::chain(&target, &given_ref, only.as_ref())?;
-    let unit = |n: &str| display.get(n).map(String::as_str).filter(|u| !u.trim().is_empty());
+    let unit = |n: &str| {
+        display
+            .get(n)
+            .map(String::as_str)
+            .filter(|u| !u.trim().is_empty())
+    };
     let steps = c
         .steps
         .iter()
-        .map(|s| Ok(ChainStep { formula: s.formula.clone(), var: s.var.clone(), shown: fmt_var(&s.var, s.values[0], unit(&s.var))? }))
+        .map(|s| {
+            Ok(ChainStep {
+                formula: s.formula.clone(),
+                var: s.var.clone(),
+                shown: fmt_var(&s.var, s.values[0], unit(&s.var))?,
+            })
+        })
         .collect::<Result<_, String>>()?;
     let mut defaults: Vec<Shown> = c
         .defaults
         .iter()
-        .map(|(n, v)| Ok(Shown { name: n.clone(), shown: fmt_var(n, *v, None)? }))
+        .map(|(n, v)| {
+            Ok(Shown {
+                name: n.clone(),
+                shown: fmt_var(n, *v, None)?,
+            })
+        })
         .collect::<Result<_, String>>()?;
     defaults.sort_by(|a, b| a.name.cmp(&b.name));
-    let target_shown = if c.reached { Some(fmt_var(&target, c.known[&target], unit(&target))?) } else { None };
+    let target_shown = if c.reached {
+        Some(fmt_var(&target, c.known[&target], unit(&target))?)
+    } else {
+        None
+    };
     let mut known: Vec<String> = c.known.keys().cloned().collect();
     known.sort();
-    Ok(ChainResult { steps, defaults, reached: c.reached, target: target_shown, known, conflicts: conflicts(&c.known) })
+    Ok(ChainResult {
+        steps,
+        defaults,
+        reached: c.reached,
+        target: target_shown,
+        known,
+        conflicts: conflicts(&c.known),
+    })
 }
 
 #[tauri::command]
