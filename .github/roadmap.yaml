@@ -1,0 +1,52 @@
+# Source of truth for ROADMAP.md.
+#
+# Edit this file (or close / reopen a tracking issue on GitHub) and the
+# `Render ROADMAP` workflow will regenerate ROADMAP.md with updated
+# status badges and a fresh mermaid branch diagram. Do not hand-edit
+# ROADMAP.md — the workflow will overwrite any local changes.
+#
+# Schema:
+#   phases: list of phase clusters. Each phase has a number, a title, a
+#           tag applied on dev→main when every branch in the phase has
+#           landed, and a list of planned feat/fix branches. Each branch
+#           has a `name` (exact git branch name) and a short `scope`
+#           sentence used as the commit label in the mermaid diagram.
+#   sidequests: off-roadmap branches kept in the diagram for history.
+
+intro: >
+  ISC MingoSolve has to be installed and rehearsed before the January 2027 registration quizzes. Feature freeze
+  on 15 December 2026; only fixes after 1 January. Each phase is a cluster of branches cut from `dev`; a tag on
+  `main` closes the phase once every branch in it has merged. Status badges (✅ / 🔄 / 🔜) come from each branch's
+  tracking issue.
+
+phases:
+  - number: 1
+    title: Rust engine and desktop app
+    tag: v0.1.0
+    branches:
+      - name: feat/1-mingosolve-app
+        scope: Rust engine, Tauri app, 145 past questions, tests at every layer
+  - number: 2
+    title: Release and quiz-day features
+    tag: v0.2.0
+    branches:
+      - name: feat/2-release-pipeline
+        scope: Signed macOS, Windows and Linux builds published to iskapps, with updates
+      - name: feat/3-known-key-warning
+        scope: Warn when a pasted problem matches a past question whose official key is wrong
+  - number: 3
+    title: Quiz rehearsal
+    tag: v1.0.0
+    branches:
+      - name: feat/4-mock-quiz-fixes
+        scope: Fixes from two timed mock quizzes; version pinned for the quizzes
+  - number: 4
+    title: After the quizzes
+    tag: v1.1.0
+    branches:
+      - name: feat/5-drop-python-fallback
+        scope: Remove legacy/python once the Rust engine has carried a quiz season
+      - name: feat/6-repl
+        scope: Full interactive command line with history and completion
+
+sidequests: []

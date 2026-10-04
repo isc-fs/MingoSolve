@@ -1,8 +1,9 @@
 # AGENTS.md
 
-ISC MingoSolve: solver for Formula Student registration-quiz calculations. Read README.md first; the plan of
-record is the MingoSolve plan (Rust engine + Tauri app, MingoCAN-style monorepo). Local project: do not create the
-GitHub repo, push, or touch iskapps without the owner's OK.
+ISC MingoSolve: engineering scripts for Formula Student registration-quiz problems (Rust engine + Tauri app,
+MingoCAN-style monorepo). Read README.md first; the phases are in ROADMAP.md (from `.github/roadmap.yaml`). The repo
+(isc-fs/MingoSolve) is **public**: never commit secrets, personal paths or FS-Quiz question text. Don't push to `main`
+or `dev`, tag, or touch iskapps without the owner's OK.
 
 ## Layout
 - `data/`: the source of truth. `formulas/NN_*.toml` (vars + equations, file order = registration order),
@@ -20,7 +21,9 @@ GitHub repo, push, or touch iskapps without the owner's OK.
 - `data/topics.toml`: every script (formula or tool) filed under exactly one topic (a test enforces it).
 
 ## Commands
-- Rust: `cargo test`, `cargo fmt`, `cargo clippy -- -D warnings`.
+- Rust: `cargo test --workspace`, `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`.
+- App (from `apps/mingosolve`): `npm run check`, `npm test` (Vitest, fake engine), `npm run e2e` (Playwright, real
+  engine through the test bridge `src-tauri/examples/ipc_bridge.rs`; needs `npx tauri icon` once and Playwright browsers).
 - Python (from `legacy/python`): `uv sync`, `uv run fsq`, `uv run pytest`, `uv run ruff check .`, `uv run ruff format .`.
 
 ## Rules
@@ -28,6 +31,9 @@ GitHub repo, push, or touch iskapps without the owner's OK.
   (`t`, `v`, `m`, `F`, `g`...) in `00_common.toml` mean the same everywhere or `chain` will mix them.
 - Every new archetype gets at least one `data/examples.toml` row with an official FS-Quiz answer.
 - Rule constants are per-year files; never edit an old year to model a new one.
-- FS-Quiz data is ODbL: keep the attribution; don't hammer the API (work from the IFS-Tests mirror).
+- FS-Quiz data is ODbL: derived files are listed in DATA_LICENSE.md and keep the attribution; don't hammer the API
+  (work from the IFS-Tests mirror).
+- Tests must prove behaviour against something independent (an official answer, a hand derivation, a real user
+  journey), not restate the code. A test for a fix should fail without the fix.
 - Git: `feat/<n>-slug` / `fix/<n>-slug`, PRs to `dev`, imperative commit subjects, no Co-Authored-By trailers.
 - Simple code, minimal comments; every Rust module starts with a `//!` line saying what it does.
