@@ -1,8 +1,15 @@
 // Shared helpers: a page whose clipboard writes are captured, and small actions the journeys reuse.
 import { test as base, expect, type Page } from '@playwright/test';
 
-export const test = base.extend<{ app: Page }>({
-    app: async ({ page }, use) => {
+export const test = base.extend<{ app: Page; tour: boolean }>({
+    /** Opt in with `test.use({ tour: true })`: every other spec starts as someone who already did the tour. */
+    tour: [false, { option: true }],
+    app: async ({ page, tour }, use) => {
+        await page.addInitScript((seedTourDone) => {
+            // only when nothing is stored yet, so a reload keeps what the app saved (src/e2e-ipc.ts keeps the store here)
+            const key = 'e2e-store:settings.json';
+            if (seedTourDone && localStorage.getItem(key) === null) localStorage.setItem(key, JSON.stringify({ all: { tourDone: true } }));
+        }, !tour);
         await page.addInitScript(() => {
             const w = window as unknown as { __copied: string[] };
             w.__copied = [];
@@ -12,9 +19,11 @@ export const test = base.extend<{ app: Page }>({
             });
         });
         await page.goto('/');
-        // ready = the script catalogue has loaded (the library's topic list is drawn from it)
+        // ready = the script catalogue has loaded (the library's topic list is drawn from it); the tour pastes a
+        // sample problem, which hides the library, so its card is the signal there
         // (cold start: several browsers boot in parallel against one test bridge)
-        await expect(page.locator('.topic-row').first()).toBeVisible({ timeout: 30_000 });
+        const ready = tour ? page.locator('[data-tour-card]') : page.locator('.topic-row').first();
+        await expect(ready).toBeVisible({ timeout: 30_000 });
         await use(page);
     },
 });

@@ -294,3 +294,33 @@ test('at 2560 px the content is centred and the Copy button sits next to the val
     const chainRight = main.x + main.width - (chain.x + chain.width);
     expect(Math.abs(chainLeft - chainRight)).toBeLessThanOrEqual(24);
 });
+
+// ---- the guided tour card ----
+
+test.describe('guided tour', () => {
+    test.use({ tour: true });
+
+    for (const look of looks) {
+        test(`${look.name}: the tour card passes axe on the first, answer and last steps`, async ({ app }) => {
+            // set the look, then replay the tour from Help (the first-launch tour is dismissed to reach Settings)
+            await app.keyboard.press('Escape');
+            await app.getByRole('button', { name: 'Settings' }).click();
+            await app.getByRole('radio', { name: look.radio }).click();
+            const solid = app.getByRole('checkbox', { name: /Solid surfaces/ });
+            if (look.solid) await solid.check();
+            else await solid.uncheck();
+            await app.getByRole('button', { name: 'Help', exact: true }).click();
+            await app.getByRole('button', { name: 'Take the tour' }).click();
+            await expect(app.getByRole('dialog', { name: 'Paste the problem' })).toBeVisible();
+            await audit(app, `${look.name} tour step 1`);
+            await app.keyboard.press('ArrowRight');
+            await app.keyboard.press('ArrowRight');
+            await expect(app.getByRole('dialog', { name: 'The answer' })).toBeVisible();
+            await expect(app.locator('.answer .a-value')).toBeVisible();
+            await audit(app, `${look.name} tour step 3`);
+            for (let i = 0; i < 4; i++) await app.keyboard.press('ArrowRight');
+            await expect(app.getByRole('dialog', { name: 'Help, rehearsals and this tour' })).toBeVisible();
+            await audit(app, `${look.name} tour step 7`);
+        });
+    }
+});
