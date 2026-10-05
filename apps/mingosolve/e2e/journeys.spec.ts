@@ -1,6 +1,6 @@
 // What a teammate does during a quiz, end to end against the real engine. Expected values are official FS-Quiz
 // answers (question id in the test name) unless stated.
-import { answer, copied, expect, field, openFromPalette, pasteAnywhere, test } from './fixtures';
+import { answer, choice, copied, expect, field, openFromPalette, pasteAnywhere, switchBox, test } from './fixtures';
 
 const SKIDPAD =
     'A Formula Student car of mass 240 kg with a lift coefficient times area of 3.2 m² drives the skidpad ' +
@@ -53,12 +53,45 @@ test('Q378: a tool script from Topics runs with the legacy rules', async ({ app 
     await app.getByRole('button', { name: 'Topics' }).click();
     await app.getByRole('textbox', { name: 'Search the library' }).fill('event score');
     await app.getByRole('button', { name: /^Dynamic event score/ }).click();
-    await field(app, 'event').fill('skidpad');
+    await choice(app, 'event').selectOption('skidpad');
     await field(app, 't_team').fill('5.6');
     await field(app, 't_min').fill('5.1');
-    await field(app, 'rules').fill('legacy');
+    await choice(app, 'rules').selectOption('legacy');
     await app.getByRole('button', { name: /^Run/ }).click();
     await expect(answer(app)).toHaveText('41.117');
+});
+
+test('a tool form speaks plainly: labels, a checkbox for each on/off setting, the answer follows the boxes', async ({ app }) => {
+    await openFromPalette(app, 'can frame', /Bits per CAN frame/);
+    await expect(app.getByText('Extended frame (29-bit ID)')).toBeVisible();
+    await expect(app.locator('label.field[data-var="stuffing"] .hint')).toContainText('stuff bits');
+    await app.getByRole('button', { name: /^Run/ }).click();
+    // standard frame, 8 data bytes: 44 + 64 + 3 gap bits
+    await expect(answer(app)).toHaveText('111');
+    await switchBox(app, 'extended').check();
+    await app.getByRole('button', { name: /^Run/ }).click();
+    // extended: 64 + 64 + 3
+    await expect(answer(app)).toHaveText('131');
+    await switchBox(app, 'stuffing').check();
+    await app.getByRole('button', { name: /^Run/ }).click();
+    // worst-case stuff bits: floor((128 - 14) / 4) = 28 more
+    await expect(answer(app)).toHaveText('159');
+});
+
+test('a choice is a list to pick from, and the rules year starts filled in from Settings', async ({ app }) => {
+    await openFromPalette(app, 'skidpad score', /Dynamic event score/);
+    await expect(choice(app, 'event')).toHaveValue('');
+    await expect(choice(app, 'rules')).not.toHaveValue('');
+    await choice(app, 'event').selectOption({ label: 'Skidpad' });
+    await expect(choice(app, 'event')).toHaveValue('skidpad');
+});
+
+test('typing advice sits under its field instead of being cut off inside the label', async ({ app }) => {
+    await openFromPalette(app, 'wheel loads corner', /Wheel loads in a corner from total mass/);
+    const box = app.locator('label.field[data-var="ay"]');
+    await expect(box.locator('.hint')).toContainText('1.5g0');
+    const clipped = await box.locator('.fdesc').evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+    expect(clipped).toBe(false);
 });
 
 test('Q34: multiple-choice check and the copy format follow Settings', async ({ app }) => {
@@ -106,18 +139,18 @@ test('contradicting inputs are flagged instead of silently answered', async ({ a
 test('a wrong unit is explained, not swallowed', async ({ app }) => {
     await openFromPalette(app, 'average speed', /Average speed/);
     await field(app, 's').fill('3 kg');
-    await expect(app.locator('.note-bad')).toContainText('expected m');
+    await expect(app.locator('.note-bad')).toContainText('needs a length');
 });
 
 test('pinning puts a script in the rail; opening it later takes the pasted problem values', async ({ app }) => {
     await openFromPalette(app, 'spring rate', /Helical spring/);
     await app.getByRole('button', { name: 'Pin', exact: true }).click();
     const rail = app.locator('aside.rail');
-    await expect(rail.getByRole('button', { name: 'Coil spring' })).toBeVisible();
+    await expect(rail.getByRole('button', { name: 'Helical spring rate' })).toBeVisible();
     await pasteAnywhere(app, SKIDPAD);
     // the problem's values are known once its matches are shown
-    await expect(app.getByLabel('Scripts that fit')).toContainText('Cornering downforce');
-    await rail.getByRole('button', { name: 'Cornering downforce' }).click();
+    await expect(app.getByLabel('Scripts that fit')).toContainText('Max cornering speed with downforce');
+    await rail.getByRole('button', { name: 'Max cornering speed with downforce' }).click();
     await expect(field(app, 'R_c')).toHaveValue('9.125 m');
 });
 

@@ -176,6 +176,60 @@ fn tools_use_defaults_for_blank_parameters() {
 }
 
 #[test]
+fn list_tools_describes_parameters_in_plain_words() {
+    let w = webview();
+    let tools = invoke(&w, "list_tools", json!({})).unwrap();
+    let tool = |name: &str| {
+        tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|t| t["name"] == name)
+            .unwrap()
+            .clone()
+    };
+    let param = |t: &Value, name: &str| {
+        t["params"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p["name"] == name)
+            .unwrap()
+            .clone()
+    };
+    let can = tool("can_frame_bits");
+    assert!(can["summary"].as_str().unwrap().contains("CAN message"));
+    let ext = param(&can, "extended");
+    assert_eq!(ext["switch"], true);
+    assert_eq!(ext["label"], "Extended frame (29-bit ID)");
+    let score = tool("event_score");
+    let event = param(&score, "event");
+    assert_eq!(
+        event["choices"][0],
+        json!({"value": "skidpad", "label": "Skidpad"})
+    );
+    assert_eq!(param(&score, "t_team")["unit"], "s");
+    assert_eq!(param(&score, "pmax")["choices"], Value::Null);
+    for t in tools.as_array().unwrap() {
+        assert!(!t["summary"].as_str().unwrap().is_empty());
+        for p in t["params"].as_array().unwrap() {
+            assert_ne!(p["label"], p["name"], "{} has no plain label", t["name"]);
+        }
+    }
+}
+
+#[test]
+fn a_bare_number_is_read_in_the_unit_the_form_shows() {
+    let w = webview();
+    // FS-Quiz Q71 (key 11 A) typed as the form takes it: temperatures as plain numbers, shown in degC
+    let args = |amb: &str, max: &str| json!({"name": "cable_fuse", "args": [["a", "2mm**2"], ["t_ins", "0.36mm"], ["t_amb", amb], ["t_max", max], ["lam", "6mW/(K*m)"], ["rho", "26.4e-9"], ["alpha", "0.0041"]]});
+    let plain = invoke(&w, "run_tool", args("50", "70")).unwrap();
+    let typed = invoke(&w, "run_tool", args("50degC", "70degC")).unwrap();
+    assert_eq!(plain, typed);
+    assert!(plain.as_str().unwrap().ends_with("fuse 11 A"), "{plain}");
+}
+
+#[test]
 fn every_script_is_in_exactly_one_topic_with_matching_kind_and_title() {
     let w = webview();
     let topics = invoke(&w, "list_topics", json!({})).unwrap();
