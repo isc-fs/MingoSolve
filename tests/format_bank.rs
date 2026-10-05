@@ -77,7 +77,7 @@ fn normal(s: &str) -> String {
     let s = s.trim().replace(',', ".");
     let s = s.trim_start_matches('+');
     match s.parse::<f64>() {
-        Ok(v) if v == 0.0 => "0".into(),
+        Ok(0.0) => "0".into(),
         _ => s.to_string(),
     }
 }

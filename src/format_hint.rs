@@ -235,7 +235,7 @@ fn decimals_of_example(s: &str) -> Option<u32> {
     let s = s.trim_start_matches("eg:").trim_start_matches("e.g.:");
     let (int, frac) = s.split_once(['.', ','])?;
     let digits = |p: &str| !p.is_empty() && p.chars().all(|c| c.is_ascii_digit());
-    (digits(int) && digits(frac)).then(|| frac.len() as u32)
+    (digits(int) && digits(frac)).then_some(frac.len() as u32)
 }
 
 fn roundings(t: &[Tok]) -> Vec<Precision> {
