@@ -6,6 +6,7 @@
     import Tex from './Tex.svelte';
     import { chainFormulas } from './solve';
     import { catalog } from './catalog.svelte';
+    import { friendlyError } from './errors';
     import type { ChainResult } from './types';
 
     let target = $state('');
@@ -18,6 +19,9 @@
     const names = $derived(
         [...new Set([...catalog.scripts.values()].flatMap((s) => s.formula?.vars.map((v) => v.name) ?? []))].sort(),
     );
+
+    const descOf = (name: string): string | undefined =>
+        [...catalog.scripts.values()].flatMap((s) => s.formula?.vars ?? []).find((v) => v.name === name)?.desc;
 
     function parseGiven(): [string, string][] {
         return givenText
@@ -38,7 +42,13 @@
             error = null;
         } catch (e) {
             result = null;
-            error = String(e);
+            error = friendlyError(e, {
+                fields: [
+                    ...parseGiven().map(([name, value]) => ({ name, label: descOf(name) ?? name, value })),
+                    { name: '@show', label: 'Show in', value: shownIn },
+                ],
+                nameOf: descOf,
+            });
         }
     }
 </script>
