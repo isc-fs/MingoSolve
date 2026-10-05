@@ -43,7 +43,8 @@ desc = "temperature sensor sensitivity (LM135: 10 mV/K, absolute)"
 [[var]]
 name = "T_hi"
 unit = "K"
-desc = "highest temperature to measure, scaled to V_ref (type degC)"
+desc = "highest temperature to measure, scaled to V_ref"
+hint = "Type it in degC, like 125 degC."
 
 [[var]]
 name = "dT_lsb"
@@ -118,7 +119,8 @@ notes = "Only the cell capacity counts (series string): 27s1p is irrelevant. Q75
 [[var]]
 name = "J_cd"
 unit = "A/m**2"
-desc = "current density (type A/mm**2)"
+desc = "current density"
+hint = "Type it like 5 A/mm**2 (** is the power sign)."
 
 [[var]]
 name = "sigma_c"
@@ -140,4 +142,4 @@ eqs = [
     "sigma_c*rho = 1",
 ]
 tags = ["electrical", "current", "density", "conductor", "wire", "conductivity", "field", "copper", "cross-section"]
-notes = "V is the voltage between two points of the wire a distance l_c apart (one way, not go + return), so E = V/l. 1 A/mm2 = 1e6 A/m2. Q575: copper 57 MS/m, 200 mV over 0.4 m -> 28.5 A/mm2. Heat in the wire: P = I^2 R with wire_resistance."
+notes = "V is the voltage between two points of the wire a distance l_c apart (one way, not go + return), so E = V/l. 1 A/mm2 = 1e6 A/m2. Q575: copper 57 MS/m, 200 mV over 0.4 m -> 28.5 A/mm2. Heat in the wire: P = I^2 R with Conductor resistance R = rho l / A."

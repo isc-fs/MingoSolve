@@ -43,7 +43,7 @@ eqs = [
     "c_y = d_core/2 + t_skin",
 ]
 tags = ["structures", "sandwich", "panel", "composite", "skin", "core", "honeycomb", "inertia", "second", "moment"]
-notes = "d_core is the core thickness, so the skin centroids sit (d_core + t_skin)/2 from the neutral axis; overall depth = d_core + 2 t_skin. Q499: b 200, t 1, d 10 mm -> 1.21 cm^4. Chain with three_point_bend for stress or deflection."
+notes = "d_core is the core thickness, so the skin centroids sit (d_core + t_skin)/2 from the neutral axis; overall depth = d_core + 2 t_skin. Q499: b 200, t 1, d 10 mm -> 1.21 cm^4. Chain with Simply supported, centre load for stress or deflection."
 
 [[formula]]
 key = "thin_wall_pressure"
@@ -76,4 +76,4 @@ eqs = [
     "F_yld = 4*sigma_y*I_a/(c_y*L_b)",
 ]
 tags = ["structures", "bending", "yield", "three point", "tube", "load", "strength", "rules"]
-notes = "sigma_y defaults to 305 MPa, the FS rules baseline steel. c_y = outer diameter / 2 for a tube (half the side for a square tube). Chain with tube_section or square_tube_section for I_a."
+notes = "sigma_y defaults to 305 MPa, the FS rules baseline steel. c_y = outer diameter / 2 for a tube (half the side for a square tube). Chain with Round tube section or Square hollow section for I_a."
