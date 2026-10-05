@@ -199,7 +199,7 @@ test('a wrong unit is explained, not swallowed', async ({ app }) => {
 test('pinning puts a script in the rail; opening it later takes the pasted problem values', async ({ app }) => {
     await openFromPalette(app, 'spring rate', /Helical spring/);
     await app.getByRole('button', { name: 'Pin', exact: true }).click();
-    const rail = app.locator('aside.rail');
+    const rail = app.locator('.rail');
     await expect(rail.getByRole('button', { name: 'Helical spring rate' })).toBeVisible();
     await pasteAnywhere(app, SKIDPAD);
     // the problem's values are known once its matches are shown

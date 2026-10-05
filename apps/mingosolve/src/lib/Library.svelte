@@ -237,8 +237,13 @@
         outline: 2px solid var(--field-focus);
         outline-offset: 2px;
     }
+    /* no match in this topic: quieter, but still readable (opacity 0.4 failed contrast) */
     .topic-row.dim {
-        opacity: 0.4;
+        color: var(--muted);
+        font-weight: 400;
+    }
+    .topic-row.dim .dot {
+        opacity: 0.5;
     }
     .name {
         flex: 1;

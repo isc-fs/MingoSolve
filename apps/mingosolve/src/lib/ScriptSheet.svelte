@@ -298,6 +298,14 @@
         return { label: fv.name, shown, n: Number.isFinite(n) ? n : null, others: fv.shown.filter((_, i) => i !== picked!.index), extra: '', full: shown, block: false };
     });
 
+    /** What a screen reader hears when the answer changes: the value, never the whole multi-line output. */
+    const answerSays = $derived.by(() => {
+        if (answer === null) return '';
+        const lines = answer.shown.split('\n');
+        const more = lines.length > 1 ? ` and ${lines.length - 1} more line${lines.length > 2 ? 's' : ''}` : '';
+        return `${answer.label} = ${lines[0]}${more}${formatNote !== null ? `. ${formatNote}` : ''}`;
+    });
+
     // The copy text must belong to the answer on screen, so stale formatting replies are dropped too.
     let latestFormat = 0;
     $effect(() => {
@@ -465,6 +473,7 @@
 {:else}
     <section class="sheet glass" onkeydown={onKeydown} role="presentation">
         <p class="sr-only" role="status" aria-live="polite">{announce}</p>
+        <p class="sr-only" role="status" aria-live="polite" data-live="answer">{answerSays}</p>
         <header>
             <div class="titles">
                 <span class="label">{script.topic?.name ?? 'Script'} · {script.kind === 'formula' ? 'solve for the blank' : 'tool'}</span>
@@ -506,8 +515,11 @@
                             class:solved={solved !== undefined}
                             bind:value={values[v.name]}
                             oninput={() => delete fromProblem[v.name]}
-                            placeholder={solved !== undefined ? `= ${solved.shown[0]}` : v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit_shown}]`}
+                            placeholder={v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit_shown}]`}
                         />
+                        {#if solved !== undefined && !(values[v.name] ?? '').trim()}
+                            <span class="solved-value mono" data-solved={v.name}><span class="sr-only">Solved: </span>= {solved.shown.join(' · ')}</span>
+                        {/if}
                         {#if v.hint !== null}<span class="hint">{v.hint}</span>{/if}
                     </label>
                 {/each}
@@ -565,14 +577,20 @@
             </form>
         {/if}
 
-        {#if error !== null}
-            <p class="note note-bad"><strong>Can't solve that.</strong> {error}</p>
-        {/if}
-        {#if result !== null && result.conflicts.length > 0}
-            <div class="note note-bad">
-                <strong>These values contradict each other.</strong>
-                <ul class="mono small">{#each result.conflicts as c (c)}<li>{c}</li>{/each}</ul>
-            </div>
+        <!-- live-solved formulas: the message is read politely, after a pause in typing; a tool run is an explicit action, so its error is an alert -->
+        <div class="live" role="status" aria-live="polite">
+            {#if script.tool === undefined && error !== null}
+                <p class="note note-bad"><strong>Can't solve that.</strong> {error}</p>
+            {/if}
+            {#if result !== null && result.conflicts.length > 0}
+                <div class="note note-bad">
+                    <strong>These values contradict each other.</strong>
+                    <ul class="mono small">{#each result.conflicts as c (c)}<li>{c}</li>{/each}</ul>
+                </div>
+            {/if}
+        </div>
+        {#if script.tool !== undefined && error !== null}
+            <p class="note note-bad" role="alert"><strong>Can't solve that.</strong> {error}</p>
         {/if}
 
         {#if answer !== null}
@@ -778,6 +796,21 @@
         min-width: 0;
         overflow-wrap: anywhere;
     }
+    .solved-value {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        color: var(--ink-accent);
+        overflow-wrap: anywhere;
+    }
+    /* an empty live region must not add a flex gap of its own */
+    .live {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+    .live:empty {
+        margin-top: calc(var(--space-4) * -1);
+    }
     .hint {
         font-size: var(--text-xs);
         color: var(--muted);
@@ -836,9 +869,8 @@
     .input.filled {
         border-color: var(--accent-edge);
     }
-    .input.solved::placeholder {
-        color: var(--ink-accent);
-        opacity: 1;
+    .input.solved {
+        border-color: var(--accent);
     }
     /* Sticks to the bottom of the scrolling view (.view in SolveView) while its place in the sheet is below the fold.
        The solid layer under the tint keeps the fields that scroll beneath it readable (also in [data-solid]). */
@@ -902,7 +934,7 @@
         white-space: nowrap;
     }
     .a-actions {
-        margin-left: auto;
+        margin-left: var(--space-2);
         align-self: center;
         display: flex;
         gap: var(--space-2);
@@ -911,15 +943,19 @@
     .copy kbd {
         margin-left: var(--space-2);
         color: inherit;
-        opacity: 0.7;
         border-color: currentColor;
+    }
+    /* the gold ring of the page is invisible on a gold button over the gold-tinted slab */
+    .answer :focus-visible {
+        outline-color: var(--answer-focus);
+        outline-offset: 3px;
     }
     .undo {
         color: var(--ink-accent);
     }
     .copy {
         background: var(--isc-gold);
-        color: #1a1406;
+        color: var(--on-gold);
         border-color: transparent;
         font-weight: 600;
     }

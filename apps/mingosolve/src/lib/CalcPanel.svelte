@@ -6,6 +6,7 @@
     import Icon from './Icon.svelte';
     import { calc } from './solve';
     import { openCommand, session } from './session.svelte';
+    import { layout } from './layout.svelte';
     import { settings } from './settings.svelte';
     import { calcExamples } from './topics';
     import type { WorkedExample } from './types';
@@ -24,6 +25,19 @@
     let entryId = 0;
     let copiedTimer: ReturnType<typeof setTimeout> | undefined;
     let seenRun = session.calcRun;
+    /** One polite message for screen readers: the latest result or error, or the number just copied. */
+    let said = $state('');
+    // Folded into its button below the width breakpoint; settings.calcOpen is the user's choice above it.
+    const shown = $derived(layout.narrow ? layout.calcPeek : settings.calcOpen);
+
+    function hide(): void {
+        if (layout.narrow) layout.calcPeek = false;
+        else settings.calcOpen = false;
+    }
+    function show(): void {
+        if (layout.narrow) layout.calcPeek = true;
+        else settings.calcOpen = true;
+    }
 
     // a past question opened from anywhere (openCommand) fills the box and evaluates it
     $effect(() => {
@@ -44,6 +58,7 @@
         }
         const failed = out.startsWith('error:');
         entryId += 1;
+        said = failed ? `Error: ${out.slice('error:'.length).trim()}` : `${expr} = ${out}`;
         history = [{ id: entryId, expr, out: failed ? out.slice('error:'.length).trim() : out, failed }, ...history].slice(0, 40);
     }
 
@@ -54,8 +69,12 @@
             return;
         }
         copied = h.id;
+        said = 'Copied';
         clearTimeout(copiedTimer);
-        copiedTimer = setTimeout(() => (copied = null), 1600);
+        copiedTimer = setTimeout(() => {
+            copied = null;
+            said = '';
+        }, 1600);
     }
 
     async function toggleExamples(e: Event): Promise<void> {
@@ -63,12 +82,12 @@
     }
 </script>
 
-{#if settings.calcOpen}
+{#if shown}
     <aside class="calc glass" aria-label="Calculator">
         <div class="head">
             <Icon name="calc" />
             <h3>Calculator</h3>
-            <button type="button" class="btn btn-ghost btn-sm" onclick={() => (settings.calcOpen = false)} aria-label="Hide calculator">
+            <button type="button" class="btn btn-ghost btn-sm" onclick={hide} aria-label="Hide calculator">
                 <Icon name="x" size={14} />
             </button>
         </div>
@@ -107,13 +126,13 @@
                 </li>
             {/each}
         </ul>
-        <p class="sr-only" aria-live="polite">{copied === null ? '' : 'Copied'}</p>
+        <p class="sr-only" role="status" aria-live="polite">{said}</p>
         {#if history.length === 0}
             <p class="muted small">Units work everywhere: <span class="mono">km/h</span>, <span class="mono">rpm</span>, <span class="mono">bar</span>, <span class="mono">Ah</span>, <span class="mono">g0</span>. End with <span class="mono">-&gt; unit</span> to convert.</p>
         {/if}
     </aside>
 {:else}
-    <button type="button" class="open glass" onclick={() => (settings.calcOpen = true)} aria-label="Show calculator" title="Calculator">
+    <button type="button" class="open glass" onclick={show} aria-label="Show calculator" title="Calculator">
         <Icon name="calc" />
     </button>
 {/if}

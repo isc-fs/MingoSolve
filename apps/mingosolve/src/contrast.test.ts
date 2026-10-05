@@ -4,10 +4,8 @@
 // the glass over the bare ground, and the glass over each glow of the lit backdrop.
 import { describe, expect, it } from 'vitest';
 
-import { readFileSync } from 'node:fs';
+import css from './app.css?raw';
 
-// vitest runs from apps/mingosolve
-const css = readFileSync('src/app.css', 'utf8');
 
 type Tokens = Record<string, string>;
 type Rgba = { r: number; g: number; b: number; a: number };

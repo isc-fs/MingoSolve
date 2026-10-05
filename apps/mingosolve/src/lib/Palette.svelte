@@ -60,7 +60,7 @@
     // keep the highlighted row visible while moving with the arrows
     $effect(() => {
         const i = index;
-        void tick().then(() => list?.querySelector(`#palette-opt-${i}`)?.scrollIntoView({ block: 'nearest' }));
+        void tick().then(() => list?.querySelector(`#palette-opt-${i}`)?.scrollIntoView?.({ block: 'nearest' }));
     });
 
     function choose(i: number): void {
@@ -81,6 +81,36 @@
         session.paletteOpen = false;
     }
 
+    let dialog = $state<HTMLElement | null>(null);
+
+    /** aria-modal asks for it: Tab and Shift+Tab wrap inside the dialog instead of reaching the page behind. */
+    function trap(e: KeyboardEvent): void {
+        if (e.key === 'Escape') {
+            session.paletteOpen = false;
+            return;
+        }
+        if (e.key !== 'Tab' || dialog === null) return;
+        const stops = [...dialog.querySelectorAll<HTMLElement>('button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])')].filter((el) => !el.hasAttribute('disabled'));
+        if (stops.length === 0) return;
+        const first = stops[0];
+        const last = stops[stops.length - 1];
+        const at = document.activeElement;
+        if (e.shiftKey && (at === first || !dialog.contains(at))) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && (at === last || !dialog.contains(at))) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+
+    /** What a screen reader hears as the list changes; six or more words switch to problem mode. */
+    const says = $derived.by(() => {
+        if (!session.paletteOpen || query.trim().length === 0) return '';
+        if (looksLikeProblem) return 'Searching as a problem: press Enter to find the scripts for it.';
+        return total === 0 ? 'No results.' : `${total} result${total === 1 ? '' : 's'}.`;
+    });
+
     function key(e: KeyboardEvent): void {
         if (e.key === 'Escape') session.paletteOpen = false;
         else if (e.key === 'ArrowDown') {
@@ -93,9 +123,11 @@
     }
 </script>
 
+<p class="sr-only" role="status" aria-live="polite">{says}</p>
 {#if session.paletteOpen}
     <div class="scrim" role="presentation" onclick={() => (session.paletteOpen = false)}></div>
-    <div class="palette glass" role="dialog" aria-modal="true" aria-label="Find a script">
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div class="palette glass" role="dialog" aria-modal="true" aria-label="Find a script" tabindex="-1" bind:this={dialog} onkeydown={trap}>
         <div class="bar">
             <Icon name="search" />
             <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -194,6 +226,9 @@
         font: inherit;
         font-size: var(--text-lg);
         outline: none;
+    }
+    .bar:focus-within {
+        box-shadow: inset 0 -2px 0 var(--field-focus);
     }
     ul {
         list-style: none;
