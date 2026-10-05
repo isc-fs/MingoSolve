@@ -168,8 +168,11 @@ test('a solved field shows its value as visible text with the unit, next to the 
 });
 
 test('Tab stays inside the open palette and Escape returns focus to the button that opened it', async ({ app }) => {
+    // opened from the keyboard: WebKit (and so macOS WKWebView) never focuses a button on click, so there is no
+    // focused opener to return to after a mouse click; keyboard users are the ones who need focus returned
     const opener = app.getByRole('button', { name: /Find a script/ }).first();
-    await opener.click();
+    await opener.focus();
+    await app.keyboard.press('Enter');
     const dialog = app.getByRole('dialog', { name: 'Find a script' });
     const box = app.getByRole('combobox', { name: 'Search scripts' });
     await expect(box).toBeFocused();
@@ -228,6 +231,10 @@ test('the Text size setting scales the text of the whole app, and survives a res
     await app.getByRole('button', { name: 'Topics' }).click();
     // library rows use a type-scale token rather than the body size, so they must scale too
     expect(await sizeOf('.topic-row .name')).toBeCloseTo(baseRow * 1.3, 1);
+    // the setting is saved by a debounced autosave: wait for it to reach the store before restarting
+    await expect
+        .poll(() => app.evaluate(() => JSON.parse(localStorage.getItem('e2e-store:settings.json') ?? '{}').all?.textSize))
+        .toBe(130);
     await app.reload();
     await expect(app.locator('.topic-row').first()).toBeVisible({ timeout: 30_000 });
     expect(await sizeOf('body')).toBeCloseTo(base * 1.3, 1);
