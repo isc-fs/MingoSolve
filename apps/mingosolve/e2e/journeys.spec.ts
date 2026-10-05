@@ -181,6 +181,47 @@ test('Q515: Chain finds the rollover speed through two formulas', async ({ app }
     await expect(app.locator('.steps')).toContainText('ay');
 });
 
+test('Chain reads v_i and v_f as v0 and v: s = 40 m, and says what each name was read as', async ({ app }) => {
+    await app.getByRole('button', { name: 'Chain' }).click();
+    await app.getByRole('combobox', { name: 'Target' }).fill('s');
+    await app.locator('textarea').fill('v_i = 0\nv_f = 20 m/s\nt = 4 s');
+    await app.getByRole('button', { name: 'Chain', exact: true }).last().click();
+    // s = (v0 + v) / 2 * t = (0 + 20) / 2 * 4
+    await expect(app.locator('.answer')).toContainText(/\b40 m\b/);
+    const reads = app.getByRole('list', { name: 'Names read as' });
+    await expect(reads).toContainText('v_i → v0 (initial velocity)');
+    await expect(reads).toContainText('v_f → v (final velocity)');
+});
+
+test('Chain offers the likely names for a mistyped one, and clicking one fixes the line', async ({ app }) => {
+    await app.getByRole('button', { name: 'Chain' }).click();
+    await app.getByRole('combobox', { name: 'Target' }).fill('s');
+    await app.locator('textarea').fill('v_intial = 0\nv_f = 20 m/s\nt = 4 s');
+    await app.getByRole('button', { name: 'Chain', exact: true }).last().click();
+    await expect(app.getByText(/Unknown name “v_intial”/)).toBeVisible();
+    await expect(app.locator('.answer')).toHaveCount(0);
+    await app.getByRole('button', { name: 'v0 (initial velocity)' }).click();
+    await expect(app.locator('.answer')).toContainText(/\b40 m\b/);
+    await expect(app.locator('textarea')).toHaveValue('v0 = 0\nv_f = 20 m/s\nt = 4 s');
+});
+
+test('the Past questions list in Chain is folded until opened, and stays the way it was left after a reload', async ({ app }) => {
+    await app.getByRole('button', { name: 'Chain' }).click();
+    const head = app.locator('main').getByRole('button', { name: 'Past questions' });
+    await expect(head).toHaveAttribute('aria-expanded', 'false');
+    await expect(app.getByRole('button', { name: /^Q515 ·/ })).toBeHidden();
+    await head.focus();
+    await app.keyboard.press('Enter');
+    await expect(head).toHaveAttribute('aria-expanded', 'true');
+    await expect(app.getByRole('button', { name: /^Q515 ·/ })).toBeVisible();
+    await app.waitForTimeout(400);
+    await app.reload();
+    await app.getByRole('button', { name: 'Chain' }).click();
+    await expect(app.locator('main').getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'true');
+    await app.locator('main').getByRole('button', { name: 'Past questions' }).click();
+    await expect(app.locator('main').getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'false');
+});
+
 test('contradicting inputs are flagged instead of silently answered', async ({ app }) => {
     await openFromPalette(app, 'average speed', /Average speed/);
     await field(app, 's').fill('75 m');

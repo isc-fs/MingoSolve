@@ -475,6 +475,78 @@ fn chain_restricted_to_tags_and_unreachable_targets() {
 }
 
 #[test]
+fn chain_reads_alternative_names_and_reports_the_mapping() {
+    let w = webview();
+    // s = (v0 + v) / 2 * t = (0 + 20) / 2 * 4 = 40 m, typed the way people write it
+    let r = invoke(&w, "chain_formulas", json!({"target": "s", "given": [["v_i", "0"], ["v_f", "20 m/s"], ["t", "4 s"]], "only": [], "display": {"s": "m"}}))
+        .unwrap();
+    assert_eq!(r["reached"], true);
+    assert!(close(num(&r["target"]), 40.0, 1e-9), "{r}");
+    let mapped: Vec<(&str, &str)> = r["mapped"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| (m["from"].as_str().unwrap(), m["to"].as_str().unwrap()))
+        .collect();
+    assert_eq!(mapped, [("v_i", "v0"), ("v_f", "v")]);
+    assert_eq!(r["mapped"][0]["desc"], "initial velocity");
+    assert!(r["known"].as_array().unwrap().iter().any(|k| k == "v0"));
+    assert_eq!(r["problems"], json!([]));
+    // a display unit typed under an alias of the target applies to it
+    let r = invoke(&w, "chain_formulas", json!({"target": "distance", "given": [["v_i", "0"], ["v_f", "20 m/s"], ["t", "4 s"]], "only": [], "display": {"distance": "km"}}))
+        .unwrap();
+    assert_eq!(r["target"], "0.04 km");
+}
+
+#[test]
+fn chain_with_an_unknown_or_ambiguous_name_returns_choices_and_solves_nothing() {
+    let w = webview();
+    let r = invoke(&w, "chain_formulas", json!({"target": "s", "given": [["v_intial", "0"], ["v_f", "20 m/s"], ["r", "3 m"], ["t", "4 s"]], "only": [], "display": {}}))
+        .unwrap();
+    assert_eq!(r["reached"], false);
+    assert_eq!(r["steps"], json!([]));
+    let problems = r["problems"].as_array().unwrap();
+    assert_eq!(problems.len(), 2, "{r}");
+    assert_eq!(problems[0]["name"], "v_intial");
+    assert_eq!(problems[0]["kind"], "unknown");
+    let names = |p: &serde_json::Value| -> Vec<String> {
+        p["choices"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["name"].as_str().unwrap().to_string())
+            .collect()
+    };
+    assert!(names(&problems[0]).contains(&"v0".to_string()));
+    assert_eq!(problems[0]["choices"][0]["desc"], "initial velocity");
+    assert_eq!(problems[1]["kind"], "ambiguous");
+    assert!(
+        names(&problems[1]).contains(&"R_c".to_string())
+            && names(&problems[1]).contains(&"r_w".to_string())
+    );
+    // the names that did resolve are still reported
+    assert_eq!(r["mapped"][0]["from"], "v_f");
+}
+
+#[test]
+fn solving_one_formula_reads_alternative_names() {
+    let w = webview();
+    let r = invoke(&w, "solve_formula", json!({"key": "uniform_accel", "given": [["v_i", "0"], ["v_f", "20 m/s"], ["t", "4 s"]], "display": {}}))
+        .unwrap();
+    let a = r["found"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|f| f["name"] == "a")
+        .unwrap();
+    assert!(
+        close(a["values"][0].as_f64().unwrap(), 5.0, 1e-9),
+        "a = (20 - 0) / 4: {r}"
+    );
+    assert_eq!(r["mapped"][1]["to"], "v");
+}
+
+#[test]
 fn answer_helpers_follow_the_frontend_argument_names() {
     let w = webview();
     let f = invoke(

@@ -23,6 +23,7 @@ A blank field is an unknown: the script solves for whatever you leave empty.
 |---|---|---|
 | Several roots (`Other roots: ...`) | A quadratic has two answers | Pick the one the physics allows; a negative time or current is not an answer |
 | `Assumed g = 9.81.` | A constant you did not give was filled with its default | If the problem says another value, type it in |
+| `v_i → v0 (initial velocity)` under the known values in Chain | Common names (`v_i`, `v_f`, `μ`, `wheelbase`...) are understood and shown as the real name | Check it is the variable you meant; for an unknown or ambiguous name, click the suggested one |
 | **from the problem** tag | The value was read from the pasted text (hover to see which words) | If it is not what the problem says, fix it |
 | **not used** chip under the problem | The script ignored a value found in the text | You may have the wrong script, or the question has a detail you must add |
 | `rules 2027` pill, `Other rules: ...` | Scoring uses the rule year in Settings; the line shows 2026 and legacy | Old questions often keep an old key: if the options match another year, use it |

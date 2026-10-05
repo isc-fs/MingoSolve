@@ -1,16 +1,20 @@
 <!--
     Chain: list what you know, name what you want; the engine applies formulas until it gets there and shows only
     the steps the answer depends on. A red note means two formulas disagree: read it before using the number.
-    Past questions that were solved this way load in one click. The form lives in session.chain.
+    Past questions that were solved this way load in one click (in a fold, closed until opened). Names are read the
+    way people write them (v_i as v0): a quiet note says what was read as what, and an unknown or ambiguous name
+    offers its likely meanings as buttons. The form lives in session.chain.
 -->
 <script lang="ts">
     import { onMount, tick, untrack } from 'svelte';
 
+    import Disclosure from './Disclosure.svelte';
     import Tex from './Tex.svelte';
     import { chainFormulas } from './solve';
     import { catalog, searchVariables, variableInfo, type VarEntry } from './catalog.svelte';
     import { openCommand, session } from './session.svelte';
     import { friendlyError } from './errors';
+    import { settings } from './settings.svelte';
     import { chainExamples } from './topics';
     import type { ChainResult, WorkedExample } from './types';
 
@@ -32,6 +36,7 @@
     /** Read out when a chain finishes (polite: the visible result is not itself a live region). */
     const chainSays = $derived.by(() => {
         if (result === null) return '';
+        if (result.problems.length > 0) return `${result.problems.length} names need checking.`;
         const conflict = result.conflicts.length > 0 ? ' The formulas disagree: check the red note.' : '';
         return result.reached ? `${resultTarget} = ${result.target}.${conflict}` : `No path to ${resultTarget}.${conflict}`;
     });
@@ -66,6 +71,25 @@
                 const i = l.indexOf('=');
                 return [l.slice(0, i).trim(), l.slice(i + 1).trim()] as [string, string];
             });
+    }
+
+    /** The names the form uses now, so notes about an earlier run do not outlive an edit. */
+    const typedNames = $derived(new Set([session.chain.target.trim(), ...parseGiven().map(([n]) => n)]));
+    const reads = $derived((result?.mapped ?? []).filter((m) => typedNames.has(m.from)));
+    const problems = $derived((result?.problems ?? []).filter((p) => typedNames.has(p.name)));
+
+    /** Replace a typed name by the one the person picked and chain again. */
+    function useName(from: string, to: string): void {
+        const c = session.chain;
+        if (c.target.trim() === from) c.target = to;
+        c.given = c.given
+            .split(/(\n|;)/)
+            .map((seg) => {
+                const i = seg.indexOf('=');
+                return i >= 0 && seg.slice(0, i).trim() === from ? seg.slice(0, i).replace(from, to) + seg.slice(i) : seg;
+            })
+            .join('');
+        void run();
     }
 
     async function run(): Promise<void> {
@@ -134,14 +158,15 @@
 
     {#if examples.length > 0}
         <section class="glass panel past" aria-label="Past questions">
-            <span class="label">Past questions</span>
-            <div class="chips">
-                {#each examples as ex (ex.id)}
-                    <button type="button" class="chip chip-quiet" title={ex.what || ex.cmd} onclick={() => openCommand(ex.cmd, ex.answer)}>
-                        Q{ex.id}{ex.what ? ` · ${ex.what.length > 40 ? ex.what.slice(0, 40) + '…' : ex.what}` : ''}
-                    </button>
-                {/each}
-            </div>
+            <Disclosure label="Past questions" id="chain-past" bind:open={settings.chainPastOpen}>
+                <div class="chips">
+                    {#each examples as ex (ex.id)}
+                        <button type="button" class="chip chip-quiet" title={ex.what || ex.cmd} onclick={() => openCommand(ex.cmd, ex.answer)}>
+                            Q{ex.id}{ex.what ? ` · ${ex.what.length > 40 ? ex.what.slice(0, 40) + '…' : ex.what}` : ''}
+                        </button>
+                    {/each}
+                </div>
+            </Disclosure>
         </section>
     {/if}
 
@@ -190,13 +215,29 @@
             <span class="label">Known values, one per line</span>
             <textarea autocomplete="off" autocapitalize="off" spellcheck="false" class="input mono" rows="5" bind:value={session.chain.given} placeholder={'h_cg = 0.205 m\nR_c = 14.5 m\nt_tr = 1.24 m'}></textarea>
         </label>
+        {#if reads.length > 0}
+            <ul class="reads" aria-label="Names read as">
+                {#each reads as m (m.from)}
+                    <li class="muted small"><span class="mono">{m.from}</span> → <span class="mono">{m.to}</span> ({m.desc})</li>
+                {/each}
+            </ul>
+        {/if}
+        {#each problems as p (p.name)}
+            <p class="note note-warn">
+                {#if p.kind === 'unknown'}Unknown name “{p.name}”.{:else}“{p.name}” could mean several variables.{/if}
+                {#if p.choices.length > 0}
+                    Did you mean
+                    {#each p.choices as c, i (c.name)}{#if i > 0}{i === p.choices.length - 1 ? ' or ' : ', '}{/if}<button type="button" class="pick mono" onclick={() => useName(p.name, c.name)}>{c.name} ({c.desc})</button>{/each}?
+                {/if}
+            </p>
+        {/each}
         <div><button type="button" class="btn btn-primary" onclick={run}>Chain</button></div>
     </section>
 
     <p class="sr-only" role="status" aria-live="polite">{chainSays}</p>
     {#if error !== null}<p class="note note-bad" role="alert"><strong>Can't chain that.</strong> {error}</p>{/if}
 
-    {#if result !== null}
+    {#if result !== null && problems.length === 0}
         <section class="glass panel">
             {#if result.conflicts.length > 0}
                 <div class="note note-bad">
@@ -247,6 +288,28 @@
     .past {
         gap: var(--space-2);
         padding: var(--space-4) var(--space-5);
+    }
+    .reads {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .pick {
+        appearance: none;
+        border: none;
+        background: var(--accent-soft);
+        color: var(--ink-accent);
+        border-radius: var(--r-pill);
+        padding: 1px 10px;
+        margin: 0 2px;
+        font-size: var(--text-xs);
+        cursor: pointer;
+    }
+    .pick:hover {
+        filter: brightness(1.1);
     }
     .chips {
         display: flex;

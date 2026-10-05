@@ -32,9 +32,17 @@ function formula(key: string, title: string, vars: [string, string, string][], t
     return { id: key, kind: 'formula', title, aliases: '', topic: null, formula: f };
 }
 
-const reached: ChainResult = { steps: [], defaults: [], reached: true, target: '74.7 km/h', known: [], conflicts: [] };
+const reached: ChainResult = { steps: [], defaults: [], reached: true, target: '74.7 km/h', known: [], conflicts: [], mapped: [], problems: [] };
 
 const common = { chain_examples: () => chainRows, chain_formulas: () => reached };
+
+/** The "Past questions" fold, found by its button (it is closed until the person opens it). */
+const pastButton = (): HTMLElement => screen.getByRole('button', { name: 'Past questions' });
+async function openPast(): Promise<HTMLElement> {
+    const section = await screen.findByRole('region', { name: 'Past questions' });
+    if (pastButton().getAttribute('aria-expanded') !== 'true') await userEvent.click(pastButton());
+    return section;
+}
 
 beforeEach(() => {
     Object.assign(settings, defaultSettings());
@@ -54,8 +62,8 @@ describe('past questions', () => {
     it('lists every chain question of the bank and loads one into the form and runs it', async () => {
         const engine = fakeEngine(common);
         render(ChainView);
-        const section = await screen.findByRole('region', { name: 'Past questions' });
-        expect(within(section).getAllByRole('button')).toHaveLength(chainRows.length);
+        const section = await openPast();
+        expect(within(section).getAllByRole('button')).toHaveLength(chainRows.length + 1);
         expect(chainRows.length).toBeGreaterThan(5);
 
         // Q515 (rollover speed, shown in km/h): hand-split from its command line in examples.toml
@@ -77,7 +85,7 @@ describe('past questions', () => {
     it('every chain question sends exactly its own target, known values and display unit', async () => {
         const engine = fakeEngine(common);
         render(ChainView);
-        const section = await screen.findByRole('region', { name: 'Past questions' });
+        const section = await openPast();
         for (const ex of chainRows) {
             engine.calls.length = 0;
             await userEvent.click(within(section).getByRole('button', { name: new RegExp(`^Q${ex.id}\\b`) }));
@@ -89,6 +97,133 @@ describe('past questions', () => {
             expect(sent.given.map(([k, v]) => `${k}=${v}`), ex.cmd).toEqual(args.filter((a) => a.includes('=') && !a.startsWith('@')));
             expect(sent.display[target] ?? '', ex.cmd).toBe(args.find((a) => a.startsWith(`@${target}=`))?.split('=')[1] ?? '');
         }
+    });
+});
+
+describe('past questions fold', () => {
+    it('is closed at first, opens and closes with the keyboard, and the chips are only reachable while open', async () => {
+        fakeEngine(common);
+        render(ChainView);
+        await screen.findByRole('region', { name: 'Past questions' });
+        const head = pastButton();
+        expect(head.getAttribute('aria-expanded')).toBe('false');
+        const body = document.getElementById(head.getAttribute('aria-controls')!)!;
+        expect(body.hidden).toBe(true);
+        expect(screen.queryByRole('button', { name: /^Q515 ·/ })).toBeNull();
+
+        head.focus();
+        await userEvent.keyboard('{Enter}');
+        expect(head.getAttribute('aria-expanded')).toBe('true');
+        expect(body.hidden).toBe(false);
+        expect(screen.getByRole('button', { name: /^Q515 ·/ })).toBeTruthy();
+
+        await userEvent.keyboard(' ');
+        expect(head.getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('button', { name: /^Q515 ·/ })).toBeNull();
+    });
+
+    it('remembers its state: the choice lives in the settings, so a new view opens the way it was left', async () => {
+        fakeEngine(common);
+        const first = render(ChainView);
+        await screen.findByRole('region', { name: 'Past questions' });
+        await userEvent.click(pastButton());
+        expect(settings.chainPastOpen).toBe(true);
+        first.unmount();
+
+        render(ChainView);
+        await screen.findByRole('region', { name: 'Past questions' });
+        expect(pastButton().getAttribute('aria-expanded')).toBe('true');
+        expect(screen.getByRole('button', { name: /^Q515 ·/ })).toBeTruthy();
+    });
+});
+
+describe('names typed the way people write them', () => {
+    const typeAndRun = async (given: string): Promise<void> => {
+        await userEvent.type(screen.getByRole('combobox', { name: 'Target' }), 's');
+        await userEvent.type(screen.getByLabelText(/Known values/), given);
+        await userEvent.click(screen.getByRole('button', { name: 'Chain' }));
+    };
+
+    it('sends the names as typed and says, quietly, what each was read as', async () => {
+        const engine = fakeEngine({
+            ...common,
+            chain_formulas: () => ({
+                ...reached,
+                target: '40 m',
+                mapped: [
+                    { from: 'v_i', to: 'v0', desc: 'initial velocity' },
+                    { from: 'v_f', to: 'v', desc: 'final velocity' },
+                ],
+            }),
+        });
+        render(ChainView);
+        await typeAndRun('v_i = 0{Enter}v_f = 20 m/s{Enter}t = 4 s');
+        await waitFor(() => expect(document.querySelector('.answer .a-value')?.textContent).toBe('40 m'));
+        expect(engine.calls.find((c) => c.cmd === 'chain_formulas')!.args.given).toEqual([['v_i', '0'], ['v_f', '20 m/s'], ['t', '4 s']]);
+        const notes = within(screen.getByRole('list', { name: 'Names read as' })).getAllByRole('listitem').map((l) => l.textContent);
+        expect(notes).toEqual(['v_i → v0 (initial velocity)', 'v_f → v (final velocity)']);
+        expect(document.querySelector('.note-bad')).toBeNull();
+    });
+
+    it('an unknown name offers its likely meanings; clicking one rewrites that line and chains again', async () => {
+        const engine = fakeEngine({
+            ...common,
+            chain_formulas: (args) =>
+                (args.given as [string, string][]).some(([n]) => n === 'v_intial')
+                    ? {
+                          ...reached,
+                          reached: false,
+                          target: null,
+                          problems: [
+                              {
+                                  name: 'v_intial',
+                                  kind: 'unknown',
+                                  choices: [
+                                      { name: 'v0', desc: 'initial velocity' },
+                                      { name: 'v', desc: 'final velocity' },
+                                  ],
+                              },
+                          ],
+                      }
+                    : { ...reached, target: '40 m' },
+        });
+        render(ChainView);
+        await typeAndRun('v_intial = 0{Enter}t = 4 s');
+        const note = await screen.findByText(/^Unknown name “v_intial”\./);
+        expect(note.textContent?.replace(/\s+/g, ' ').trim()).toBe('Unknown name “v_intial”. Did you mean v0 (initial velocity) or v (final velocity)?');
+        // nothing was solved, so no "no path" verdict is shown
+        expect(document.querySelector('.answer')).toBeNull();
+
+        await userEvent.click(within(note).getByRole('button', { name: 'v0 (initial velocity)' }));
+        await waitFor(() => expect(document.querySelector('.answer .a-value')?.textContent).toBe('40 m'));
+        expect((screen.getByLabelText(/Known values/) as HTMLTextAreaElement).value).toBe('v0 = 0\nt = 4 s');
+        expect(engine.calls.filter((c) => c.cmd === 'chain_formulas').at(-1)!.args.given).toEqual([['v0', '0'], ['t', '4 s']]);
+        expect(screen.queryByText(/Unknown name/)).toBeNull();
+    });
+
+    it('an ambiguous name lists its meanings instead of guessing', async () => {
+        fakeEngine({
+            ...common,
+            chain_formulas: () => ({
+                ...reached,
+                reached: false,
+                target: null,
+                problems: [
+                    {
+                        name: 'r',
+                        kind: 'ambiguous',
+                        choices: [
+                            { name: 'R_c', desc: 'corner radius' },
+                            { name: 'r_w', desc: 'wheel dynamic radius' },
+                        ],
+                    },
+                ],
+            }),
+        });
+        render(ChainView);
+        await typeAndRun('r = 14.5 m');
+        const note = await screen.findByText(/^“r” could mean several variables\./);
+        expect(within(note).getAllByRole('button').map((b) => b.textContent)).toEqual(['R_c (corner radius)', 'r_w (wheel dynamic radius)']);
     });
 });
 
