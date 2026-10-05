@@ -1,6 +1,6 @@
 <!-- Small stroke icon set (24 px grid, inherits currentColor). Decorative unless `label` is given. -->
 <script lang="ts">
-    type Name = 'solve' | 'topics' | 'chain' | 'settings' | 'search' | 'pin' | 'clock' | 'copy' | 'x' | 'calc' | 'check' | 'spark' | 'chevron' | 'alert';
+    type Name = 'solve' | 'topics' | 'chain' | 'settings' | 'search' | 'pin' | 'clock' | 'copy' | 'x' | 'calc' | 'check' | 'spark' | 'chevron' | 'rules' | 'alert';
     let { name, size = 18, label }: { name: Name; size?: number; label?: string } = $props();
     const paths: Record<Name, string> = {
         solve: 'M4 17l6-6-6-6M12 19h8',
@@ -16,6 +16,7 @@
         check: 'M5 12l5 5 9-10',
         spark: 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6',
         chevron: 'M9 6l6 6-6 6',
+        rules: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7',
         alert: 'M12 4l9 16H3zM12 10v4M12 17h.01',
     };
 </script>

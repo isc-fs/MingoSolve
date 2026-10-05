@@ -7,8 +7,14 @@ use tauri::webview::InvokeRequest;
 use tauri::WebviewWindow;
 
 fn webview() -> WebviewWindow<tauri::test::MockRuntime> {
+    webview_from(mock_builder())
+}
+
+fn webview_from(
+    builder: tauri::Builder<tauri::test::MockRuntime>,
+) -> WebviewWindow<tauri::test::MockRuntime> {
     // the real config and capabilities, so permissions behave as in the shipped app
-    let app = super::with_commands(mock_builder())
+    let app = super::with_commands(builder)
         .build(tauri::generate_context!(test = true))
         .unwrap();
     tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
@@ -598,4 +604,107 @@ fn find_question_over_ipc_recognises_a_real_bank_question() {
     let r = invoke(&w, "find_question", json!({"text": text_of(125)})).unwrap();
     assert_eq!(r["past"]["id"], 125, "{r}");
     assert!(r["past"]["known_key"].is_string(), "{r}");
+}
+
+/// 60 made-up rules over three pages, so the loader accepts it as a rulebook.
+fn synthetic_rulebook_pdf() -> Vec<u8> {
+    let lines: Vec<Vec<String>> = (1..=3)
+        .map(|p| {
+            let mut v = vec![format!("Z {p}.1 Section {p}")];
+            for r in 1..=20 {
+                v.push(format!("Z {p}.1.{r} Rule number {r} of section {p} about gizmo{p}x{r} and the sparkle system."));
+            }
+            v
+        })
+        .collect();
+    let pages: Vec<Vec<(f32, &str)>> = lines
+        .iter()
+        .map(|l| {
+            l.iter()
+                .enumerate()
+                .map(|(i, t)| (800.0 - 30.0 * i as f32, t.as_str()))
+                .collect()
+        })
+        .collect();
+    crate::rules_text::tests::synthetic_pdf(&pages)
+}
+
+#[test]
+fn rulebook_load_status_search_remove_round_trip_in_the_app_data_dir() {
+    let tmp = std::env::temp_dir().join(format!("fsq-ipc-rulebook-{}", std::process::id()));
+    let data = tmp.join("rulebooks");
+    std::fs::create_dir_all(&tmp).unwrap();
+    let pdf = tmp.join("rules.pdf");
+    std::fs::write(&pdf, synthetic_rulebook_pdf()).unwrap();
+    let w = webview_from(mock_builder().manage(crate::rulebook::RulebookDir(data.clone())));
+
+    assert_eq!(invoke(&w, "rulebook_status", json!({})).unwrap(), json!([]));
+    let path = pdf.to_str().unwrap();
+
+    // not a rulebook, not a year, not there: errors, and nothing is saved
+    let bad = tmp.join("notes.pdf");
+    std::fs::write(&bad, "just some text").unwrap();
+    for (p, y) in [
+        (bad.to_str().unwrap(), "2099"),
+        (path, "../2099"),
+        ("/no/such.pdf", "2099"),
+    ] {
+        let err = invoke(&w, "load_rulebook", json!({"path": p, "year": y})).unwrap_err();
+        assert!(err.is_string(), "{err}");
+    }
+    assert_eq!(invoke(&w, "rulebook_status", json!({})).unwrap(), json!([]));
+    assert!(invoke(
+        &w,
+        "search_rules",
+        json!({"query": "gizmo", "year": "2099", "limit": 5})
+    )
+    .is_err());
+
+    let st = invoke(&w, "load_rulebook", json!({"path": path, "year": "2099"})).unwrap();
+    assert_eq!(
+        (
+            st["year"].as_str(),
+            st["pages"].as_u64(),
+            st["entries"].as_u64()
+        ),
+        (Some("2099"), Some(3), Some(63))
+    );
+    assert_eq!(st["source"], "rules.pdf");
+    assert!(data.join("2099.json").is_file());
+    assert_eq!(
+        invoke(&w, "rulebook_status", json!({})).unwrap()[0]["year"],
+        "2099"
+    );
+
+    let hits = invoke(
+        &w,
+        "search_rules",
+        json!({"query": "z 2.1.7", "year": "2099", "limit": 3}),
+    )
+    .unwrap();
+    assert_eq!(hits[0]["id"], "Z 2.1.7");
+    assert_eq!(hits[0]["page"], 2);
+    assert_eq!(hits[0]["year"], "2099");
+    let hits = invoke(
+        &w,
+        "search_rules",
+        json!({"query": "gizmo3x15", "year": "2099", "limit": 1}),
+    )
+    .unwrap();
+    assert_eq!(hits.as_array().unwrap().len(), 1);
+    assert_eq!(hits[0]["id"], "Z 3.1.15");
+    let m = &hits[0]["matches"][0];
+    assert!(m[0].as_u64() < m[1].as_u64());
+
+    invoke(&w, "remove_rulebook", json!({"year": "2099"})).unwrap();
+    assert!(!data.join("2099.json").exists());
+    assert_eq!(invoke(&w, "rulebook_status", json!({})).unwrap(), json!([]));
+    assert!(invoke(
+        &w,
+        "search_rules",
+        json!({"query": "gizmo", "year": "2099", "limit": 5})
+    )
+    .is_err());
+    invoke(&w, "remove_rulebook", json!({"year": "2099"})).unwrap();
+    std::fs::remove_dir_all(&tmp).ok();
 }

@@ -28,6 +28,8 @@ export const session = $state({
     /** Topic to expand when the Topics view opens. */
     topic: null as string | null,
     calcInput: '',
+    /** What the Rules view searches (the palette hands its query over). */
+    rulesQuery: '',
     /** Bumped to make the calculator evaluate its input (a past question was opened). */
     calcRun: 0,
     /** The Chain view's form, kept here so a past question can fill it; `run` is bumped to evaluate it. */
