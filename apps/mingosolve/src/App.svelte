@@ -11,6 +11,7 @@
     import { loadCatalog } from './lib/catalog.svelte';
     import { session, toggleHelp } from './lib/session.svelte';
     import { loadSessionLog } from './lib/sessionlog.svelte';
+    import { refreshRulebooks } from './lib/rulebook.svelte';
     import { checkForUpdate, type AvailableUpdate } from './lib/updater';
 
     import Rail from './lib/Rail.svelte';
@@ -20,6 +21,7 @@
     import SolveView from './lib/SolveView.svelte';
     import TopicsView from './lib/TopicsView.svelte';
     import ChainView from './lib/ChainView.svelte';
+    import RulesView from './lib/RulesView.svelte';
     import SettingsView from './lib/SettingsView.svelte';
     import HelpView from './lib/HelpView.svelte';
     import SessionLogView from './lib/SessionLogView.svelte';
@@ -36,6 +38,7 @@
             failed = String(e);
         }
         ready = true;
+        void refreshRulebooks();
         if (settings.autoUpdateCheck) checkForUpdate().then((u) => (update = u));
     });
 
@@ -84,6 +87,8 @@
                 <TopicsView />
             {:else if session.activeView === 'chain'}
                 <ChainView />
+            {:else if session.activeView === 'rules'}
+                <RulesView />
             {:else if session.activeView === 'log'}
                 <SessionLogView />
             {:else if session.activeView === 'help'}

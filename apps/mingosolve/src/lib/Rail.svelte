@@ -23,10 +23,11 @@
         }
     });
 
-    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'log' | 'help' | 'settings'> = {
+    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'rules' | 'log' | 'help' | 'settings'> = {
         solve: 'solve',
         topics: 'topics',
         chain: 'chain',
+        rules: 'rules',
         log: 'log',
         help: 'help',
         settings: 'settings',
