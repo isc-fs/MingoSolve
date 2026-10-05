@@ -10,6 +10,7 @@ pub mod finder;
 pub mod format;
 pub mod format_hint;
 pub mod latex;
+pub mod names;
 pub mod past;
 pub mod registry;
 pub mod solve;

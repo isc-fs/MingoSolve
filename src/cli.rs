@@ -7,6 +7,7 @@ use serde::Deserialize;
 
 use crate::engine::{self, conflicts};
 use crate::format::g6;
+use crate::names;
 use crate::registry::registry;
 use crate::tools::{tool, tools};
 use crate::units::{self, Dims, Quantity};
@@ -180,10 +181,26 @@ fn show(key: &str) -> Result<String, String> {
     Ok(out.join("\n"))
 }
 
+fn read_as(mapped: &[names::Mapping]) -> Vec<String> {
+    mapped
+        .iter()
+        .map(|m| format!("  (read {} as {})", m.from, names::describe(&m.to)))
+        .collect()
+}
+
+/// `@unit` choices keyed by the registry names, whatever spelling was typed.
+fn display_by_name<'a>(p: &Parsed<'a>) -> HashMap<String, &'a str> {
+    p.display
+        .iter()
+        .map(|(k, v)| (names::fix(k).map_or(k.to_string(), |(n, _)| n), *v))
+        .collect()
+}
+
 fn solve_cmd(key: &str, args: &[&str]) -> Result<String, String> {
     let p = parse_args(args);
     let r = engine::solve(key, &p.given)?;
-    let mut out = Vec::new();
+    let display = display_by_name(&p);
+    let mut out = read_as(&r.mapped);
     let mut defaults: Vec<_> = r.defaults.iter().collect();
     defaults.sort_by(|a, b| a.0.cmp(b.0));
     for (n, v) in defaults {
@@ -196,7 +213,7 @@ fn solve_cmd(key: &str, args: &[&str]) -> Result<String, String> {
     for (n, vals) in &r.found.0 {
         let shown: Result<Vec<String>, String> = vals
             .iter()
-            .map(|x| fmt_var(n, *x, p.display.get(n.as_str()).copied()))
+            .map(|x| fmt_var(n, *x, display.get(n.as_str()).copied()))
             .collect();
         let flag = if vals.len() > 1 {
             "   <- several roots"
@@ -215,7 +232,9 @@ fn solve_cmd(key: &str, args: &[&str]) -> Result<String, String> {
 fn chain_cmd(target: &str, args: &[&str]) -> Result<String, String> {
     let p = parse_args(args);
     let c = engine::chain(target, &p.given, p.only.as_ref())?;
-    let mut out = Vec::new();
+    let display = display_by_name(&p);
+    let target = c.target.as_str();
+    let mut out = read_as(&c.mapped);
     let mut defaults: Vec<_> = c.defaults.iter().collect();
     defaults.sort_by(|a, b| a.0.cmp(b.0));
     for (n, v) in defaults {
@@ -226,13 +245,13 @@ fn chain_cmd(target: &str, args: &[&str]) -> Result<String, String> {
             "  [{}] {} = {}",
             s.formula,
             s.var,
-            fmt_var(&s.var, s.values[0], p.display.get(s.var.as_str()).copied())?
+            fmt_var(&s.var, s.values[0], display.get(s.var.as_str()).copied())?
         ));
     }
     if c.reached {
         out.push(format!(
             "  => {target} = {}",
-            fmt_var(target, c.known[target], p.display.get(target).copied())?
+            fmt_var(target, c.known[target], display.get(target).copied())?
         ));
     } else {
         let mut k: Vec<&String> = c.known.keys().collect();
