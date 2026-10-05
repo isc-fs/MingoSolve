@@ -206,7 +206,10 @@ describe('tool scripts', () => {
         openCommand('event_score', 18.25);
         render(ScriptSheet);
         await waitFor(() => expect(slab()).toBe('18.25'));
-        expect(engine.calls.filter((c) => c.cmd === 'run_tool')).toHaveLength(1);
+        // one run in the selected rule year (the other years are compared separately)
+        const year = (c: { args: Record<string, unknown> }) => Object.fromEntries(c.args.args as [string, string][]).rules;
+        const main = engine.calls.filter((c) => c.cmd === 'run_tool' && [undefined, '', settings.rules].includes(year(c)));
+        expect(main).toHaveLength(1);
     });
 
     it('opening a bare tool waits for Run instead of erroring on the empty required fields, and uses the rule year from Settings', async () => {

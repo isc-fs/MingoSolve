@@ -65,7 +65,7 @@ test('Q378: a tool script from Topics runs with the legacy rules', async ({ app 
 });
 
 test('a long formula keeps the answer on screen without scrolling', async ({ app }) => {
-    await app.setViewportSize({ width: 1280, height: 700 });
+    await app.setViewportSize({ width: 1280, height: 520 });
     await openFromPalette(app, 'engine geometry', /Displacement/);
     expect(await app.locator('label.field').count()).toBeGreaterThanOrEqual(8);
     await field(app, 'n_cyl').fill('4');
@@ -73,6 +73,9 @@ test('a long formula keeps the answer on screen without scrolling', async ({ app
     await field(app, 'S_k').fill('60 mm');
     await field(app, 'omega_m').fill('6000 rpm');
     await field(app, 'bmep').fill('12 bar');
+    // back at the top the last fields are below the fold, yet the answer stays fully on screen
+    await app.locator('.view').first().evaluate((el) => el.scrollTo(0, 0));
+    await expect(app.locator('label.field').last()).not.toBeInViewport({ ratio: 1 });
     await expect(app.locator('.answer.sticky')).toBeInViewport({ ratio: 1 });
     await expect(app.locator('.answer .pill')).toHaveCount(0);
 });
