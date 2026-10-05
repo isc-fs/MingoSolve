@@ -65,7 +65,7 @@
             <button
                 type="button"
                 class="item"
-                data-tour={v.id === 'chain' ? 'nav-chain' : v.id === 'help' ? 'nav-help' : undefined}
+                data-tour={v.id === 'chain' ? 'nav-chain' : v.id === 'help' ? 'nav-help' : v.id === 'log' ? 'nav-log' : undefined}
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
                 title={layout.narrow ? `${v.label}: ${v.description}` : v.description}

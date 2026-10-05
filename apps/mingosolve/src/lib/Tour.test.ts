@@ -66,12 +66,12 @@ describe('the card', () => {
             return h!;
         });
         const [l, t, w, h] = rects.problem;
-        expect(hole.style.left).toBe(`${l - 6}px`);
-        expect(hole.style.top).toBe(`${t - 6}px`);
-        expect(hole.style.width).toBe(`${w + 12}px`);
-        expect(hole.style.height).toBe(`${h + 12}px`);
+        expect(hole.style.left).toBe(`${l - 8}px`);
+        expect(hole.style.top).toBe(`${t - 8}px`);
+        expect(hole.style.width).toBe(`${w + 16}px`);
+        expect(hole.style.height).toBe(`${h + 16}px`);
         expect(dialog().classList.contains('centered')).toBe(false);
-        await waitFor(() => expect(parseFloat(dialog().style.top)).toBeGreaterThanOrEqual(t + h + 6));
+        await waitFor(() => expect(parseFloat(dialog().style.top)).toBeGreaterThanOrEqual(t + h + 8));
     });
 
     it("is centred, with no highlight, when the step's target is not on screen", async () => {

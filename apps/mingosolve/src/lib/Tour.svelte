@@ -10,12 +10,14 @@
     import { STEPS, endTour, focusBeforeTour, goToStep, tour } from './onboarding.svelte';
     import { inflate, placeCard, type Box } from './tourLayout';
 
-    const PAD = 6;
+    const PAD = 8;
+    const EDGE = 24;
     const step = $derived(STEPS[tour.step]);
     const last = $derived(tour.step === STEPS.length - 1);
 
     let card = $state<HTMLElement | null>(null);
     let spot = $state<Box | null>(null);
+    let radius = $state(13);
     let pos = $state({ left: 0, top: 0 });
     let returnTo: HTMLElement | null = null;
     let returnId = '';
@@ -46,23 +48,50 @@
         };
     }
 
+    function scrollParent(el: Element): HTMLElement | null {
+        for (let p = el.parentElement; p !== null; p = p.parentElement) {
+            const o = getComputedStyle(p).overflowY;
+            if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+        }
+        return null;
+    }
+
+    /** Scroll so the target is well inside the window with room for the card beside it. */
+    function reveal(els: Element[], vh: number, force = false): void {
+        const sc = scrollParent(els[0]);
+        if (sc === null) {
+            els[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            return;
+        }
+        const r = union(els);
+        const need = (card?.offsetHeight ?? 200) + 14 + EDGE;
+        const cramped = r.top < EDGE + PAD || r.top + r.height > vh - EDGE - PAD || (vh - (r.top + r.height) < need && r.top < need);
+        if (!cramped && !force) return;
+        const want = Math.max(EDGE + PAD, Math.min(vh * 0.3, vh - r.height - need));
+        sc.scrollTop += r.top - want;
+    }
+
     function measure(): void {
         try {
             if (card === null) return;
             let els = visibleTargets();
+            const vp = { width: window.innerWidth, height: window.innerHeight };
             if (els.length > 0 && scrolled !== tour.step) {
                 scrolled = tour.step;
-                els[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                reveal(els, vp.height);
                 els = visibleTargets();
             }
-            const vp = { width: window.innerWidth, height: window.innerHeight };
+            if (els.length > 0) {
+                const r = parseFloat(getComputedStyle(els[0]).borderTopLeftRadius);
+                radius = r > 0 ? Math.min(r + PAD, 40) : 13;
+            }
             const box = els.length > 0 ? inflate(union(els), PAD, vp.width, vp.height) : null;
             const size = { width: card.offsetWidth, height: card.offsetHeight };
             let placed = placeCard(box, size, vp);
             if (placed.overlaps && els.length > 0 && retried !== tour.step) {
                 // no free side: bring the target to the top of its scroller so the card fits below it
                 retried = tour.step;
-                els[0].scrollIntoView({ block: 'start', inline: 'nearest' });
+                reveal(els, vp.height, true);
                 els = visibleTargets();
                 const again = els.length > 0 ? inflate(union(els), PAD, vp.width, vp.height) : null;
                 placed = placeCard(again, size, vp);
@@ -98,11 +127,13 @@
         returnTo = focusBeforeTour();
         returnId = returnTo?.id ?? '';
         card?.focus();
+        document.documentElement.dataset.touring = '';
         const timer = setInterval(measure, 120);
         window.addEventListener('resize', measure);
         document.addEventListener('scroll', measure, true);
         return () => {
             clearInterval(timer);
+            delete document.documentElement.dataset.touring;
             window.removeEventListener('resize', measure);
             document.removeEventListener('scroll', measure, true);
             // the tour may have switched views, so the view it started from is drawn again: look the control up by id
@@ -154,7 +185,7 @@
 <div class="tour">
     <div class="dim" class:none={spot === null} aria-hidden="true">
         {#if spot !== null}
-            <div class="hole" style:left="{spot.left}px" style:top="{spot.top}px" style:width="{spot.width}px" style:height="{spot.height}px"></div>
+            <div class="hole" style:left="{spot.left}px" style:top="{spot.top}px" style:width="{spot.width}px" style:height="{spot.height}px" style:border-radius="{radius}px"></div>
         {/if}
     </div>
 
@@ -200,7 +231,6 @@
     }
     .hole {
         position: absolute;
-        border-radius: var(--r-md);
         box-shadow: 0 0 0 100vmax rgba(4, 12, 8, 0.62), 0 0 0 2px #fff;
         transition: left var(--motion), top var(--motion), width var(--motion), height var(--motion);
     }
@@ -213,17 +243,11 @@
         flex-direction: column;
         gap: var(--space-2);
         line-height: 1.5;
-        background: color-mix(in srgb, var(--glass-solid) 92%, transparent);
+        background: var(--glass-solid);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
         outline: none;
         transition: left var(--motion), top var(--motion);
-    }
-    :global(:root[data-solid]) .card {
-        background: var(--glass-solid);
-    }
-    @media (prefers-reduced-transparency: reduce) {
-        .card {
-            background: var(--glass-solid);
-        }
     }
     .card:focus-visible {
         box-shadow: 0 0 0 3px var(--field-focus), var(--shadow);

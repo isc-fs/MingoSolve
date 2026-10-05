@@ -110,7 +110,7 @@ export const STEPS: TourStep[] = [
         title: 'Help, rehearsals and this tour',
         body: () =>
             'Help has the shortcuts and what to do if something fails; replay this tour from there or from Settings. The Session log records every copied answer, for rehearsals.',
-        targets: ['[data-tour="nav-help"]'],
+        targets: ['[data-tour="nav-log"]', '[data-tour="nav-help"]'],
     },
 ];
 
