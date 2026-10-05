@@ -30,4 +30,4 @@ eqs = [
     "v_avg = s_lap/t_lap",
 ]
 tags = ["kinematics", "skidpad", "lap", "centreline", "average", "speed", "circle"]
-notes = "Centreline diameter 18.25 m (inner 15.25 + 2 x 1.5), lap 57.33 m; the result is the mean of the right and left timed laps, so the timed distance is 2 x 57.33 = 114.67 m. Grip-limited speed: cornering_downforce with ClA=0 and R_c = 9.125 m."
+notes = "Centreline diameter 18.25 m (inner 15.25 + 2 x 1.5), lap 57.33 m; the result is the mean of the right and left timed laps, so the timed distance is 2 x 57.33 = 114.67 m. Grip-limited speed: Max cornering speed with downforce, with ClA=0 and R_c = 9.125 m."

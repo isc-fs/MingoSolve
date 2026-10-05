@@ -13,15 +13,17 @@
     import Icon from './Icon.svelte';
     import Tex from './Tex.svelte';
     import { catalog } from './catalog.svelte';
+    import { friendlyError, type ErrorContext } from './errors';
     import { solveFormula } from './solve';
     import { runTool } from './tools';
     import { formatAnswer, matchOptions } from './finder';
     import { scriptExamples } from './topics';
-    import { openCommand, session, togglePin } from './session.svelte';
+    import { openCommand, prettyQuantity, session, togglePin } from './session.svelte';
+    import { platform, searchShortcut } from './platform';
     import { RULE_YEARS, settings } from './settings.svelte';
-    import { platform } from './theme.svelte';
+    import { initialValue, placeholderFor } from './toolform';
     import { recordCopy, sessionLog, type LogEntry } from './sessionlog.svelte';
-    import type { Matching, SolveResult, WorkedExample } from './types';
+    import type { Matching, ParamInfo, SolveResult, WorkedExample } from './types';
 
     const script = $derived(session.script !== null ? catalog.scripts.get(session.script.id) ?? null : null);
 
@@ -65,6 +67,8 @@
         if (open === null || s === null) return;
         const nonce = open.nonce;
         untrack(() => {
+            // what a tool's fields hold before anything is typed (a bare open waits for Run while they all match)
+            const untouched: Record<string, string> = Object.fromEntries((s.tool?.params ?? []).map((p) => [p.name, initialValue(p, settings.rules)]));
             const saved = session.sheet;
             if (saved !== null && saved.nonce === nonce) {
                 values = { ...saved.values };
@@ -80,8 +84,7 @@
                     values = Object.fromEntries(s.formula.vars.map((v) => [v.name, given[v.name] ?? '']));
                     display = Object.fromEntries(s.formula.vars.map((v) => [v.name, open.display?.[v.name] ?? '']));
                 } else if (s.tool !== undefined) {
-                    const vals: Record<string, string> = Object.fromEntries(s.tool.params.map((p) => [p.name, '']));
-                    if ('rules' in vals) vals.rules = settings.rules;
+                    const vals: Record<string, string> = { ...untouched };
                     (open.positional ?? []).forEach((v, i) => {
                         const p = s.tool!.params[i];
                         if (p !== undefined) vals[p.name] = v;
@@ -104,7 +107,7 @@
             matching = null;
             void scriptExamples(s.id).then((ex) => (examples = ex));
             // a worked example always runs (its answer may come from the defaults alone); a bare open waits for Run
-            const typed = Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules);
+            const typed = Object.entries(values).some(([k, v]) => v.trim().length > 0 && v !== (untouched[k] ?? ''));
             if (s.tool !== undefined && (typed || open.answer !== undefined)) void run();
         });
     });
@@ -141,7 +144,7 @@
             } catch (e) {
                 if (seq !== latest) return;
                 result = null;
-                error = String(e);
+                error = friendlyError(e, formulaErrorContext(s.formula!.vars, given, disp));
             }
         }, 110);
     });
@@ -190,8 +193,24 @@
         } catch (e) {
             if (seq !== latestRun) return;
             toolOut = null;
-            error = String(e);
+            error = friendlyError(e, {
+                fields: s.tool.params.map((p) => ({ name: p.name, label: p.label, value: values[p.name] ?? '' })),
+            });
         }
+    }
+
+    /** The fields an engine error can be about: the variables' boxes with what is typed, and the "Show in" boxes. */
+    function formulaErrorContext(vars: { name: string; desc: string }[], given: [string, string][], display: Record<string, string>): ErrorContext {
+        const typed = new Map(given);
+        return {
+            fields: [
+                ...vars.filter((v) => typed.has(v.name)).map((v) => ({ name: v.name, label: v.desc, value: typed.get(v.name) ?? '' })),
+                ...Object.entries(display)
+                    .filter(([, v]) => v.trim().length > 0)
+                    .map(([k, v]) => ({ name: `@${k}`, label: 'Show in', value: v })),
+            ],
+            nameOf: (name) => vars.find((v) => v.name === name)?.desc,
+        };
     }
 
     const NUMBER = /^-?[\d.]+(e[-+]?\d+)?$/;
@@ -340,7 +359,8 @@
         undo = $state.snapshot({ values, display, fromProblem, picked, options, showOptions });
         if (undoTimer !== null) clearTimeout(undoTimer);
         undoTimer = setTimeout(dropUndo, 8000);
-        for (const k of Object.keys(values)) values[k] = k === 'rules' ? settings.rules : '';
+        const start = Object.fromEntries((script?.tool?.params ?? []).map((p) => [p.name, initialValue(p, settings.rules)]));
+        for (const k of Object.keys(values)) values[k] = start[k] ?? '';
         display = {};
         fromProblem = {};
         picked = null;
@@ -362,9 +382,13 @@
         picked = u.picked;
         options = u.options;
         showOptions = u.showOptions;
-        if (script?.tool !== undefined && Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules)) void run();
+        const t = script?.tool;
+        if (t !== undefined && t.params.some((p) => (values[p.name] ?? '').trim().length > 0 && values[p.name] !== initialValue(p, settings.rules))) void run();
         announceText('Restored');
     }
+
+    /** Free-text parameters with a long explanation (circuits, trusses, phases) get a full row. */
+    const isWide = (p: ParamInfo): boolean => p.choices === null && !p.switch && !p.number && (p.help?.length ?? 0) > 40;
 
     const pinned = $derived(script !== null && settings.pinned.includes(script.id));
     /** Typeset name of one of this formula's variables. */
@@ -377,7 +401,7 @@
         <h2>Paste a problem, or pick a script</h2>
         <p class="muted">
             Paste the question text above and the matching scripts open with its values filled in. Or press
-            <kbd>⌘K</kbd> and type what you need: <span class="mono">spring rate</span>,
+            <kbd>{searchShortcut()}</kbd> and type what you need: <span class="mono">spring rate</span>,
             <span class="mono">discharge</span>, <span class="mono">skidpad score</span>.
         </p>
     </div>
@@ -427,11 +451,21 @@
                             oninput={() => delete fromProblem[v.name]}
                             placeholder={solved !== undefined ? `= ${solved.shown[0]}` : v.default !== null ? `default ${v.default}` : v.unit === 'dimensionless' ? 'unknown' : `unknown [${v.unit_shown}]`}
                         />
+                        {#if v.hint !== null}<span class="hint">{v.hint}</span>{/if}
                     </label>
                 {/each}
             </div>
         {:else if script.tool !== undefined}
-            <p class="doc">{script.tool.doc}</p>
+            <p class="doc">{script.tool.summary.length > 0 ? script.tool.summary : script.tool.doc}</p>
+            {#if script.tool.summary.length > 0}
+                <details class="details">
+                    <summary>Details</summary>
+                    <p class="doc small">{script.tool.doc}</p>
+                </details>
+            {/if}
+            {#if script.tool.params.some((p) => p.unit !== null)}
+                <p class="muted small">A plain number is read in the unit next to its box. To use another unit, type it with the number (like 54 km/h).</p>
+            {/if}
             <form
                 class="fields"
                 onsubmit={(e) => {
@@ -440,13 +474,34 @@
                 }}
             >
                 {#each script.tool.params as p (p.name)}
-                    <label class="field" data-var={p.name} class:wide={['netlist', 'levels', 'teeth', 'events'].includes(p.name)}>
-                        <span class="flabel"><span class="var">{p.name}</span></span>
-                        <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-                            class="input mono"
-                            bind:value={values[p.name]}
-                            placeholder={p.default === null ? 'required' : p.default === '' ? 'optional' : `default ${p.default}`}
-                        />
+                    {@const required = p.default === null}
+                    <label class="field" data-var={p.name} class:wide={isWide(p)}>
+                        <span class="flabel">
+                            <span class="fdesc">{p.label}</span>
+                            {#if required}<span class="req">required</span>{/if}
+                        </span>
+                        {#if p.choices !== null}
+                            <select class="input" aria-required={required} bind:value={values[p.name]}>
+                                {#if !p.choices.some((c) => c.value === values[p.name])}<option value="" disabled>Choose…</option>{/if}
+                                {#each p.choices as c (c.value)}<option value={c.value}>{c.label}</option>{/each}
+                            </select>
+                        {:else if p.switch}
+                            <span class="switch">
+                                <input type="checkbox" checked={values[p.name] === '1'} onchange={(e) => (values[p.name] = e.currentTarget.checked ? '1' : '0')} />
+                                <span>{values[p.name] === '1' ? 'Yes' : 'No'}</span>
+                            </span>
+                        {:else}
+                            <span class="inputrow">
+                                <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                                    class="input mono"
+                                    aria-required={required}
+                                    bind:value={values[p.name]}
+                                    placeholder={placeholderFor(p)}
+                                />
+                                {#if p.unit !== null}<span class="unit">{prettyQuantity(p.unit)}</span>{/if}
+                            </span>
+                        {/if}
+                        {#if p.help !== null}<span class="hint">{p.help}</span>{/if}
                     </label>
                 {/each}
                 <div class="run"><button type="submit" class="btn btn-primary">Run <kbd>↵</kbd></button></div>
@@ -645,16 +700,53 @@
         font-size: var(--text-sm);
         color: var(--text-2);
         display: flex;
+        flex-wrap: wrap;
         align-items: baseline;
-        gap: var(--space-2);
+        gap: 0 var(--space-2);
         min-width: 0;
     }
     .fdesc {
         flex: 0 1 auto;
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
+    }
+    .hint {
+        font-size: var(--text-xs);
+        color: var(--muted);
+        line-height: 1.4;
+    }
+    .req {
+        flex: none;
+        font-size: var(--text-xs);
+        font-weight: 500;
+        color: var(--ink-accent);
+    }
+    .inputrow {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+    .inputrow .input {
+        flex: 1;
+        min-width: 0;
+    }
+    .unit {
+        flex: none;
+        font-family: var(--font-mono);
+        font-size: var(--text-sm);
+        color: var(--muted);
+    }
+    .switch {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 36px;
+        color: var(--text);
+    }
+    .details summary {
+        cursor: pointer;
+        color: var(--muted);
+        font-size: var(--text-sm);
     }
     .from {
         flex: none;

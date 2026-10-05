@@ -55,7 +55,7 @@ eqs = [
     "alpha_w = delta_w - atan(vy_wh/vx_wh)",
 ]
 tags = ["dynamics", "slip", "angle", "tyre", "yaw", "wheel", "velocity", "steering", "toe"]
-notes = "x forward, y left, yaw > 0 = left turn. Front-left: x_w = a_cg, y_w = +t/2; rear-right: x_w = -b_cg, y_w = -t/2. Toe-in turns a LEFT wheel right (delta_w = delta - toe) and a RIGHT wheel left (delta + toe). All four wheels, or the toe for equal slips: tool wheel_slip."
+notes = "x forward, y left, yaw > 0 = left turn. Front-left: x_w = a_cg, y_w = +t/2; rear-right: x_w = -b_cg, y_w = -t/2. Toe-in turns a LEFT wheel right (delta_w = delta - toe) and a RIGHT wheel left (delta + toe). All four wheels, or the toe for equal slips: the Wheel velocities and slip angles tool."
 
 [[var]]
 name = "Fz_out"
@@ -104,7 +104,7 @@ eqs = [
     "F_1*l_1 = F_2*l_2",
 ]
 tags = ["statics", "lever", "moment", "balance", "pivot", "bracket", "arm", "equilibrium"]
-notes = "Masses balance the same way: type weights as 231.6kg*g0. Bracket reaction: take moments about the other support; the arm is the perpendicular distance."
+notes = "Masses balance the same way: enter weights as a mass times g0, like 231.6kg*g0. Bracket reaction: take moments about the other support; the arm is the perpendicular distance."
 
 [[var]]
 name = "v_sc1"
@@ -133,7 +133,7 @@ eqs = [
     "v_sc1*L_sc1 = v_sc2*L_sc2",
 ]
 tags = ["aero", "wind", "tunnel", "scale", "model", "reynolds", "cfd", "similarity"]
-notes = "Re = rho v L / mu with the same air: v L stays constant. A smaller model needs a higher speed. Different fluids: use reynolds."
+notes = "Re = rho v L / mu with the same air: v L stays constant. A smaller model needs a higher speed. Different fluids: use the Reynolds number script."
 
 [[var]]
 name = "t_fall"
@@ -189,7 +189,7 @@ eqs = [
     "Fz_in = m_ax*g/2 - m_ax*ay*h_cg/t_tr",
 ]
 tags = ["dynamics", "wheel", "load", "corner", "lateral", "transfer", "tyre", "vertical", "weight", "distribution"]
-notes = "wheel_loads_cornering in one step: m_ax = f_ax m, 50/50 left/right static, all mass unsprung (CG height h_cg, that axle's track t_tr). Right turn: the LEFT wheels are outside, so front-left = Fz_out of the front axle. ay = 1.8 g -> type ay=1.8g0. Q1065: 250 kg, 45 % front, 1.8 g, h 0.28 m, t_f 1.2 m -> 1015 N. Sprung-mass models with roll-centre height give less transfer."
+notes = "The same as Outside / inside wheel loads on one axle in a corner (rigid), in one step: m_ax = f_ax m, 50/50 left/right static, all mass unsprung (CG height h_cg, that axle's track t_tr). Right turn: the LEFT wheels are outside, so front-left = Fz_out of the front axle. For ay = 1.8 g enter 1.8g0. Q1065: 250 kg, 45 % front, 1.8 g, h 0.28 m, t_f 1.2 m -> 1015 N. Sprung-mass models with roll-centre height give less transfer."
 
 [[var]]
 name = "wr_0"

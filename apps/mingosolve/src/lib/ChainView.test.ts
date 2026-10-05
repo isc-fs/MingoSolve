@@ -27,7 +27,7 @@ function formula(key: string, title: string, vars: [string, string, string][], t
         tex: [],
         tags,
         notes: '',
-        vars: vars.map(([name, desc, tex]) => ({ name, desc, unit: 'm/s', signed: false, default: null, tex, unit_shown: 'm/s' })),
+        vars: vars.map(([name, desc, tex]) => ({ name, desc, unit: 'm/s', signed: false, hint: null, default: null, tex, unit_shown: 'm/s' })),
     };
     return { id: key, kind: 'formula', title, aliases: '', topic: null, formula: f };
 }

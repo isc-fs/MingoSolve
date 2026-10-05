@@ -163,7 +163,7 @@ eqs = [
     "Qdot_h = U_h*A_h*dT_lm",
 ]
 tags = ["thermo", "heat", "exchanger", "lmtd", "log", "mean", "counterflow", "steam", "area"]
-notes = "dT_1, dT_2 are hot minus cold at each END (counterflow: hot in vs cold out, hot out vs cold in). Correction factor F = 1. Chain with heat_flow for the duty (Q689). dT_1 = dT_2 is the limit dT_lm = dT_1."
+notes = "dT_1, dT_2 are hot minus cold at each END (counterflow: hot in vs cold out, hot out vs cold in). Correction factor F = 1. Chain with Heat flow carried by a fluid stream for the duty (Q689). dT_1 = dT_2 is the limit dT_lm = dT_1."
 
 [[formula]]
 key = "lumped_cooling"
@@ -173,7 +173,7 @@ eqs = [
     "T = T_amb + (T_i - T_amb)*exp(-k_cool*t)",
 ]
 tags = ["thermo", "cooling", "newton", "convection", "lumped", "block", "heat", "transfer", "coefficient"]
-notes = "A_h counts only the faces exposed to the air (Q927: block on an insulating table, base excluded). Type T in degC. If k is given directly use newton_cooling."
+notes = "A_h counts only the faces exposed to the air (Q927: block on an insulating table, base excluded). Enter T in degC. If k is given directly use Newton cooling."
 
 [[formula]]
 key = "heat_pump"
@@ -225,7 +225,7 @@ eqs = [
     "Q_v = pi/4*d_1**2*v_1",
 ]
 tags = ["fluids", "continuity", "pipe", "diameter", "taper", "nozzle", "flow", "speed", "volume"]
-notes = "Doubling the speed needs d_2 = d_1 / sqrt(2) (Q162). Pressures: continuity_bernoulli."
+notes = "Doubling the speed needs d_2 = d_1 / sqrt(2) (Q162). Pressures: Continuity + Bernoulli."
 
 [[formula]]
 key = "floating_body"

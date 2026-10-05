@@ -10,7 +10,8 @@ import { openCommand, openScript, session } from './session.svelte';
 import { sessionLog, startClock, stopClock } from './sessionlog.svelte';
 import { defaultSettings, settings } from './settings.svelte';
 import { fakeEngine } from '../test/ipc';
-import type { FormulaInfo, SolveResult, ToolInfo } from './types';
+import { score } from '../test/tools';
+import type { FormulaInfo, SolveResult } from './types';
 
 const motion: FormulaInfo = {
     key: 'uniform_motion',
@@ -19,19 +20,8 @@ const motion: FormulaInfo = {
     tex: [],
     tags: [],
     notes: '',
-    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null, tex: name, unit_shown: '' })),
+    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '' })),
 };
-const score: ToolInfo = {
-    name: 'event_score',
-    doc: 'Dynamic event score',
-    params: [
-        { name: 'event', number: false, default: null },
-        { name: 't_team', number: true, default: null },
-        { name: 't_min', number: true, default: null },
-        { name: 'rules', number: false, default: '2027' },
-    ],
-};
-
 const solveMotion = (args: Record<string, unknown>): SolveResult => {
     const g = Object.fromEntries(args.given as [string, string][]);
     const v = parseFloat(g.s) / parseFloat(g.t);
@@ -127,7 +117,7 @@ describe('every way of copying appends one entry', () => {
             answer: nodal,
             rules: 'legacy',
             via: 'copy-all',
-            inputs: [['event', 'skidpad'], ['t_team', '5.6'], ['t_min', '5.1'], ['rules', 'legacy']],
+            inputs: [['event', 'skidpad'], ['t_team', '5.6'], ['t_min', '5.1'], ['rules', 'legacy'], ['finish', '1']], // the checkbox is logged as sent
         });
     });
 

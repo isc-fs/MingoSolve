@@ -22,6 +22,7 @@ or `dev`, tag, or touch iskapps without the owner's OK.
   look is deliberately its own (Night glass / Paper glass, `src/app.css`): do not copy MingoCAN's app.css or colours.
   Gold is never text on a light ground; every glass surface must have a solid fallback (`[data-solid]`).
 - `data/topics.toml`: every script (formula or tool) filed under exactly one topic (a test enforces it).
+- `data/tool_params.toml`: plain-English summary, labels, units, help, choices and 0/1 switches of every tool parameter, which the app's tool forms are built from (tests enforce coverage and that every choice is accepted). A new tool or parameter needs its entry. Variables may carry a `hint` (how to type the value) instead of putting typing advice in `desc`; notes name other scripts by title, not by id.
 
 ## Commands
 - Rust: `cargo test --workspace`, `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`.
