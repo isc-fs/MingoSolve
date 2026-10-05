@@ -15,7 +15,7 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 |:---:|---|---|---|
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
 | 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.2.0` |
-| 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · 🔄 active `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` | `v0.3.0` |
+| 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · ✅ done `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` | `v0.3.0` |
 | 4 | Quiz rehearsal | 🔜 planned `feat/10-mock-quiz-fixes` | `v1.0.0` |
 | 5 | After the quizzes | 🔜 planned `feat/11-drop-python-fallback` · 🔜 planned `feat/12-repl` · 🔜 planned `feat/13-contributor-guide` | `v1.1.0` |
 | — | Process fixes _(sidequest)_ | ✅ done `fix/7-roadmap-skip-ci` | — |
@@ -86,7 +86,7 @@ gitGraph
     checkout dev
     merge feat/7-plain-language-tools
     branch fix/6-accessibility
-    commit id: "… Focus, contrast, live regions, zoom"
+    commit id: "✔ Focus, contrast, live regions, zoom"
     checkout dev
     merge fix/6-accessibility
     branch feat/8-chain-and-calc-examples
