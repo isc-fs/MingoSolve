@@ -7,6 +7,7 @@
 <script lang="ts">
     import { SHORTCUTS, keysFor } from './shortcuts';
     import { session } from './session.svelte';
+    import { startTour } from './onboarding.svelte';
     import { platform, searchShortcut } from './platform';
 
     const sections = [
@@ -47,6 +48,8 @@
             <li><strong>Check</strong> the values it took, then <strong>copy</strong> the answer with <kbd>{platform === 'mac' ? '⌘↵' : 'Ctrl+Enter'}</kbd> and paste it into the quiz.</li>
         </ol>
         <p class="muted">A blank field is an unknown: the script solves for whatever you leave empty.</p>
+        <p>New here? A two-minute guided tour shows these steps on the real screen; skip it any time.</p>
+        <button type="button" class="btn" id="take-tour" onclick={startTour}>Take the tour</button>
     </section>
 
     <section class="glass panel" id="help-finding" aria-labelledby="h-finding">

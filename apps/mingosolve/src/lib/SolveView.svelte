@@ -84,13 +84,14 @@
         </div>
         <textarea autocomplete="off" autocapitalize="off" spellcheck="false"
             id="problem"
+            data-tour="problem"
             class="input"
             rows={hasProblem ? 2 : 3}
             bind:value={session.problem}
             placeholder="Paste the question text (or paste anywhere in the window). Values with units like 3.8 V, 100 km/h or 0.08 Ω are picked up and filled in."
         ></textarea>
         {#if quantities.length > 0}
-            <div class="chips" aria-label="Values found in the problem">
+            <div class="chips" data-tour="chips" aria-label="Values found in the problem">
                 {#each quantities as q (q)}
                     {@const u = used(q)}
                     <span class="chip" class:used={u === true} class:unused={u === false}>
@@ -103,7 +104,7 @@
             </div>
         {/if}
         {#if hasProblem}
-            <div class="matches" aria-label="Scripts that fit">
+            <div class="matches" data-tour="matches" aria-label="Scripts that fit">
                 <span class="label">Matches</span>
                 {#each hits as h, i (h.kind + h.id)}
                     <button

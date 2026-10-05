@@ -37,6 +37,7 @@
     const bottomIds: ViewId[] = ['log', 'help', 'settings'];
     const main = VIEWS.filter((v) => !bottomIds.includes(v.id));
     const bottom = VIEWS.filter((v) => bottomIds.includes(v.id));
+    const tourHook: Partial<Record<ViewId, string>> = { chain: 'nav-chain', log: 'nav-log', help: 'nav-help' };
     const isMac = platform === 'mac';
 
     const recent = $derived(settings.recent.filter((r) => !settings.pinned.includes(r)).slice(0, 5));
@@ -54,7 +55,7 @@
         </div>
     </div>
 
-    <button type="button" class="search" title="Find a script ({searchShortcut()})" onclick={() => (session.paletteOpen = true)}>
+    <button type="button" class="search" data-tour="search" title="Find a script ({searchShortcut()})" onclick={() => (session.paletteOpen = true)}>
         <Icon name="search" size={16} />
         <span class="txt">Find a script</span>
         <kbd class="txt">{searchShortcut()}</kbd>
@@ -65,6 +66,7 @@
             <button
                 type="button"
                 class="item"
+                data-tour={tourHook[v.id]}
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
                 title={layout.narrow ? `${v.label}: ${v.description}` : v.description}
@@ -107,6 +109,7 @@
             <button
                 type="button"
                 class="item"
+                data-tour={tourHook[v.id]}
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
                 title={(layout.narrow ? `${v.label}: ` : '') + (v.id === 'help' ? `${v.description} (${isMac ? '⌘/' : 'Ctrl+/'})` : v.description)}
