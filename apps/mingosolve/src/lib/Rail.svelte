@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <button type="button" class="search" title="Find a script ({searchShortcut()})" onclick={() => (session.paletteOpen = true)}>
+    <button type="button" class="search" data-tour="search" title="Find a script ({searchShortcut()})" onclick={() => (session.paletteOpen = true)}>
         <Icon name="search" size={16} />
         <span class="txt">Find a script</span>
         <kbd class="txt">{searchShortcut()}</kbd>
@@ -65,6 +65,7 @@
             <button
                 type="button"
                 class="item"
+                data-tour={v.id === 'chain' ? 'nav-chain' : v.id === 'help' ? 'nav-help' : undefined}
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
                 title={layout.narrow ? `${v.label}: ${v.description}` : v.description}
@@ -107,6 +108,7 @@
             <button
                 type="button"
                 class="item"
+                data-tour={v.id === 'chain' ? 'nav-chain' : v.id === 'help' ? 'nav-help' : undefined}
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
                 title={(layout.narrow ? `${v.label}: ` : '') + (v.id === 'help' ? `${v.description} (${isMac ? '⌘/' : 'Ctrl+/'})` : v.description)}

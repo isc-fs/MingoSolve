@@ -11,6 +11,7 @@
     import { registerThemeEffect } from './lib/theme.svelte';
     import { loadCatalog } from './lib/catalog.svelte';
     import { session, toggleHelp } from './lib/session.svelte';
+    import { startTour, tour } from './lib/onboarding.svelte';
     import { loadSessionLog } from './lib/sessionlog.svelte';
     import { refreshRulebooks } from './lib/rulebook.svelte';
     import { checkForUpdate, type AvailableUpdate } from './lib/updater';
@@ -18,6 +19,7 @@
     import Rail from './lib/Rail.svelte';
     import Palette from './lib/Palette.svelte';
     import UpdateBanner from './lib/UpdateBanner.svelte';
+    import Tour from './lib/Tour.svelte';
     import CalcPanel from './lib/CalcPanel.svelte';
     import SolveView from './lib/SolveView.svelte';
     import TopicsView from './lib/TopicsView.svelte';
@@ -39,6 +41,7 @@
             failed = String(e);
         }
         ready = true;
+        if (failed === null && !settings.tourDone) startTour();
         void refreshRulebooks();
         if (settings.autoUpdateCheck) checkForUpdate().then((u) => (update = u));
     });
@@ -47,6 +50,7 @@
     registerThemeEffect();
 
     function onKey(e: KeyboardEvent): void {
+        if (tour.active) return;
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
             session.paletteOpen = !session.paletteOpen;
@@ -58,6 +62,7 @@
     }
 
     function onPaste(e: ClipboardEvent): void {
+        if (tour.active) return;
         const t = e.target as HTMLElement | null;
         if (t !== null && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
         const text = e.clipboardData?.getData('text') ?? '';
@@ -77,7 +82,7 @@
     <UpdateBanner {update} />
     <div class="shell">
         <Rail />
-        <main>
+        <main tabindex="-1">
             {#if !ready}
                 <p class="loading muted">Loading…</p>
             {:else if failed !== null}
@@ -103,6 +108,7 @@
 </div>
 
 <Palette />
+{#if tour.active}<Tour />{/if}
 
 <style>
     .app {
@@ -119,6 +125,7 @@
         min-height: 0;
     }
     main {
+        outline: none;
         flex: 1;
         display: flex;
         flex-direction: column;
