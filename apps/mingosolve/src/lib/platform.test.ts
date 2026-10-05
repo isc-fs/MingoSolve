@@ -16,7 +16,7 @@ describe('platform', () => {
 
     it('shows ⌘K on macOS and Ctrl K on Windows and Linux', () => {
         expect(searchShortcut('mac')).toBe('⌘K');
-        expect(searchShortcut('windows')).toBe('Ctrl K');
-        expect(searchShortcut('linux')).toBe('Ctrl K');
+        expect(searchShortcut('windows')).toBe('Ctrl+K');
+        expect(searchShortcut('linux')).toBe('Ctrl+K');
     });
 });

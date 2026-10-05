@@ -7,7 +7,7 @@ export function platformOf(userAgent: string): Platform {
 
 export const platform: Platform = platformOf(navigator.userAgent);
 
-/** The shortcut that opens the script search: ⌘K on macOS, Ctrl K elsewhere. */
+/** The shortcut that opens the script search: ⌘K on macOS, Ctrl+K elsewhere. */
 export function searchShortcut(p: Platform = platform): string {
-    return p === 'mac' ? '⌘K' : 'Ctrl K';
+    return p === 'mac' ? '⌘K' : 'Ctrl+K';
 }

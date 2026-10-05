@@ -27,6 +27,28 @@ test('Q90: paste a problem anywhere, open the top match pre-filled, copy the ans
     expect(await copied(app)).toEqual(['11.76']);
 });
 
+test('rehearsal: label the question, copy, and find the entry in the session log; the help key opens Help', async ({ app }) => {
+    await pasteAnywhere(app, SKIDPAD);
+    await app.getByLabel('Scripts that fit').getByRole('button').first().click();
+    await expect(answer(app)).toHaveText(/^11\.759\d* m\/s$/);
+    await app.getByLabel('Question #').fill('Q90');
+    await app.getByRole('button', { name: /Copy 11\.76/ }).click();
+    expect(await copied(app)).toEqual(['11.76']);
+
+    await app.getByRole('button', { name: 'Session log', exact: true }).click();
+    await expect(app.getByRole('heading', { level: 1, name: 'Session log', exact: true })).toBeVisible();
+    const row = app.locator('tbody tr').first();
+    await expect(row).toContainText('Q90');
+    await expect(row).toContainText('Max cornering speed with downforce');
+    await expect(row).toContainText('11.76');
+    await expect(row).toContainText('mu=1.4');
+
+    await app.keyboard.press('ControlOrMeta+/');
+    await expect(app.getByRole('heading', { level: 1, name: 'Help' })).toBeVisible();
+    await app.keyboard.press('ControlOrMeta+/');
+    await expect(app.getByRole('heading', { level: 1, name: 'Session log', exact: true })).toBeVisible();
+});
+
 test('Q245: palette search, type the knowns, pick the root that answers the question', async ({ app }) => {
     await openFromPalette(app, 'discharge', /TS discharge/);
     await field(app, 'V_0').fill('396 V');

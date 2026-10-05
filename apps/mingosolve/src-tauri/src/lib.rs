@@ -4,6 +4,8 @@
 use std::panic::{catch_unwind, AssertUnwindSafe};
 
 pub mod finder;
+pub mod rulebook;
+pub mod rules_text;
 pub mod solve;
 pub mod tools;
 pub mod topics;
@@ -59,6 +61,10 @@ macro_rules! handler {
         finder::format_answer,
         topics::list_topics,
         topics::script_examples,
+        rulebook::load_rulebook,
+        rulebook::rulebook_status,
+        rulebook::search_rules,
+        rulebook::remove_rulebook,
         topics::chain_examples,
         topics::calc_examples,
         $($extra),*
@@ -78,10 +84,17 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init());
-    with_commands(builder)
-        .run(tauri::generate_context!())
-        .expect("error while running ISC MingoSolve");
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init());
+    with_commands(builder.setup(|app| {
+        use tauri::Manager;
+        app.manage(rulebook::RulebookDir(
+            app.path().app_data_dir()?.join("rulebooks"),
+        ));
+        Ok(())
+    }))
+    .run(tauri::generate_context!())
+    .expect("error while running ISC MingoSolve");
 }
 
 #[cfg(test)]

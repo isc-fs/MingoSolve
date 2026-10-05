@@ -1,14 +1,18 @@
 <!--
-    Command palette (⌘K on macOS, Ctrl K elsewhere): type to find any script by name, topic or variable; arrows to move, Enter to
-    open, Esc to close. Typing a long sentence here searches it as a pasted problem instead.
+    Command palette (⌘K on macOS, Ctrl+K elsewhere): type to find any script by name, topic or variable; arrows to move,
+    Enter to open, Esc to close. Typing a long sentence here searches it as a pasted problem instead. With a rulebook
+    loaded, matching rules are listed under the scripts and open in the Rules view.
 -->
 <script lang="ts">
     import { tick } from 'svelte';
 
     import Icon from './Icon.svelte';
     import { searchScripts } from './catalog.svelte';
+    import { searchRules } from './rulebook';
+    import { rulebooks, searchYear } from './rulebook.svelte';
     import { openScript, session } from './session.svelte';
     import { settings } from './settings.svelte';
+    import type { RuleHit } from './types';
 
     let query = $state('');
     let index = $state(0);
@@ -18,6 +22,28 @@
 
     const looksLikeProblem = $derived(query.trim().split(/\s+/).length >= 6);
     const results = $derived(looksLikeProblem ? [] : searchScripts(query, 12, [...settings.pinned, ...settings.recent]));
+
+    let rules = $state<RuleHit[]>([]);
+    const total = $derived(results.length + rules.length);
+
+    // Only the reply for the text on screen counts; a slower search for earlier text is dropped.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let latest = 0;
+    $effect(() => {
+        const q = query.trim();
+        const year = rulebooks.loaded.length > 0 ? searchYear(settings.rules) : null;
+        const open = session.paletteOpen && !looksLikeProblem;
+        if (timer !== null) clearTimeout(timer);
+        const seq = ++latest;
+        if (!open || year === null || q.length === 0) {
+            rules = [];
+            return;
+        }
+        timer = setTimeout(async () => {
+            const found = await searchRules(q, year, 5).catch(() => []);
+            if (seq === latest) rules = found;
+        }, 120);
+    });
 
     $effect(() => {
         if (session.paletteOpen) {
@@ -41,6 +67,11 @@
         if (looksLikeProblem) {
             session.problem = query;
             session.activeView = 'solve';
+        } else if (i >= results.length) {
+            if (rules[i - results.length] === undefined) return;
+            returnTo = null;
+            session.rulesQuery = query.trim();
+            session.activeView = 'rules';
         } else {
             const r = results[i];
             if (r === undefined) return;
@@ -53,7 +84,7 @@
     function key(e: KeyboardEvent): void {
         if (e.key === 'Escape') session.paletteOpen = false;
         else if (e.key === 'ArrowDown') {
-            index = Math.min(index + 1, Math.max(results.length - 1, 0));
+            index = Math.min(index + 1, Math.max(total - 1, 0));
             e.preventDefault();
         } else if (e.key === 'ArrowUp') {
             index = Math.max(index - 1, 0);
@@ -78,7 +109,7 @@
                 aria-expanded={!looksLikeProblem}
                 aria-controls="palette-list"
                 aria-autocomplete="list"
-                aria-activedescendant={!looksLikeProblem && results.length > 0 ? `palette-opt-${index}` : undefined}
+                aria-activedescendant={!looksLikeProblem && total > 0 ? `palette-opt-${index}` : undefined}
             />
             <kbd>Esc</kbd>
         </div>
@@ -89,17 +120,39 @@
                 <span class="muted small">Enter</span>
             </button>
         {:else}
-            <ul role="listbox" id="palette-list" aria-label="Scripts" bind:this={list}>
-                {#each results as r, i (r.id)}
-                    <!-- keyboard selection lives on the combobox (aria-activedescendant); the click is for pointers -->
-                    <!-- svelte-ignore a11y_click_events_have_key_events -->
-                    <li role="option" id="palette-opt-{i}" aria-selected={i === index} class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
-                        <span class="dot" data-hue={r.topic?.hue ?? 'green'}></span>
-                        <span class="title">{r.title}</span>
-                        <span class="muted small">{r.topic?.name ?? ''}</span>
+            <ul role="listbox" id="palette-list" aria-label="Results" bind:this={list}>
+                {#if results.length > 0}
+                    <li role="presentation">
+                        <ul role="group" aria-label="Scripts">
+                            {#each results as r, i (r.id)}
+                                <!-- keyboard selection lives on the combobox (aria-activedescendant); the click is for pointers -->
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <li role="option" id="palette-opt-{i}" aria-selected={i === index} class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
+                                    <span class="dot" data-hue={r.topic?.hue ?? 'green'}></span>
+                                    <span class="title">{r.title}</span>
+                                    <span class="muted small">{r.topic?.name ?? ''}</span>
+                                </li>
+                            {/each}
+                        </ul>
                     </li>
-                {/each}
-                {#if results.length === 0}
+                {/if}
+                {#if rules.length > 0}
+                    <li role="presentation">
+                        <p class="group label" aria-hidden="true">Rules</p>
+                        <ul role="group" aria-label="Rules">
+                            {#each rules as r, k (r.year + r.id)}
+                                {@const i = results.length + k}
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <li role="option" id="palette-opt-{i}" aria-selected={i === index} class="row" class:on={i === index} onmouseenter={() => (index = i)} onclick={() => choose(i)}>
+                                    <span class="chip">{r.id}</span>
+                                    <span class="title">{r.title}</span>
+                                    <span class="muted small">p. {r.page}</span>
+                                </li>
+                            {/each}
+                        </ul>
+                    </li>
+                {/if}
+                {#if total === 0}
                     <li class="empty muted" role="presentation">No script matches. Try another word, or a variable like <span class="mono">k_s</span>.</li>
                 {/if}
             </ul>
@@ -149,6 +202,11 @@
         max-height: 52vh;
         overflow-y: auto;
     }
+    li > ul {
+        margin: 0;
+        max-height: none;
+        overflow: visible;
+    }
     .row {
         appearance: none;
         width: 100%;
@@ -180,6 +238,9 @@
     }
     .dot[data-hue='gold'] {
         background: var(--hue-gold);
+    }
+    .group {
+        margin: var(--space-3) var(--space-3) var(--space-1);
     }
     .empty {
         padding: var(--space-4) var(--space-3);

@@ -1,6 +1,7 @@
 <!--
-    Left rail: brand, search (⌘K or Ctrl K opens the palette), the views, pinned scripts and recent ones, Settings at the
-    bottom. One click reaches any view or any pinned/recent script. On macOS the top strip sits under the
+    Left rail: brand, search (⌘K on macOS, Ctrl+K elsewhere, opens the palette), the views, pinned scripts and recent
+    ones, Session log, Help and Settings at the bottom. One click reaches any view or any pinned/recent script. On
+    macOS the top strip sits under the
     translucent title bar and drags the window.
 -->
 <script lang="ts">
@@ -23,14 +24,18 @@
         }
     });
 
-    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'settings'> = {
+    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'rules' | 'log' | 'help' | 'settings'> = {
         solve: 'solve',
         topics: 'topics',
         chain: 'chain',
+        rules: 'rules',
+        log: 'log',
+        help: 'help',
         settings: 'settings',
     };
-    const main = VIEWS.filter((v) => v.id !== 'settings');
-    const settingsView = VIEWS.find((v) => v.id === 'settings')!;
+    const bottomIds: ViewId[] = ['log', 'help', 'settings'];
+    const main = VIEWS.filter((v) => !bottomIds.includes(v.id));
+    const bottom = VIEWS.filter((v) => bottomIds.includes(v.id));
     const isMac = platform === 'mac';
 
     const recent = $derived(settings.recent.filter((r) => !settings.pinned.includes(r)).slice(0, 5));
@@ -96,16 +101,21 @@
 
     <div class="spacer"></div>
 
-    <button
-        type="button"
-        class="item"
-        class:on={session.activeView === 'settings'}
-        title={settingsView.description}
-        onclick={() => (session.activeView = 'settings')}
-    >
-        <Icon name="settings" />
-        <span>Settings</span>
-    </button>
+    <nav aria-label="Help and settings">
+        {#each bottom as v (v.id)}
+            <button
+                type="button"
+                class="item"
+                class:on={session.activeView === v.id}
+                aria-current={session.activeView === v.id ? 'page' : undefined}
+                title={v.id === 'help' ? `${v.description} (${isMac ? '⌘/' : 'Ctrl+/'})` : v.description}
+                onclick={() => (session.activeView = v.id)}
+            >
+                <Icon name={icons[v.id]} />
+                <span>{v.label}</span>
+            </button>
+        {/each}
+    </nav>
 </aside>
 
 <style>

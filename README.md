@@ -18,6 +18,9 @@ and run as tests. All of it is data in [data/](data).
 - Or browse **Topics**, or press **⌘K / Ctrl K** and type (`spring rate`, `discharge`, `skidpad score`).
 - Every root is listed. The answer copies in quiz format (significant figures or decimals, decimal comma), and can be
   checked against pasted multiple-choice options. Each script lists the past questions it solves, one click each.
+- **Help** (**⌘/ / Ctrl /**) explains how to read an answer, lists the shortcuts and the fallbacks; the printable
+  version is [docs/cheat-sheet.md](docs/cheat-sheet.md). The **Session log** records every copied answer with its
+  question label and timing, for mock quizzes, and exports CSV.
 - **Chain** links several formulas to one target. The **calculator** is unit-aware (`0.5*280kg*(100km/h)**2 -> kJ`).
 - Look: **Night glass** (dark) and **Paper glass** (light), following the OS, on the ISC design system. The window is
   translucent on macOS and Windows 11; solid surfaces are one setting away.

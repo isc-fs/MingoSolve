@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capabilities granted to the main ISC MingoSolve window: core, window dragging and theme (glass title bar), persistent settings, and the updater.",
+  "description": "Capabilities granted to the main ISC MingoSolve window: core, window dragging and theme (glass title bar), persistent settings, the updater, and the file picker for loading the rules PDF.",
   "windows": [
     "main"
   ],
@@ -11,6 +11,7 @@
     "core:window:allow-set-theme",
     "store:default",
     "updater:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "dialog:allow-open"
   ]
 }
