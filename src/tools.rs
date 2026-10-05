@@ -1145,6 +1145,214 @@ fn endurance_energy(a: &Args) -> Result<String, String> {
     Ok(out.join("\n  "))
 }
 
+fn rule_table<'a>(year: &str, name: &str) -> Result<&'a toml::Table, String> {
+    rule(year, &[name])?
+        .as_table()
+        .ok_or_else(|| format!("rules {year}: {name} is not a table"))
+}
+
+fn constant(year: &str, name: &str) -> Result<(f64, String, String, String), String> {
+    let t = rule_table(year, "constants")?;
+    let c = t.get(name).and_then(|c| c.as_table()).ok_or_else(|| {
+        let mut names: Vec<&str> = t.keys().map(String::as_str).collect();
+        names.sort();
+        format!(
+            "rules {year}: no constant {name:?}; have {}",
+            names.join(", ")
+        )
+    })?;
+    let s = |k: &str| c[k].as_str().unwrap_or("").to_string();
+    Ok((num(&c["value"]), s("unit"), s("rule"), s("desc")))
+}
+
+fn rule_value(a: &Args) -> Result<String, String> {
+    let year = rules_arg(a);
+    let name = a.str("name");
+    let names: Vec<String> = if name.is_empty() {
+        let mut k: Vec<String> = rule_table(&year, "constants")?.keys().cloned().collect();
+        k.sort();
+        k
+    } else {
+        vec![name.to_string()]
+    };
+    let mut lines = Vec::new();
+    for n in names {
+        let (v, unit, id, desc) = constant(&year, &n)?;
+        let unit = if unit == "1" {
+            String::new()
+        } else {
+            format!(" {unit}")
+        };
+        lines.push(format!("{n} = {}{unit}   ({id}: {desc})", g6(v)));
+    }
+    Ok(lines.join("\n"))
+}
+
+fn track_range(a: &Args) -> Result<String, String> {
+    let year = rules_arg(a);
+    let (r, _, id, _) = constant(&year, "track_ratio_min")?;
+    let t = a.num("track")?;
+    Ok(format!(
+        "other track {} mm to {} mm   ({id}: the smaller track is at least {} % of the larger)",
+        g6(t * r * 1e3),
+        g6(t / r * 1e3),
+        g6(r * 100.0)
+    ))
+}
+
+fn skidpad_layout(a: &Args) -> Result<String, String> {
+    let year = rules_arg(a);
+    let t = rule_table(&year, "skidpad")?;
+    let (d_in, d_out, dist) = (
+        num(&t["inner_d"]),
+        num(&t["outer_d"]),
+        num(&t["centre_distance"]),
+    );
+    let (c_in, c_out) = (num(&t["cones_inner"]), num(&t["cones_outer"]));
+    let d_mid = (d_in + d_out) / 2.0;
+    Ok(format!(
+        "inner circle diameter {} m, outer circle diameter {} m, centres {} m apart ({})\n\
+         driving path {} m wide, centreline diameter {} m (R = {} m), lap {} m\n\
+         cones per circle pair {} ({} inner + {} outer), whole track {}",
+        g6(d_in),
+        g6(d_out),
+        g6(dist),
+        t["rule"].as_str().unwrap_or(""),
+        g6((d_out - d_in) / 2.0),
+        g6(d_mid),
+        g6(d_mid / 2.0),
+        g6(std::f64::consts::PI * d_mid),
+        g6(c_in + c_out),
+        g6(c_in),
+        g6(c_out),
+        g6(2.0 * (c_in + c_out))
+    ))
+}
+
+fn document_penalty(a: &Args) -> Result<String, String> {
+    let year = rules_arg(a);
+    let d = rule_table(&year, "documents")?;
+    let per = num(&d["late_points"]);
+    let (late, corr) = (a.num("hours_late")?, a.num("corr_late")?);
+    let full_day = d["late_basis"].as_str() == Some("full_day");
+    let points = if full_day {
+        per * ((late / 24.0 + 1e-9).floor() + (corr / 24.0 + 1e-9).floor())
+    } else {
+        per * (f64::from(late > 0.0) + f64::from(corr > 0.0))
+    };
+    let basis = if full_day {
+        "per full 24 h late, low confidence: reproduces Q512 only"
+    } else {
+        "per late submission, A 5.4.1"
+    };
+    let corr_h = num(&d["correction_hours"]);
+    let mut out = format!("penalty {} points ({} {basis})", g6(points), g6(per));
+    if let Some(h) = d.get("deregister_hours").map(num) {
+        let dereg = late > h || corr > h;
+        out += &format!(
+            "\nde-registered: {} (a document still missing {} h = {} day after its deadline, A 5.4.2)",
+            if dereg { "yes" } else { "no" },
+            g6(h),
+            g6(h / 24.0)
+        );
+    }
+    out += &format!(
+        "\ncorrected version due {} h = {} days after the request (A 5.3.1)",
+        g6(corr_h),
+        g6(corr_h / 24.0)
+    );
+    Ok(out)
+}
+
+/// Resolve one constant-acceleration phase from the speed at its start and two of a, t, s, v.
+fn phase(v0: f64, kv: &HashMap<&str, f64>) -> Result<(f64, f64, f64, f64), String> {
+    let get = |k: &str| kv.get(k).copied();
+    let (a, t, s, v) = (get("a"), get("t"), get("s"), get("v"));
+    if kv.len() != 2 {
+        return Err("each phase needs exactly two of a=, t=, s=, v=".into());
+    }
+    let (a, t) = match (a, t, s, v) {
+        (Some(a), Some(t), _, _) => (a, t),
+        (Some(a), None, Some(s), _) => {
+            let disc = v0 * v0 + 2.0 * a * s;
+            if disc < 0.0 {
+                return Err("the car stops before covering that distance".into());
+            }
+            let t = if a == 0.0 {
+                s / v0
+            } else {
+                (disc.sqrt() - v0) / a
+            };
+            (a, t)
+        }
+        (Some(a), None, None, Some(v)) => {
+            if a == 0.0 {
+                return Err("a=0 never changes the speed: give t= or s=".into());
+            }
+            (a, (v - v0) / a)
+        }
+        (None, Some(t), None, Some(v)) => ((v - v0) / t, t),
+        (None, None, Some(s), Some(v)) => ((v * v - v0 * v0) / (2.0 * s), 2.0 * s / (v0 + v)),
+        (None, Some(t), Some(s), None) => (2.0 * (s - v0 * t) / (t * t), t),
+        _ => return Err("unsupported combination of a=, t=, s=, v=".into()),
+    };
+    if !t.is_finite() || t < -1e-12 {
+        return Err("that speed is not reached while accelerating that way".into());
+    }
+    let v_end = v0 + a * t;
+    if v_end < -1e-9 {
+        return Err("the car would reverse inside this phase".into());
+    }
+    Ok((a, t, v0 * t + a * t * t / 2.0, v_end.max(0.0)))
+}
+
+fn kin_profile(a: &Args) -> Result<String, String> {
+    let mut v = a.num("v0")?;
+    let unit = a.str("unit");
+    let k_len = units::convert("1m", unit).map_err(|e| e.to_string())?;
+    let (mut t_tot, mut s_tot) = (0.0, 0.0);
+    let mut lines = Vec::new();
+    let text = a.str("segments").replace(',', " ");
+    for (i, seg) in items(&text).iter().enumerate() {
+        let mut kv: HashMap<&str, f64> = HashMap::new();
+        for tok in seg {
+            let (k, val) = tok
+                .split_once('=')
+                .ok_or_else(|| format!("phase {}: {tok} is not key=value", i + 1))?;
+            let key = ["a", "t", "s", "v"]
+                .into_iter()
+                .find(|x| *x == k)
+                .ok_or_else(|| format!("phase {}: unknown key {k} (a, t, s, v)", i + 1))?;
+            kv.insert(key, qty(val)?);
+        }
+        let (acc, t, s, v_end) = phase(v, &kv).map_err(|e| format!("phase {}: {e}", i + 1))?;
+        lines.push(format!(
+            "{}: a {} m/s2, t {} s, s {} {unit}, v {} -> {} m/s",
+            i + 1,
+            g6(acc),
+            g6(t),
+            g6(s * k_len),
+            g6(v),
+            g6(v_end)
+        ));
+        t_tot += t;
+        s_tot += s;
+        v = v_end;
+    }
+    if lines.is_empty() {
+        return Err("no phases".into());
+    }
+    lines.push(format!(
+        "total: t {} s, s {} {unit}, v_end {} m/s ({} km/h), v_avg {} m/s",
+        g6(t_tot),
+        g6(s_tot * k_len),
+        g6(v),
+        g6(v * 3.6),
+        g6(s_tot / t_tot)
+    ));
+    Ok(lines.join("\n"))
+}
+
 pub fn tools() -> &'static [Tool] {
     static T: OnceLock<Vec<Tool>> = OnceLock::new();
     T.get_or_init(|| {
@@ -1210,6 +1418,16 @@ pub fn tools() -> &'static [Tool] {
               "nodes:s members:s supports:s loads:s=", truss),
             t("endurance_energy", "Endurance energy budget: laps x lap at constant v for drag (cda = cd A) and rolling (mu_r on m g + downforce, cla = |cl| A), plus braking losses per lap brakes=\"1x90-30,3x75-40\" (count x km/h from-to, all dissipated). /eta to the source; battery /(1 - soc_min); fuel /(eta e_fuel) + reserve.",
               "m:n laps:n lap:n v:n cda:n cla:n=0 mu_r:n=0 brakes:s= eta:n=1 soc_min:n=0 e_fuel:n=0 reserve:n=0 rho:n=1.225 g:n=9.81", endurance_energy),
+            t("kin_profile", "Run as phases of constant acceleration, speed carried over. segments=a=10,s=10;a=-0.2,v=0 (commas or spaces between keys, ; between phases): each phase gives two of a (m/s2), t, s, v (a=0 = cruise or standing still); v0 start speed; unit = distance unit shown.",
+              "segments:s v0:n=0 unit:s=m", kin_profile),
+            t("document_penalty", "Late documents: penalty points (2026/2027 A 5.4.1: 10 per late submission), de-registration (A 5.4.2: 24 h), correction window (A 5.3.1: 168 h). hours_late = initial submission, corr_late = corrected version after the request.",
+              "hours_late:n=0 corr_late:n=0 rules:s=", document_penalty),
+            t("rule_value", "Rulebook constant by name (leave empty to list): wet_tread_depth, wheelbase_min, track_ratio_min, ground_clearance_min, lv_dc_max, lv_ac_max, baseline_yield, baseline_modulus.",
+              "name:s= rules:s=", rule_value),
+            t("track_range", "Allowed range of the other track (rear for a given front, or front for a given rear): at least 75 % of the larger, T 2.9.2.",
+              "track:n rules:s=", track_range),
+            t("skidpad_layout", "Skidpad geometry (D 4.1): circle diameters, driving path, centreline radius, lap length and cone counts. 2026/2027: 17 inner + 13 outer cones per circle, 60 in total; legacy 16 + 13 (58).",
+              "rules:s=", skidpad_layout),
             t("round_to", "Round to a step: mode nearest | down | up (fuses/limits round down, 'at least' rounds up).",
               "x:n step:n=1 mode:s=nearest", round_to),
         ]
@@ -1360,6 +1578,58 @@ mod tests {
             run("can_transfer", &["290*128000", "500000"]),
             "580000 frames x 111 bit  time 128.76 s"
         );
+    }
+
+    #[test]
+    fn kin_profile_matches_hand_derivations() {
+        // Q28: v = sqrt(2 10 m 10 m/s2) = 14.142 m/s, then 14.142^2 / (2 0.2) = 500 m: 510 m in total
+        // (the official 509.85 rounds v to 14.14 m/s)
+        let out = run("kin_profile", &["a=10,s=10;a=-0.2,v=0"]);
+        assert!(out.contains("total: t 72.1249 s, s 510 m"), "{out}");
+        // Q500: idle 3 s, 4 m/s2 for 5 s (50 m, 20 m/s), 5 s at 20 m/s (100 m): 150 m = 150/0.9144 yd
+        let out = run("kin_profile", &["a=0 t=3; a=4 t=5; a=0 t=5", "unit=yd"]);
+        assert!(out.contains("s 164.042 yd"), "{out}");
+        // 80 km/h = 22.222 m/s: 1.5 s -> 33.333 m, then v^2 / (2 10) = 24.691 m (Q460: 58)
+        let out = run("kin_profile", &["a=0 t=1.5; a=-10 v=0", "80km/h"]);
+        assert!(out.contains("s 58.0247 m"), "{out}");
+        // s and t known: a = 2 (s - v0 t)/t^2 = 2 (75 - 0)/4.8^2 = 6.5104 m/s2, v = 31.25 m/s (Q492 first leg)
+        let out = run("kin_profile", &["s=75 t=4.8"]);
+        assert!(
+            out.contains("a 6.51042") && out.contains("-> 31.25 m/s"),
+            "{out}"
+        );
+        let t = tool("kin_profile").unwrap();
+        assert!(t.call(&["a=-1 s=10", "v0=2"]).is_err()); // stops after 2 m
+        assert!(t.call(&["a=2 t=1 s=3"]).is_err());
+    }
+
+    #[test]
+    fn rule_lookups_follow_the_rules_year() {
+        // T 2.9.2: smaller track >= 75 % of the larger: 1440 mm -> 1080 mm and 1440/0.75 = 1920 mm (Q37 key)
+        assert!(run("track_range", &["1440mm"]).starts_with("other track 1080 mm to 1920 mm"));
+        // Q364 key 930-1653 mm
+        assert!(run("track_range", &["1240mm"]).contains("930 mm to 1653.33 mm"));
+        // D 4.1.3: 2 x (17 + 13) cones; old layout 2 x (16 + 13) = 58 (Q134), 29 per pair (Q50)
+        assert!(run("skidpad_layout", &[]).ends_with("whole track 60"));
+        let old = run("skidpad_layout", &["legacy"]);
+        assert!(old.contains("cones per circle pair 29") && old.ends_with("whole track 58"));
+        // (15.25 + 21.25)/2 = 18.25 m centreline, lap pi 18.25 = 57.334 m
+        assert!(run("skidpad_layout", &[])
+            .contains("centreline diameter 18.25 m (R = 9.125 m), lap 57.3341 m"));
+        assert!(run("rule_value", &["wet_tread_depth"]).starts_with("wet_tread_depth = 2.4 mm"));
+        assert!(tool("rule_value").unwrap().call(&["nonsense"]).is_err());
+    }
+
+    #[test]
+    fn document_penalty_follows_the_rules_year() {
+        // 2026/2027 A 5.4.1: 10 points per late submission (not per day); A 5.4.2: > 24 h late = de-registered
+        let out = run("document_penalty", &["49", "77"]);
+        assert!(out.starts_with("penalty 20 points") && out.contains("de-registered: yes"));
+        let out = run("document_penalty", &["10"]);
+        assert!(out.starts_with("penalty 10 points") && out.contains("de-registered: no"));
+        assert!(run("document_penalty", &[]).starts_with("penalty 0 points"));
+        // old keys (Q512): 10 (floor(49/24) + floor(77/24)) = 10 (2 + 3) = 50
+        assert!(run("document_penalty", &["49", "77", "legacy"]).starts_with("penalty 50 points"));
     }
 
     #[test]

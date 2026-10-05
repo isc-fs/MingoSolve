@@ -206,3 +206,29 @@ eqs = [
 ]
 tags = ["brake", "disc", "energy", "temperature", "heat", "braking", "kinetic"]
 notes = "Only front brakes working -> n_d = 2. Steel/iron c_p about 460 J/(kg K). Brake torque per disc: mu F r (brake_torque)."
+
+[[var]]
+name = "p_g"
+unit = "Pa"
+desc = "gauge gas pressure on the piston (type 80bar)"
+
+[[var]]
+name = "F_pist"
+unit = "N"
+desc = "gas force on the piston crown"
+
+[[var]]
+name = "V_tot"
+unit = "m**3"
+desc = "total cylinder volume, swept + clearance, one cylinder"
+
+[[formula]]
+key = "cr_from_force"
+title = "Compression ratio from the gas force on the piston and the total cylinder volume"
+eqs = [
+    "F_pist = p_g*pi/4*B_bore**2",
+    "V_tot = pi/4*B_bore**2*S_k + V_cc",
+    "CR = V_tot/V_cc",
+]
+tags = ["engine", "compression", "ratio", "piston", "force", "pressure", "bore", "clearance", "volume", "cylinder"]
+notes = "The force and gauge pressure fix the piston area (A = F/p), the stroke then gives the swept volume, the rest of the total volume is the clearance volume. Atmospheric pressure, friction, inertia and rod angle ignored (Q373, Q1087: 649 cm3, 150 mm, 80 bar, 31.728 kN -> CR 12). Several cylinders: use one cylinder's volume. Bore and stroke: engine_geometry."

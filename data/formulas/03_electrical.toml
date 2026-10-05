@@ -114,3 +114,30 @@ eqs = [
 ]
 tags = ["electrical", "battery", "balancing", "bms", "ams", "soc", "bleed", "time"]
 notes = "Only the cell capacity counts (series string): 27s1p is irrelevant. Q754: 5 % of 15 Ah at 0.5 A = 1.5 h."
+
+[[var]]
+name = "J_cd"
+unit = "A/m**2"
+desc = "current density (type A/mm**2)"
+
+[[var]]
+name = "sigma_c"
+unit = "S/m"
+desc = "electrical conductivity (Cu about 58 MS/m, 1/rho)"
+
+[[var]]
+name = "E_f"
+unit = "V/m"
+desc = "electric field along the conductor"
+
+[[formula]]
+key = "current_density"
+title = "Current density in a conductor: J = I/A = sigma E"
+eqs = [
+    "J_cd = I/A_c",
+    "J_cd = sigma_c*E_f",
+    "E_f = V/l_c",
+    "sigma_c*rho = 1",
+]
+tags = ["electrical", "current", "density", "conductor", "wire", "conductivity", "field", "copper", "cross-section"]
+notes = "V is the voltage between two points of the wire a distance l_c apart (one way, not go + return), so E = V/l. 1 A/mm2 = 1e6 A/m2. Q575: copper 57 MS/m, 200 mV over 0.4 m -> 28.5 A/mm2. Heat in the wire: P = I^2 R with wire_resistance."
