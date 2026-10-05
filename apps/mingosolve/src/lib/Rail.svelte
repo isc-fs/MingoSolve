@@ -1,5 +1,5 @@
 <!--
-    Left rail: brand, search (⌘K opens the palette), the views, pinned scripts and recent ones, Settings at the
+    Left rail: brand, search (⌘K or Ctrl K opens the palette), the views, pinned scripts and recent ones, Settings at the
     bottom. One click reaches any view or any pinned/recent script. On macOS the top strip sits under the
     translucent title bar and drags the window.
 -->
@@ -10,9 +10,9 @@
     import Icon from './Icon.svelte';
     import { VIEWS, type ViewId } from './stores';
     import { catalog, shortName } from './catalog.svelte';
+    import { platform, searchShortcut } from './platform';
     import { openScript, session } from './session.svelte';
     import { settings } from './settings.svelte';
-    import { platform } from './theme.svelte';
 
     let version = $state('');
     onMount(async () => {
@@ -34,7 +34,7 @@
     const isMac = platform === 'mac';
 
     const recent = $derived(settings.recent.filter((r) => !settings.pinned.includes(r)).slice(0, 5));
-    const title = (id: string): string => catalog.scripts.get(id)?.title ?? id;
+    const title = (id: string): string => catalog.scripts.get(id)?.title ?? shortName(id);
 </script>
 
 <aside class="rail glass" class:mac={isMac}>
@@ -51,7 +51,7 @@
     <button type="button" class="search" onclick={() => (session.paletteOpen = true)}>
         <Icon name="search" size={16} />
         <span>Find a script</span>
-        <kbd>{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+        <kbd>{searchShortcut()}</kbd>
     </button>
 
     <nav aria-label="Views">
@@ -76,7 +76,7 @@
             {#each settings.pinned as id (id)}
                 <button type="button" class="script" class:on={session.script?.id === id} title={title(id)} onclick={() => openScript(id)}>
                     <Icon name="pin" size={14} />
-                    <span>{shortName(id)}</span>
+                    <span>{title(id)}</span>
                 </button>
             {/each}
         </div>
@@ -88,7 +88,7 @@
             {#each recent as id (id)}
                 <button type="button" class="script" class:on={session.script?.id === id} title={title(id)} onclick={() => openScript(id)}>
                     <Icon name="clock" size={14} />
-                    <span>{shortName(id)}</span>
+                    <span>{title(id)}</span>
                 </button>
             {/each}
         </div>

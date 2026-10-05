@@ -6,6 +6,7 @@
     import { onMount } from 'svelte';
     import { getVersion } from '@tauri-apps/api/app';
 
+    import { searchShortcut } from './platform';
     import { settings, type Theme } from './settings.svelte';
     import { checkForUpdate, type AvailableUpdate } from './updater';
 
@@ -108,7 +109,7 @@
         <p>ISC MingoSolve {version !== '' ? `v${version}` : ''} · ISC Racing Team</p>
         <p class="muted small">
             Scripts are checked against past FS-Quiz questions (fs-quiz.eu, Open Database License). Shortcuts:
-            <kbd>⌘K</kbd> find a script, paste anywhere to start from a problem, <kbd>Esc</kbd> clears a script.
+            <kbd>{searchShortcut()}</kbd> find a script, paste anywhere to start from a problem, <kbd>Esc</kbd> clears a script.
         </p>
     </section>
 </div>

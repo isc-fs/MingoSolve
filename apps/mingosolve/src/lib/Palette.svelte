@@ -1,5 +1,5 @@
 <!--
-    Command palette (⌘K / Ctrl K): type to find any script by name, topic or variable; arrows to move, Enter to
+    Command palette (⌘K on macOS, Ctrl K elsewhere): type to find any script by name, topic or variable; arrows to move, Enter to
     open, Esc to close. Typing a long sentence here searches it as a pasted problem instead.
 -->
 <script lang="ts">
