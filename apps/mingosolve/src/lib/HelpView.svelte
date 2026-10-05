@@ -72,6 +72,13 @@
                 A constant you did not give was filled in with its default (g, air density…). If the problem says another
                 value, type it in the field and the line disappears.
             </dd>
+            <dt><span class="mono">v_i → v0 (initial velocity)</span></dt>
+            <dd>
+                In Chain, common spellings of a name are understood: <span class="mono">v_i</span>, <span class="mono">v_f</span>,
+                <span class="mono">μ</span>, <span class="mono">wheelbase</span>. The quiet note under the known values says what
+                each was read as, and the answer uses the real name. If a name could mean several variables, or is unknown,
+                the options appear as buttons: click one to fix the line.
+            </dd>
             <dt><span class="tag">from the problem</span></dt>
             <dd>
                 The value was read from the pasted text; hover it to see which words. Typing in the field removes the tag.

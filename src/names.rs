@@ -273,11 +273,7 @@ fn suggest(canon_name: &str) -> Vec<String> {
         _ => 2,
     };
     let mut best: HashMap<String, usize> = HashMap::new();
-    let spellings = r
-        .vars
-        .keys()
-        .map(|k| (k, k))
-        .chain(file().alias.iter().map(|(k, v)| (k, v)));
+    let spellings = r.vars.keys().map(|k| (k, k)).chain(file().alias.iter());
     for (spelling, target) in spellings {
         let d = edit_distance(&lc, &spelling.to_lowercase());
         if d <= max {

@@ -3,6 +3,7 @@
     evaluates; results stack newest first; click one to copy its number. Past questions load and evaluate in one click.
 -->
 <script lang="ts">
+    import Disclosure from './Disclosure.svelte';
     import Icon from './Icon.svelte';
     import { calc } from './solve';
     import { openCommand, session } from './session.svelte';
@@ -77,9 +78,10 @@
         }, 1600);
     }
 
-    async function toggleExamples(e: Event): Promise<void> {
-        if ((e.currentTarget as HTMLDetailsElement).open && examples === null) examples = await calcExamples();
-    }
+    // the list is fetched the first time the fold is open (also when it was left open last time)
+    $effect(() => {
+        if (shown && settings.calcPastOpen && examples === null) void calcExamples().then((ex) => (examples = ex));
+    });
 </script>
 
 {#if shown}
@@ -98,8 +100,7 @@
             onkeydown={(e) => e.key === 'Enter' && evaluate()}
             aria-label="Expression"
         />
-        <details class="past" ontoggle={toggleExamples}>
-            <summary>Past questions</summary>
+        <Disclosure label="Past questions" id="calc-past" bind:open={settings.calcPastOpen}>
             <div class="chips">
                 {#each examples ?? [] as ex (ex.id)}
                     <button type="button" class="chip chip-quiet" title={ex.what || ex.cmd} onclick={() => openCommand(ex.cmd, ex.answer)}>
@@ -107,7 +108,7 @@
                     </button>
                 {/each}
             </div>
-        </details>
+        </Disclosure>
         <ul>
             {#each history as h (h.id)}
                 <li>
@@ -203,16 +204,10 @@
         color: var(--ink-accent);
         font-weight: 600;
     }
-    .past summary {
-        cursor: pointer;
-        font-size: var(--text-sm);
-        color: var(--text-2);
-    }
     .chips {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        padding-top: var(--space-2);
         max-height: 180px;
         overflow-y: auto;
     }

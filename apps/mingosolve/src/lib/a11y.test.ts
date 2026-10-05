@@ -42,7 +42,7 @@ const common = {
 function solveMotion(args: Record<string, unknown>): SolveResult {
     const g = Object.fromEntries(args.given as [string, string][]);
     const v = parseFloat(g.s) / parseFloat(g.t);
-    return { found: Number.isFinite(v) ? [{ name: 'v', desc: 'v', values: [v], shown: [`${v} m/s`] }] : [], defaults: [], conflicts: [] };
+    return { found: Number.isFinite(v) ? [{ name: 'v', desc: 'v', values: [v], shown: [`${v} m/s`] }] : [], defaults: [], conflicts: [], mapped: [] };
 }
 
 beforeEach(() => {

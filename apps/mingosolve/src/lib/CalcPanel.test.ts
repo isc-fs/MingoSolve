@@ -41,6 +41,20 @@ describe('past questions', () => {
         expect(calcRows.length).toBeGreaterThan(5);
     });
 
+    it('is a fold closed by default, with the state announced and remembered', async () => {
+        fakeEngine({ calc_examples: () => calcRows });
+        const first = render(CalcPanel);
+        const head = screen.getByRole('button', { name: 'Past questions' });
+        expect(head.getAttribute('aria-expanded')).toBe('false');
+        await userEvent.click(head);
+        expect(head.getAttribute('aria-expanded')).toBe('true');
+        expect(settings.calcPastOpen).toBe(true);
+        first.unmount();
+        render(CalcPanel);
+        expect(screen.getByRole('button', { name: 'Past questions' }).getAttribute('aria-expanded')).toBe('true');
+        expect(await screen.findByRole('button', { name: new RegExp(`^Q${calcRows[0].id}\\b`) })).toBeTruthy();
+    });
+
     it('does not ask the engine for the list until the disclosure is opened', () => {
         const engine = fakeEngine({ calc_examples: () => calcRows });
         render(CalcPanel);
