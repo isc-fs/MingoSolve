@@ -323,6 +323,84 @@ fn every_worked_example_button_reproduces_its_official_answer() {
 }
 
 #[test]
+fn chain_and_calc_past_questions_reproduce_their_official_answers_as_the_app_runs_them() {
+    let w = webview();
+    let chain = invoke(&w, "chain_examples", json!({})).unwrap();
+    let calc = invoke(&w, "calc_examples", json!({})).unwrap();
+    let rows = |head: &str| {
+        fsq::cli::examples()
+            .into_iter()
+            .filter(|e| e.cmd.split_whitespace().next() == Some(head))
+            .map(|e| (e.id, e.cmd, e.answer))
+            .collect::<Vec<_>>()
+    };
+    for (name, got, want) in [
+        ("chain", &chain, rows("chain")),
+        ("calc", &calc, rows("calc")),
+    ] {
+        let got: Vec<(u64, String, f64)> = got
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| {
+                (
+                    e["id"].as_u64().unwrap(),
+                    e["cmd"].as_str().unwrap().to_string(),
+                    e["answer"].as_f64().unwrap(),
+                )
+            })
+            .collect();
+        assert!(!want.is_empty());
+        assert_eq!(
+            got,
+            want.into_iter()
+                .map(|(i, c, a)| (u64::from(i), c, a))
+                .collect::<Vec<_>>(),
+            "{name} examples"
+        );
+    }
+    let mut failures = Vec::new();
+    for ex in chain.as_array().unwrap() {
+        // what the Chain view does: first bare word is the target, k=v are known values, @target=unit is "show in"
+        let (head, values, display, positional) = parse(ex["cmd"].as_str().unwrap());
+        assert_eq!(head, "chain");
+        let target = &positional[0];
+        let display: std::collections::HashMap<String, String> =
+            display.into_iter().filter(|(k, _)| k == target).collect();
+        let only: Vec<String> = values
+            .iter()
+            .filter(|(k, _)| k == "only")
+            .flat_map(|(_, v)| v.split(',').map(String::from))
+            .collect();
+        let given: Vec<_> = values.into_iter().filter(|(k, _)| k != "only").collect();
+        let r = invoke(
+            &w,
+            "chain_formulas",
+            json!({"target": target, "given": given, "only": only, "display": display}),
+        )
+        .unwrap();
+        let answer = ex["answer"].as_f64().unwrap();
+        if r["reached"] != true || !close(num(&r["target"]), answer, 0.005) {
+            failures.push(format!(
+                "Q{} chain: official {answer}, got {}",
+                ex["id"], r["target"]
+            ));
+        }
+    }
+    for ex in calc.as_array().unwrap() {
+        let expr = ex["cmd"].as_str().unwrap().strip_prefix("calc ").unwrap();
+        let out = invoke(&w, "calc", json!({"expr": expr})).unwrap();
+        let answer = ex["answer"].as_f64().unwrap();
+        let first = out.as_str().unwrap().split(' ').next().unwrap();
+        match first.parse::<f64>() {
+            Ok(n) if close(n, answer, 0.005) => {}
+            _ => failures.push(format!("Q{} calc: official {answer}, got {out}", ex["id"])),
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+#[test]
 fn chain_restricted_to_tags_and_unreachable_targets() {
     let w = webview();
     let r = invoke(&w, "chain_formulas", json!({"target": "v", "given": [["h_cg", "0.205 m"], ["R_c", "14.5 m"], ["t_tr", "1.24 m"]], "only": [], "display": {"v": "km/h"}}))
