@@ -3,6 +3,7 @@
 use fsq::answer::{self, Matching, Precision};
 use fsq::cli::pretty_unit;
 use fsq::finder::{find, quantities, Hit};
+use fsq::format_hint::{self, FormatHint};
 use fsq::past::{self, PastMatch, PastQuestion};
 use fsq::units::DIMENSIONLESS;
 use serde::Serialize;
@@ -14,6 +15,8 @@ pub struct Found {
     quantities: Vec<String>,
     /// The bank question this text is (or probably is), with its official answer and any known-key warning.
     past: Option<PastMatch>,
+    /// How the question wants its answer: rounding and unit, when it says so.
+    format: Option<FormatHint>,
 }
 
 /// Scripts (formulas and tools) that fit a pasted problem, and the past question it is, if any.
@@ -39,10 +42,12 @@ pub fn find_question_in(text: &str, bank: &[PastQuestion]) -> Found {
         .map(|q| pretty_unit(&q.text))
         .collect();
     let past = past::recognise_in(bank, text);
+    let format = format_hint::parse(text);
     Found {
         hits,
         quantities,
         past,
+        format,
     }
 }
 

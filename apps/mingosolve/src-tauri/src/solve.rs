@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use fsq::cli::{fmt_var, pretty_unit};
 use fsq::engine::{self, conflicts, conflicts_in};
+use fsq::format_hint::dims_key;
 use fsq::latex::{equation_latex, var_latex};
 use fsq::registry::registry;
 use serde::Serialize;
@@ -19,6 +20,8 @@ pub struct VarInfo {
     tex: String,
     /// The unit for display: m**2 → m², ohm → Ω.
     unit_shown: String,
+    /// What the unit measures (`format_hint::dims_key`), to tell whether a question's unit fits this variable.
+    dims: String,
 }
 
 #[derive(Serialize)]
@@ -58,6 +61,7 @@ pub fn list_formulas() -> Vec<FormulaInfo> {
                         default: v.default,
                         tex: var_latex(n),
                         unit_shown: pretty_unit(&v.unit),
+                        dims: dims_key(&v.unit).unwrap_or_default(),
                     }
                 })
                 .collect(),
