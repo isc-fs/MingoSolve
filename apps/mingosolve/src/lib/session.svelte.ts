@@ -3,6 +3,7 @@
 import type { ViewId } from './stores';
 import type { FormatHint } from './types';
 import { settings } from './settings.svelte';
+import { clockRunning, startClock } from './sessionlog.svelte';
 
 export interface OpenScript {
     id: string;
@@ -31,6 +32,8 @@ export const session = $state({
     /** Topic to expand when the Topics view opens. */
     topic: null as string | null,
     calcInput: '',
+    /** What the Rules view searches (the palette hands its query over). */
+    rulesQuery: '',
     /** Bumped to make the calculator evaluate its input (a past question was opened). */
     calcRun: 0,
     /** The Chain view's form, kept here so a past question can fill it; `run` is bumped to evaluate it. */
@@ -60,10 +63,23 @@ export function openScript(id: string, values: [string, string][] = [], extra: P
         values = fromProblem.values;
         extra = { target: fromProblem.target, fromProblem: Object.fromEntries(fromProblem.values), format: fromProblem.format ?? null, ...extra };
     }
+    if (!clockRunning()) startClock();
     nonce += 1;
     session.script = { id, values, ...extra, nonce };
     session.activeView = 'solve';
     settings.recent = [id, ...settings.recent.filter((r) => r !== id)].slice(0, 8);
+}
+
+let viewBeforeHelp: ViewId = 'solve';
+
+/** Help opens over whatever view is showing, and the same key goes back to it. */
+export function toggleHelp(): void {
+    if (session.activeView === 'help') {
+        session.activeView = viewBeforeHelp;
+    } else {
+        viewBeforeHelp = session.activeView;
+        session.activeView = 'help';
+    }
 }
 
 export function togglePin(id: string): void {

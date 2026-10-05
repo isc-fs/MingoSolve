@@ -13,7 +13,7 @@ async function audit(page: Page, label: string): Promise<void> {
 }
 
 for (const theme of ['Night glass', 'Paper glass'] as const) {
-    test(`${theme}: home, a solved script, Topics, Chain and Settings pass axe`, async ({ app }) => {
+    test(`${theme}: home, a solved script, Topics, Chain, Rules, Help, Session log and Settings pass axe`, async ({ app }) => {
         await app.getByRole('button', { name: 'Settings' }).click();
         await app.getByRole('radio', { name: new RegExp(theme) }).click();
         await audit(app, `${theme} settings`);
@@ -32,6 +32,23 @@ for (const theme of ['Night glass', 'Paper glass'] as const) {
         await app.keyboard.press('Escape');
         await app.getByRole('button', { name: 'Chain' }).click();
         await audit(app, `${theme} chain`);
+        await app.getByRole('button', { name: 'Rules' }).click();
+        await expect(app.getByText('Load the rulebook once')).toBeVisible();
+        await audit(app, `${theme} rules, no rulebook loaded`);
+        await app.getByRole('button', { name: 'Help', exact: true }).click();
+        await expect(app.getByRole('heading', { level: 1, name: 'Help' })).toBeVisible();
+        await audit(app, `${theme} help`);
+        await app.getByRole('button', { name: 'Session log', exact: true }).click();
+        await audit(app, `${theme} session log, empty`);
+        await app.getByRole('button', { name: 'Start a mock quiz' }).click();
+        await app.getByRole('button', { name: 'Solve' }).click();
+        await openFromPalette(app, 'battery load', /Battery/);
+        await app.getByRole('button', { name: /^Q34 ·/ }).click();
+        await expect(app.locator('.answer .copy')).toBeVisible();
+        await app.locator('.answer .copy').click();
+        await app.getByRole('button', { name: 'Session log', exact: true }).click();
+        await expect(app.locator('tbody tr')).toHaveCount(1);
+        await audit(app, `${theme} session log, with an entry`);
     });
 }
 

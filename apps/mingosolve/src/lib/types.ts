@@ -160,3 +160,23 @@ export interface WorkedExample {
     cmd: string;
     answer: number;
 }
+
+export interface RulebookStatus {
+    year: string;
+    /** File name of the PDF it was loaded from. */
+    source: string;
+    /** Seconds since the Unix epoch. */
+    loaded_at: number;
+    pages: number;
+    entries: number;
+}
+
+export interface RuleHit {
+    year: string;
+    id: string;
+    title: string;
+    page: number;
+    snippet: string;
+    /** `[start, end)` of matched words in `snippet`, in UTF-16 units. */
+    matches: [number, number][];
+}

@@ -8,6 +8,7 @@ import ScriptSheet from './ScriptSheet.svelte';
 import { catalog } from './catalog.svelte';
 import { openCommand, openScript, session } from './session.svelte';
 import { defaultSettings, settings } from './settings.svelte';
+import { sessionLog } from './sessionlog.svelte';
 import { fakeEngine } from '../test/ipc';
 import type { FormulaInfo, SolveResult, ToolInfo } from './types';
 
@@ -317,6 +318,18 @@ describe('the format the pasted question asks for', () => {
         expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ decimals: 1 });
         await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
         expect(copies).toEqual(['39.6']);
+    });
+
+    it('the session log records the text actually copied: the hinted rounding, then the Settings one after the revert', async () => {
+        sessionLog.entries = [];
+        const { copies } = await openPasted(kmh);
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 39.6'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        await userEvent.click(formatButton('Use my Settings instead'));
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 10.99'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        expect(copies).toEqual(['39.6', '10.99']);
+        expect(sessionLog.entries.map((e) => e.answer)).toEqual(copies);
     });
 
     it('"Use my Settings instead" drops the question\'s unit and rounding for this sheet only', async () => {
