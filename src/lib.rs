@@ -11,6 +11,7 @@ pub mod format;
 pub mod latex;
 pub mod registry;
 pub mod solve;
+pub mod tool_params;
 pub mod tools;
 pub mod topics;
 pub mod units;

@@ -1,0 +1,327 @@
+# Plain-English labels for every tool and parameter (shown in the app's tool forms; the engine's own docs stay in
+# src/tools.rs). Per parameter: label, optional unit (a bare number typed in the app is read in this unit), optional
+# help, and the input kind: choices (+ optional choice_labels, same order) or switch = true for 0/1 flags.
+# Tests: every parameter is covered, every choice is accepted by its tool, every switch takes 0 and 1.
+
+[corrected_time]
+summary = "Adds the penalties (cones, off-course, flags, order, post-inspection) to a raw run time."
+[corrected_time.params]
+t_raw = { label = "Raw time", unit = "s", help = "The time on the stopwatch, before penalties." }
+doo = { label = "Cones down or out", help = "How many cones were knocked over or moved." }
+oc = { label = "Off-course runs", help = "Not allowed in the skidpad and acceleration: they disqualify the run." }
+event = { label = "Event", choices = ["skidpad", "accel", "autocross", "endurance", "trackdrive"], choice_labels = ["Skidpad", "Acceleration", "Autocross", "Endurance", "Trackdrive"] }
+flags = { label = "Disobeyed flags", help = "Each one adds 60 s." }
+out_of_order = { label = "Runs out of order", help = "Each one adds 120 s." }
+post = { label = "Post-inspection group", choices = ["", "A", "B"], choice_labels = ["Not applicable", "Group A", "Group B"], help = "Only if the car failed the inspection after the run." }
+
+[event_score]
+summary = "Points a team gets in a dynamic event, from its corrected time and the fastest corrected time."
+[event_score.params]
+event = { label = "Event", choices = ["skidpad", "accel", "autocross", "endurance", "dc_skidpad", "dc_accel"], choice_labels = ["Skidpad", "Acceleration", "Autocross", "Endurance", "Driverless skidpad", "Driverless acceleration"], help = "The driverless events need the 2026 or 2027 rules." }
+t_team = { label = "Your corrected time", unit = "s" }
+t_min = { label = "Fastest corrected time", unit = "s", help = "The best corrected time of any team in this event." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+pmax = { label = "Maximum points", help = "Leave empty to use the rulebook value for this event." }
+finish = { label = "Car finished the event", switch = true, help = "Only matters for endurance under the older rules: without it the 25 finish points are dropped." }
+
+[cones_from_score]
+summary = "Works backwards from a score to the corrected time (and the number of cones) that gives it."
+[cones_from_score.params]
+event = { label = "Event", choices = ["skidpad", "accel", "autocross", "endurance"], choice_labels = ["Skidpad", "Acceleration", "Autocross", "Endurance"] }
+score = { label = "Score reached" }
+t_raw = { label = "Raw time", unit = "s", help = "The stopwatch time before cone penalties." }
+t_min = { label = "Fastest corrected time", unit = "s" }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[dv_rank_score]
+summary = "Points for the driverless skidpad or acceleration, from the team's rank among all teams."
+[dv_rank_score.params]
+rank = { label = "Your rank", help = "1 is the best." }
+n_all = { label = "Teams in the ranking" }
+pmax = { label = "Maximum points" }
+
+[dc_autocross_score]
+summary = "Points for the driverless cup autocross, from the two runs."
+[dc_autocross_score.params]
+t1 = { label = "Time of run 1", unit = "s" }
+t2 = { label = "Time of run 2", unit = "s" }
+t_min = { label = "Fastest time of any team", unit = "s" }
+t_max = { label = "Slowest time that still scores", unit = "s", help = "Lap length divided by 6 m/s. For a run that did not finish, enter this value as its time." }
+pmax = { label = "Maximum points" }
+
+[trackdrive_score]
+summary = "Points for the trackdrive, from the team's time, the fastest time and the laps completed."
+[trackdrive_score.params]
+t_team = { label = "Your time", unit = "s" }
+t_fastest = { label = "Fastest team's time", unit = "s" }
+laps = { label = "Laps completed" }
+pmax = { label = "Maximum points" }
+
+[efficiency_score]
+summary = "Points for the efficiency event, from your endurance time and energy against the best efficiency factor."
+[efficiency_score.params]
+t = { label = "Your endurance time", unit = "s" }
+e = { label = "Energy used", help = "In the same energy unit as the best efficiency factor." }
+ef_min = { label = "Best efficiency factor", help = "The lowest efficiency factor of any team." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+pmax = { label = "Maximum points", help = "Leave empty to use the rulebook value." }
+t_min = { label = "Fastest endurance time", unit = "s", help = "Older rules only." }
+e_min = { label = "Lowest energy used", help = "Older rules only." }
+ef_max = { label = "Worst efficiency factor that scores", help = "Older rules only." }
+
+[static_nonfinalist]
+summary = "Static event score of a team that did not reach the finals, scaled to the best non-finalist."
+[static_nonfinalist.params]
+p_team = { label = "Your points" }
+p_best = { label = "Best non-finalist's points" }
+event = { label = "Static event", choices = ["bpp", "cost"], choice_labels = ["Business plan presentation", "Cost and manufacturing"] }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+n_finalists = { label = "Number of finalists", help = "Only used by the older rules, for the business plan." }
+
+[max_points]
+summary = "Adds up the maximum points of the events you list."
+[max_points.params]
+events = { label = "Events", help = "Names separated by commas, like bpp,cost,skidpad,accel,efficiency." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[pcb_spacing]
+summary = "Minimum distance between high-voltage and low-voltage tracks on a board, for a given voltage."
+[pcb_spacing.params]
+v = { label = "Highest voltage", unit = "V", help = "The tractive system is limited to 600 V." }
+mode = { label = "Kind of distance", choices = ["clearance", "creepage", "coated", "surface", "air"], choice_labels = ["Clearance, through the air", "Creepage, along the surface", "Coated board", "Surface (older rules)", "Air (older rules)"], help = "Surface and air only exist in the older rules." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[ts_rules]
+summary = "Insulation test voltage and other values the rules tie to the tractive system voltage."
+[ts_rules.params]
+v_max = { label = "Maximum voltage", unit = "V" }
+v_nom = { label = "Nominal voltage", unit = "V", help = "Leave empty if unknown." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[weight_penalty]
+summary = "Penalty points for a car whose weight changed after the technical inspection."
+[weight_penalty.params]
+delta_kg = { label = "Weight difference", unit = "kg", help = "Positive or negative; up to 5 kg either way is free." }
+
+[segment_max_cells]
+summary = "How many cells fit in one accumulator section under its voltage and energy limits."
+[segment_max_cells.params]
+v_cell_max = { label = "Cell maximum voltage", unit = "V" }
+e_cell = { label = "Energy of one cell", help = "Maximum cell voltage times capacity, for example 4.2V*20Ah." }
+v_lim = { label = "Section voltage limit", unit = "V" }
+e_lim = { label = "Section energy limit", unit = "J", help = "6 MJ in the rules." }
+
+[e_series]
+summary = "The standard resistor values just below, nearest to and just above a number."
+[e_series.params]
+value = { label = "Value to look up" }
+series = { label = "Series", choices = ["6", "12", "24", "48", "96"], choice_labels = ["E6", "E12", "E24", "E48", "E96"], help = "A higher number means more values per decade and a tighter tolerance." }
+
+[gamma]
+summary = "How much of a signal a load reflects, and the standing wave ratio, for a given load impedance."
+[gamma.params]
+z_load_re = { label = "Load resistance", unit = "ohm", help = "The real part of the load impedance." }
+z_load_im = { label = "Load reactance", unit = "ohm", help = "The imaginary part; negative for a capacitive load." }
+z0 = { label = "Line impedance", unit = "ohm" }
+
+[alias]
+summary = "The frequency you will see if a signal is sampled too slowly (aliasing)."
+[alias.params]
+f = { label = "Signal frequency", unit = "Hz" }
+fs = { label = "Sampling frequency", unit = "Hz" }
+
+[twos]
+summary = "How a negative or positive whole number is written in binary (two's complement)."
+[twos.params]
+x = { label = "Number" }
+bits = { label = "Word size", help = "Number of bits, like 8 or 16." }
+
+[uart_time]
+summary = "How long it takes to send some bytes over a serial (UART) link."
+[uart_time.params]
+n_bytes = { label = "Bytes to send" }
+baud = { label = "Baud rate", help = "Bits per second." }
+data = { label = "Data bits per byte" }
+parity = { label = "Parity bit", switch = true, help = "Adds one bit to every byte." }
+stop = { label = "Stop bits", choices = ["1", "2"], choice_labels = ["1 stop bit", "2 stop bits"] }
+
+[can_frame_bits]
+summary = "How many bits one CAN message occupies on the bus."
+[can_frame_bits.params]
+data_bytes = { label = "Data bytes in the frame", help = "From 0 to 8." }
+extended = { label = "Extended frame (29-bit ID)", switch = true, help = "Off means a standard frame with an 11-bit ID." }
+ifs = { label = "Gap between frames", help = "In bits; the standard value is 3." }
+stuffing = { label = "Count worst-case stuff bits", switch = true, help = "Extra bits the bus inserts after five equal bits in a row." }
+
+[can_transfer]
+summary = "How many CAN messages, and how much time, it takes to move a given amount of data."
+[can_transfer.params]
+bits = { label = "Amount of data", help = "In bits. Products work too, like 290*128." }
+bitrate = { label = "Bus speed", help = "Bits per second, like 500000." }
+data_bytes = { label = "Data bytes in each frame", help = "From 0 to 8." }
+extended = { label = "Extended frame (29-bit ID)", switch = true, help = "Off means a standard frame with an 11-bit ID." }
+ifs = { label = "Gap between frames", help = "In bits; the standard value is 3." }
+stuffing = { label = "Count worst-case stuff bits", switch = true, help = "Extra bits the bus inserts after five equal bits in a row." }
+
+[charge_time]
+summary = "How long it takes to charge a battery, limited by the charger power or the current setting."
+[charge_time.params]
+e_nom = { label = "Battery energy", unit = "kWh" }
+soc0 = { label = "Starting charge", help = "A fraction from 0 to 1, so 0.2 means 20 %." }
+soc1 = { label = "Target charge", help = "A fraction from 0 to 1, so 0.8 means 80 %." }
+p_charger = { label = "Charger power", unit = "kW" }
+i_set = { label = "Charging current setting", unit = "A" }
+v_batt = { label = "Battery voltage", unit = "V" }
+
+[packs_needed]
+summary = "How many whole battery packs a mission needs, given what each pack can deliver."
+[packs_needed.params]
+need = { label = "Energy or charge needed", help = "With its unit, for example 15kWh or 4.2A*8h." }
+per_pack = { label = "Capacity of one pack", help = "The same kind of quantity as above, for example 6.5kWh or 10Ah." }
+usable = { label = "Usable fraction of a pack", help = "0.86 if packs are emptied to 14 %." }
+
+[cable_fuse]
+summary = "How much current a cable can carry without overheating, and the fuse size that protects it."
+[cable_fuse.params]
+a = { label = "Conductor cross-section", unit = "mm**2" }
+t_ins = { label = "Insulation thickness", unit = "mm" }
+t_amb = { label = "Ambient temperature", unit = "degC" }
+t_max = { label = "Maximum conductor temperature", unit = "degC" }
+lam = { label = "Insulation thermal conductivity", unit = "W/(m*K)" }
+rho = { label = "Conductor resistivity", unit = "ohm*m", help = "At the reference temperature below." }
+alpha = { label = "Resistivity change with temperature", unit = "K**-1" }
+t0 = { label = "Reference temperature", unit = "degC", help = "The temperature the resistivity above is given at." }
+step = { label = "Fuse size step", unit = "A", help = "Fuses come in whole steps of this size." }
+
+[ts_breaker]
+summary = "The main breaker rating and breaking capacity for a tractive system cable."
+[ts_breaker.params]
+v0 = { label = "Battery voltage (no load)", unit = "V" }
+r_i = { label = "Battery internal resistance", unit = "ohm" }
+l = { label = "Cable length, one way", unit = "m" }
+a = { label = "Conductor cross-section", unit = "mm**2" }
+kappa = { label = "Conductor conductivity", unit = "S/m", help = "Copper is about 56 000 000." }
+k_wire = { label = "Wire resistance safety factor" }
+k_trip = { label = "Trip current ratio", help = "How many times the rated current trips the breaker." }
+step_in = { label = "Rated current step", unit = "A" }
+step_icn = { label = "Breaking capacity step", unit = "A" }
+
+[db_sum]
+summary = "Adds up sound levels from several sources into one level."
+[db_sum.params]
+levels = { label = "Sound levels", help = "In dB, separated by commas, like 90,92,85." }
+
+[nodal]
+summary = "Solves a DC circuit of resistors, voltage sources and current sources."
+[nodal.params]
+netlist = { label = "Circuit", help = "One element per part, separated by ';': R1 1 2 3 (resistor, nodes, ohms), V1 1 0 10 (source, plus, minus, volts), I1 0 1 2 (current source). Node 0 is ground." }
+ask = { label = "What to find", help = "Optional. Rab:1,2 gives the resistance between nodes 1 and 2." }
+
+[two_dof]
+summary = "The two natural frequencies of a quarter car: body bouncing on the springs, and the wheel on the tyre."
+[two_dof.params]
+m1 = { label = "Body mass on this wheel", unit = "kg" }
+m2 = { label = "Wheel and suspension mass", unit = "kg" }
+k1 = { label = "Spring rate", unit = "N/m" }
+k2 = { label = "Tyre stiffness", unit = "N/m" }
+
+[gauge]
+summary = "Converts a pressure between gauge (above the air around) and absolute (above vacuum)."
+[gauge.params]
+p = { label = "Pressure", unit = "Pa", help = "Type a unit to use another one, like 2 bar." }
+to = { label = "Convert to", choices = ["abs", "gauge"], choice_labels = ["Absolute pressure", "Gauge pressure"] }
+p_atm = { label = "Air pressure around", unit = "Pa", help = "Standard atmosphere unless you know better." }
+
+[gear_train]
+summary = "The output speed of a chain of gear pairs."
+[gear_train.params]
+n_in = { label = "Input speed", help = "In any speed unit; the answer is in the same one." }
+teeth = { label = "Gear pairs", help = "Teeth of the driver over the driven gear, pairs separated by commas: 20/45,24/55." }
+
+[accel_then_cruise]
+summary = "Time to cover a distance from standstill: accelerate up to a top speed, then hold it."
+[accel_then_cruise.params]
+s = { label = "Distance", unit = "m" }
+a = { label = "Acceleration", unit = "m/s**2" }
+v_max = { label = "Top speed", unit = "m/s", help = "Type a unit to use another one, like 56 km/h." }
+
+[wheel_slip]
+summary = "Speed and slip angle of each of the four wheels of a turning car, and the toe that evens out the slips."
+[wheel_slip.params]
+vx = { label = "Forward speed", unit = "m/s" }
+a = { label = "Centre of gravity to front axle", unit = "m" }
+b = { label = "Centre of gravity to rear axle", unit = "m" }
+t = { label = "Front track width", unit = "m" }
+delta = { label = "Steering angle", unit = "deg", help = "Positive turns left." }
+yaw = { label = "Yaw rate", unit = "rad/s", help = "Positive is a left turn. Leave empty if you give the corner radius." }
+R = { label = "Corner radius", unit = "m", help = "Sets the yaw rate when you do not know it." }
+vy = { label = "Sideways speed", unit = "m/s", help = "Leave empty if you give one wheel's slip angle below." }
+toe_f = { label = "Front toe-in", unit = "deg" }
+toe_r = { label = "Rear toe-in", unit = "deg" }
+t_r = { label = "Rear track width", unit = "m", help = "Leave empty if it equals the front." }
+known = { label = "Wheel with a known slip angle", choices = ["", "FL", "FR", "RL", "RR"], choice_labels = ["None", "Front left", "Front right", "Rear left", "Rear right"] }
+alpha = { label = "Slip angle of that wheel", unit = "deg" }
+
+[truss]
+summary = "Forces in the members of a flat pin-jointed truss under given loads."
+[truss.params]
+nodes = { label = "Joints", help = "Name and position of each joint: A 0 0; B 3 0; C 1.5 2." }
+members = { label = "Members", help = "Pairs of joints joined by a bar: A-B B-C A-C." }
+supports = { label = "Supports", help = "A pin; B roller (roller holds vertically, rollerx horizontally)." }
+loads = { label = "Loads", help = "Joint and force: C 0 -10kN, or C 10kN@-90 for a force at an angle." }
+
+[endurance_energy]
+summary = "Energy the car needs to finish the endurance: drag, rolling resistance, braking losses and the energy source."
+[endurance_energy.params]
+m = { label = "Car mass", unit = "kg" }
+laps = { label = "Number of laps" }
+lap = { label = "Lap length", unit = "m" }
+v = { label = "Average speed", unit = "m/s" }
+cda = { label = "Drag area (Cd times area)", unit = "m**2" }
+cla = { label = "Downforce area (Cl times area)", unit = "m**2" }
+mu_r = { label = "Rolling resistance coefficient" }
+brakes = { label = "Braking per lap", help = "Count x speed from-to in km/h, separated by commas: 1x90-30,3x75-40." }
+eta = { label = "Drivetrain efficiency", help = "A fraction from 0 to 1." }
+soc_min = { label = "Battery charge that stays unused", help = "A fraction from 0 to 1. Electric cars only." }
+e_fuel = { label = "Energy in the fuel", unit = "J/kg", help = "Combustion cars only." }
+reserve = { label = "Fuel reserve", help = "Combustion cars only." }
+rho = { label = "Air density", unit = "kg/m**3" }
+g = { label = "Gravity", unit = "m/s**2" }
+
+[kin_profile]
+summary = "Distance, time and speed of a run made of phases with constant acceleration."
+[kin_profile.params]
+segments = { label = "Phases", help = "One phase per ';', two of a (acceleration), t (time), s (distance), v (end speed) in each: a=10,s=10;a=-0.2,v=0." }
+v0 = { label = "Starting speed", unit = "m/s" }
+unit = { label = "Distance unit", help = "Any length unit, like m, km, ft or yd." }
+
+[document_penalty]
+summary = "Penalty points and the deadlines that apply to documents handed in late."
+[document_penalty.params]
+hours_late = { label = "Hours late, first submission" }
+corr_late = { label = "Hours late, corrected version" }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[rule_value]
+summary = "Looks up a number from the rulebook by name."
+[rule_value.params]
+name = { label = "Rule value", choices = ["", "wet_tread_depth", "wheelbase_min", "track_ratio_min", "ground_clearance_min", "lv_dc_max", "lv_ac_max", "baseline_yield", "baseline_modulus"], choice_labels = ["Show all", "Wet tyre tread depth", "Minimum wheelbase", "Minimum track ratio", "Minimum ground clearance", "Maximum low-voltage DC", "Maximum low-voltage AC", "Baseline steel yield strength", "Baseline steel modulus"] }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[track_range]
+summary = "The allowed range for one track width of the car, given the other."
+[track_range.params]
+track = { label = "Track width of one axle", unit = "m", help = "The range is for the other axle." }
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[skidpad_layout]
+summary = "Dimensions of the skidpad track and how many cones it takes."
+[skidpad_layout.params]
+rules = { label = "Rules year", choices = ["legacy", "2026", "2027"], choice_labels = ["Older quiz keys (legacy)", "2026", "2027"] }
+
+[round_to]
+summary = "Rounds a number to a step, up, down or to the nearest one."
+[round_to.params]
+x = { label = "Number to round" }
+step = { label = "Step", help = "For example 10 to round to whole tens." }
+mode = { label = "Round", choices = ["nearest", "down", "up"], choice_labels = ["To the nearest step", "Down (fuses and limits)", "Up (at least this much)"] }
