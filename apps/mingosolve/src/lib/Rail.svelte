@@ -161,7 +161,7 @@
         display: block;
         font-family: var(--font-display);
         font-weight: 600;
-        font-size: 17px;
+        font-size: 1.0625rem;
         letter-spacing: 0.01em;
     }
     .search {

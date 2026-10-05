@@ -15,6 +15,7 @@ export function registerThemeEffect(): void {
     $effect(() => {
         const resolved = settings.theme === 'system' ? (systemDark ? 'dark' : 'light') : settings.theme;
         root.dataset.theme = resolved;
+        root.style.setProperty('--text-scale', String(settings.textSize / 100));
         if (settings.solid) root.dataset.solid = '';
         else delete root.dataset.solid;
         // the native material follows the window theme; null = follow the OS

@@ -315,7 +315,7 @@
         background: var(--accent-soft);
         color: var(--ink-accent);
         font-family: var(--font-mono);
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 600;
     }
 </style>

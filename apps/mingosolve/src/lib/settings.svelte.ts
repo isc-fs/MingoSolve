@@ -5,12 +5,16 @@ import { load, type Store } from '@tauri-apps/plugin-store';
 export type RuleYear = '2027' | '2026' | 'legacy';
 export const RULE_YEARS: RuleYear[] = ['2027', '2026', 'legacy'];
 export type Theme = 'system' | 'dark' | 'light';
+/** Text size in percent of the browser's default; the root font size and every rem-based size follow it. */
+export const TEXT_SIZES = [90, 100, 115, 130] as const;
+export type TextSize = (typeof TEXT_SIZES)[number];
 
 export interface Settings {
     /** Night glass (dark), Paper glass (light), or follow the OS. */
     theme: Theme;
     /** Opaque surfaces instead of glass (also applied when the OS asks to reduce transparency). */
     solid: boolean;
+    textSize: TextSize;
     /** Script ids pinned to the rail, and the most recently opened ones. */
     pinned: string[];
     recent: string[];
@@ -28,6 +32,7 @@ export function defaultSettings(): Settings {
     return {
         theme: 'system',
         solid: false,
+        textSize: 100,
         pinned: ['battery_load', 'cornering_downforce', 'event_score'],
         recent: [],
         calcOpen: true,
@@ -57,6 +62,7 @@ export function loadSettings(): Promise<void> {
             const stored = await store.get<Partial<Settings>>(STORE_KEY);
             if (stored !== undefined && stored !== null) {
                 mergeInto(settings, stored);
+                if (!(TEXT_SIZES as readonly number[]).includes(settings.textSize)) settings.textSize = 100;
             }
         } catch {
             // No Tauri runtime (plain browser preview): run on defaults.

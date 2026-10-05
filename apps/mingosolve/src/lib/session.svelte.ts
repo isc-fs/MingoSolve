@@ -1,6 +1,7 @@
 // Session state shared across views: the open script and its pre-filled values, the pasted problem, the palette,
 // the calculator input. Pinned and recent scripts live in settings (persisted).
 import type { ViewId } from './stores';
+import { layout } from './layout.svelte';
 import { settings } from './settings.svelte';
 import { clockRunning, startClock } from './sessionlog.svelte';
 
@@ -125,6 +126,7 @@ export function openCommand(cmd: string, answer?: number): void {
     if (head === 'calc') {
         session.calcInput = rest.join(' ');
         settings.calcOpen = true;
+        layout.calcPeek = true;
         session.calcRun += 1;
         return;
     }
