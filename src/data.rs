@@ -40,6 +40,7 @@ pub const RULES: &[(&str, &str)] = &[
 pub const PENALTIES: &str = include_str!("../data/rules/penalties.toml");
 pub const EXAMPLES: &str = include_str!("../data/examples.toml");
 pub const KNOWN_KEYS: &str = include_str!("../data/known_keys.toml");
+pub const PAST_QUESTIONS: &str = include_str!("../data/past_questions.toml");
 pub const TOPICS: &str = include_str!("../data/topics.toml");
 pub const UNITS: &str = include_str!("../data/units.toml");
 pub const UNITS_GOLDEN: &str = include_str!("../data/units_golden.toml");
@@ -51,7 +52,15 @@ mod tests {
     #[test]
     fn every_embedded_file_is_valid_toml() {
         let all = FORMULAS.iter().chain(RULES).map(|(_, s)| *s);
-        for s in all.chain([PENALTIES, EXAMPLES, KNOWN_KEYS, TOPICS, UNITS, UNITS_GOLDEN]) {
+        for s in all.chain([
+            PENALTIES,
+            EXAMPLES,
+            KNOWN_KEYS,
+            PAST_QUESTIONS,
+            TOPICS,
+            UNITS,
+            UNITS_GOLDEN,
+        ]) {
             s.parse::<toml::Table>().expect("valid TOML");
         }
     }

@@ -500,3 +500,102 @@ fn hostile_input_through_the_async_commands_is_an_error_not_a_crash() {
     .unwrap();
     assert!(r["found"].as_array().is_some_and(|f| !f.is_empty()), "{r}");
 }
+
+/// Written for this test (not bank text) and fingerprinted at test time into a small bank with real ids: 665 has a
+/// worked example in data/examples.toml, 125 is a known-wrong key in data/known_keys.toml.
+const SYNTHETIC: &str =
+    "A first-order RC filter with a corner frequency of 300 Hz is driven by a 200 Hz sine \
+                         wave. By how many degrees does the output lag the input?";
+const SYNTHETIC_KEYED: &str =
+    "How many degrees of freedom does a quadratic tetrahedral element model have in a \
+                               mesh of one cell?";
+
+fn synthetic_bank() -> Vec<fsq::past::PastQuestion> {
+    use fsq::past::PastQuestion;
+    vec![
+        PastQuestion::from_text(
+            665,
+            SYNTHETIC,
+            &["FSG 2023 EV", "FSA 2024 EV"],
+            Some("-33.7 °"),
+        ),
+        PastQuestion::from_text(125, SYNTHETIC_KEYED, &["FSS 2022 EV"], None),
+    ]
+}
+
+#[test]
+fn found_carries_the_past_question_as_the_frontend_reads_it() {
+    let changed = SYNTHETIC.replace("300 Hz", "250 Hz");
+    let found = crate::finder::find_question_in(&changed, &synthetic_bank());
+    let r = serde_json::to_value(&found).unwrap();
+    let p = &r["past"];
+    assert_eq!(p["id"], 665, "{r}");
+    assert_eq!(p["quizzes"], json!(["FSG 2023 EV", "FSA 2024 EV"]));
+    assert_eq!(p["answer"], "-33.7 °");
+    assert_eq!(
+        p["same_numbers"], false,
+        "250 Hz is not the 300 Hz question"
+    );
+    assert_eq!(p["probable"], false);
+    assert_eq!(p["example"]["cmd"], "rc_lowpass f=200Hz f_c=300Hz @phi=deg");
+    assert_eq!(p["example"]["answer"], -33.69);
+    assert!(p["known_key"].is_null());
+
+    let keyed = crate::finder::find_question_in(SYNTHETIC_KEYED, &synthetic_bank());
+    let k = serde_json::to_value(&keyed).unwrap();
+    assert!(
+        k["past"]["known_key"]
+            .as_str()
+            .unwrap()
+            .contains("tetrahedron"),
+        "{k}"
+    );
+    assert!(k["past"]["example"].is_null());
+}
+
+#[test]
+fn find_question_over_ipc_has_a_null_past_for_text_the_bank_does_not_know() {
+    let w = webview();
+    let r = invoke(&w, "find_question", json!({"text": SYNTHETIC})).unwrap();
+    assert!(r.as_object().unwrap().contains_key("past"), "{r}");
+    assert!(
+        r["past"].is_null(),
+        "invented text must not match the shipped bank: {r}"
+    );
+}
+
+/// With the real bank (not public, so skipped without it) the shipped fingerprints answer through the real IPC.
+#[test]
+fn find_question_over_ipc_recognises_a_real_bank_question() {
+    let path = std::env::var("FSQ_BANK").unwrap_or_else(|_| {
+        concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../../IFS-Tests/data/fsquiz/bank.json"
+        )
+        .to_string()
+    });
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+        eprintln!("ipc past test: skipped, no bank at {path}");
+        return;
+    };
+    let bank: Value = serde_json::from_str(&raw).unwrap();
+    let text_of = |id: u64| {
+        bank["questions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|q| q["question_id"] == id)
+            .unwrap()["text"]
+            .clone()
+    };
+    let w = webview();
+    let r = invoke(&w, "find_question", json!({"text": text_of(665)})).unwrap();
+    assert_eq!(r["past"]["id"], 665, "{r}");
+    assert_eq!(
+        r["past"]["example"]["cmd"],
+        "rc_lowpass f=200Hz f_c=300Hz @phi=deg"
+    );
+    let r = invoke(&w, "find_question", json!({"text": text_of(125)})).unwrap();
+    assert_eq!(r["past"]["id"], 125, "{r}");
+    assert!(r["past"]["known_key"].is_string(), "{r}");
+}
