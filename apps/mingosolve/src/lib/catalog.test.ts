@@ -11,7 +11,7 @@ function formula(id: string, title: string, vars: [string, string][], tags: stri
         title,
         aliases,
         topic: null,
-        formula: { key: id, title, eqs: [], tex: [], tags, notes: '', vars: vars.map(([name, desc]) => ({ name, desc, unit: '', signed: false, default: null, tex: name, unit_shown: '' })) },
+        formula: { key: id, title, eqs: [], tex: [], tags, notes: '', vars: vars.map(([name, desc]) => ({ name, desc, unit: '', signed: false, default: null, tex: name, unit_shown: '', dims: '' })) },
     };
 }
 

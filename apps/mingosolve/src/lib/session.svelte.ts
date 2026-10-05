@@ -1,6 +1,7 @@
 // Session state shared across views: the open script and its pre-filled values, the pasted problem, the palette,
 // the calculator input. Pinned and recent scripts live in settings (persisted).
 import type { ViewId } from './stores';
+import type { FormatHint } from './types';
 import { settings } from './settings.svelte';
 
 export interface OpenScript {
@@ -14,6 +15,8 @@ export interface OpenScript {
     fromProblem?: Record<string, string>;
     /** Variable the question asks for: the answer slab shows it instead of the first solved variable. */
     target?: string | null;
+    /** How the pasted question wants its answer (rounding, unit); only set when opened from a pasted problem. */
+    format?: FormatHint | null;
     /** Known answer (worked examples): the slab shows the root that matches it. */
     answer?: number;
     /** Bumped on every open so the sheet resets even when the same script is reopened. */
@@ -41,9 +44,11 @@ export const session = $state({
         fromProblem: Record<string, string>;
         picked: { name: string; index: number } | null;
         options: string;
+        /** The user chose their Settings over the question's own rounding and unit. */
+        useSettings: boolean;
     },
     /** What each script can take from the pasted problem (finder pre-fill and asked variable), by script id. */
-    problemFills: {} as Record<string, { values: [string, string][]; target: string | null }>,
+    problemFills: {} as Record<string, { values: [string, string][]; target: string | null; format?: FormatHint | null }>,
 });
 
 let nonce = 0;
@@ -53,7 +58,7 @@ export function openScript(id: string, values: [string, string][] = [], extra: P
     const fromProblem = session.problemFills[id];
     if (values.length === 0 && extra.positional === undefined && fromProblem !== undefined) {
         values = fromProblem.values;
-        extra = { target: fromProblem.target, fromProblem: Object.fromEntries(fromProblem.values), ...extra };
+        extra = { target: fromProblem.target, fromProblem: Object.fromEntries(fromProblem.values), format: fromProblem.format ?? null, ...extra };
     }
     nonce += 1;
     session.script = { id, values, ...extra, nonce };

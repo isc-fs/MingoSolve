@@ -13,8 +13,8 @@ import type { Found, FormulaInfo, Hit, PastMatch } from './types';
 const hit = (id: string, prefill: [string, string][]): Hit => ({ kind: 'formula', id, title: id, score: 1, prefill, target: null, warning: null });
 
 const finds: Record<string, Found> = {
-    skidpad: { hits: [hit('cornering_downforce', [['m', '240 kg']])], quantities: ['240 kg'], past: null },
-    discharge: { hits: [hit('ts_discharge', [['V_0', '396 V']])], quantities: ['396 V'], past: null },
+    skidpad: { hits: [hit('cornering_downforce', [['m', '240 kg']])], quantities: ['240 kg'], past: null, format: null },
+    discharge: { hits: [hit('ts_discharge', [['V_0', '396 V']])], quantities: ['396 V'], past: null, format: null },
 };
 
 beforeEach(() => {
@@ -39,6 +39,16 @@ it('shows the matches for the problem on screen when an earlier search replies l
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.getByLabelText('Scripts that fit').textContent).not.toContain('Cornering downforce');
     expect(Object.keys(session.problemFills)).toEqual(['ts_discharge']);
+});
+
+it('hands the question\'s format hint to every script it would open, and takes it away with the problem', async () => {
+    const format = { rounding: { decimals: 1 }, unit: 'km/h', unit_label: 'km/h', dims: 'm·s^-1', quantity: null };
+    fakeEngine({ find_question: () => ({ ...finds.skidpad, format }) });
+    render(SolveView);
+    session.problem = 'skidpad car of 240 kg, answer in km/h to one decimal';
+    await waitFor(() => expect(session.problemFills.cornering_downforce?.format).toEqual(format));
+    session.problem = '';
+    await waitFor(() => expect(session.problemFills).toEqual({}));
 });
 
 it('clearing the problem drops what scripts would take from it', async () => {
@@ -71,13 +81,13 @@ describe('which detected values the open script uses', () => {
         tex: ['v = \\frac{s}{t}'],
         tags: [],
         notes: '',
-        vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null, tex: name, unit_shown: '' })),
+        vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null, tex: name, unit_shown: '', dims: 'm' })),
     };
     const chip = (text: string) => [...document.querySelectorAll('.chips .chip')].find((c) => c.textContent?.includes(text))!;
 
     async function openWithProblem() {
         fakeEngine({
-            find_question: () => ({ hits: [hit('uniform_motion', [['s', '75 m']])], quantities: ['75 m', '3.8 s', '9.81 m/s²'], past: null }),
+            find_question: () => ({ hits: [hit('uniform_motion', [['s', '75 m']])], quantities: ['75 m', '3.8 s', '9.81 m/s²'], past: null, format: null }),
             solve_formula: () => ({ found: [], defaults: [], conflicts: [] }),
             script_examples: () => [],
             format_answer: () => '',
@@ -112,7 +122,7 @@ describe('which detected values the open script uses', () => {
     });
 
     it('shows no used or unused state while no script is open', async () => {
-        fakeEngine({ find_question: () => ({ hits: [], quantities: ['75 m'], past: null }) });
+        fakeEngine({ find_question: () => ({ hits: [], quantities: ['75 m'], past: null, format: null }) });
         render(SolveView);
         session.problem = 'a car covers 75 m';
         await waitFor(() => expect(chip('75 m')).toBeDefined());

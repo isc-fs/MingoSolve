@@ -602,7 +602,11 @@ fn find_question_over_ipc_carries_the_format_hint_and_variables_carry_matching_d
             .clone()
     };
     assert_eq!(dims("phi"), r["format"]["dims"]);
-    assert_ne!(dims("f"), r["format"]["dims"], "a frequency is not an angle");
+    assert_ne!(
+        dims("f"),
+        r["format"]["dims"],
+        "a frequency is not an angle"
+    );
 }
 
 /// With the real bank (not public, so skipped without it) the shipped fingerprints answer through the real IPC.
