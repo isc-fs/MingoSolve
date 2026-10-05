@@ -11,7 +11,7 @@ test('Q90: paste a problem anywhere, open the top match pre-filled, copy the ans
     await pasteAnywhere(app, SKIDPAD);
     await expect(app.getByLabel('Values found in the problem')).toContainText('3.2 m²');
     const top = app.getByLabel('Scripts that fit').getByRole('button').first();
-    await expect(top).toContainText('Cornering downforce');
+    await expect(top).toContainText('Max cornering speed with downforce');
     await expect(top).toContainText('5');
     await top.click();
     await expect(field(app, 'mu')).toHaveValue('1.4');
@@ -52,7 +52,7 @@ test('Q34: a worked example loads its inputs and solves, with the second root ex
 test('Q378: a tool script from Topics runs with the legacy rules', async ({ app }) => {
     await app.getByRole('button', { name: 'Topics' }).click();
     await app.getByRole('textbox', { name: 'Search the library' }).fill('event score');
-    await app.getByRole('button', { name: /^Dynamic event score/ }).click();
+    await app.locator('.detail').getByRole('button', { name: /^Dynamic event score/ }).click();
     await choice(app, 'event').selectOption('skidpad');
     await field(app, 't_team').fill('5.6');
     await field(app, 't_min').fill('5.1');
@@ -83,7 +83,7 @@ test('a long formula keeps the answer on screen without scrolling', async ({ app
 test('a tool form speaks plainly: labels, a checkbox for each on/off setting, the answer follows the boxes', async ({ app }) => {
     await openFromPalette(app, 'can frame', /Bits per CAN frame/);
     await expect(app.getByText('Extended frame (29-bit ID)')).toBeVisible();
-    await expect(app.locator('label.field[data-var="stuffing"] .hint')).toContainText('stuff bits');
+    await expect(app.locator('label.field[data-var="stuffing"] .hint')).toContainText('five equal bits');
     await app.getByRole('button', { name: /^Run/ }).click();
     // standard frame, 8 data bytes: 44 + 64 + 3 gap bits
     await expect(answer(app)).toHaveText('111');
