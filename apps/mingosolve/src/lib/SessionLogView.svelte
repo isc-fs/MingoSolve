@@ -113,7 +113,9 @@
         {#if newest.length === 0}
             <p class="muted">Nothing yet. Copy an answer from any script and it appears here.</p>
         {:else}
-            <div class="scroll">
+            <!-- a scrollable region must be reachable by keyboard (WCAG 2.1.1, axe scrollable-region-focusable) -->
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+            <div class="scroll" tabindex="0" role="region" aria-label="Session log entries">
                 <table>
                     <caption class="sr-only">Copied answers, newest first</caption>
                     <thead>

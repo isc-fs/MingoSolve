@@ -39,7 +39,7 @@ test('rehearsal: label the question, copy, and find the entry in the session log
     await expect(app.getByRole('heading', { level: 1, name: 'Session log', exact: true })).toBeVisible();
     const row = app.locator('tbody tr').first();
     await expect(row).toContainText('Q90');
-    await expect(row).toContainText('Cornering downforce');
+    await expect(row).toContainText('Max cornering speed with downforce');
     await expect(row).toContainText('11.76');
     await expect(row).toContainText('mu=1.4');
 
