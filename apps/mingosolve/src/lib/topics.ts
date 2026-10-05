@@ -9,3 +9,11 @@ export function listTopics(): Promise<TopicInfo[]> {
 export function scriptExamples(script: string): Promise<WorkedExample[]> {
     return invoke('script_examples', { script });
 }
+
+export function chainExamples(): Promise<WorkedExample[]> {
+    return invoke('chain_examples');
+}
+
+export function calcExamples(): Promise<WorkedExample[]> {
+    return invoke('calc_examples');
+}

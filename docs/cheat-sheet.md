@@ -38,7 +38,7 @@ Open **Check against options** and paste the choices, one per line (`a) 73.4 A`)
 
 ## 5. Known-wrong keys
 
-A few official answers disagree with the physics or the rules. If the answer matches **no** option, choose by elimination. The list (question number and what the key did) is [`data/known_keys.toml`](../data/known_keys.toml). The app does not flag these questions on screen yet.
+A few official answers disagree with the physics or the rules. If the answer matches **no** option, choose by elimination. The list (question number and what the key did) is [`data/known_keys.toml`](../data/known_keys.toml). Pasting one of these past questions shows a red note under the problem.
 
 ## 6. Shortcuts
 

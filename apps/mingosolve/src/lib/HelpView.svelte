@@ -115,8 +115,9 @@
             variant reproduces). If the app's answer matches <em>no</em> option, do not force it: choose by elimination.
         </p>
         <p class="muted">
-            The list, with the question number and what the key did, is <span class="mono">data/known_keys.toml</span> in the
-            repository. The app does not flag these questions on screen yet, so look the number up there.
+            When you paste a past question whose key is on the list, the Solve view says so in a red note under the
+            problem. The full list, with the question number and what the key did, is
+            <span class="mono">data/known_keys.toml</span> in the repository.
         </p>
     </section>
 
