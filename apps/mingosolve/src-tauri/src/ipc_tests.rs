@@ -624,6 +624,51 @@ fn find_question_over_ipc_has_a_null_past_for_text_the_bank_does_not_know() {
     );
 }
 
+/// The answer instruction reaches the frontend in the shape types.ts declares, and its dimension key equals the key
+/// the formula catalogue gives the variable it would apply to (rc_lowpass.phi is in rad, the question asks degrees).
+#[test]
+fn find_question_over_ipc_carries_the_format_hint_and_variables_carry_matching_dims() {
+    let w = webview();
+    let text = format!("{SYNTHETIC} Give your answer in degrees, rounded to one decimal place.");
+    let r = invoke(&w, "find_question", json!({ "text": text })).unwrap();
+    assert_eq!(
+        r["format"],
+        json!({
+            "rounding": {"decimals": 1},
+            "unit": "deg",
+            "unit_label": "degrees",
+            "dims": "dimensionless·angle",
+            "quantity": null,
+        }),
+        "{r}"
+    );
+    let none = invoke(&w, "find_question", json!({ "text": SYNTHETIC })).unwrap();
+    assert!(none["format"].is_null(), "{none}");
+
+    let formulas = invoke(&w, "list_formulas", json!({})).unwrap();
+    let rc = formulas
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|f| f["key"] == "rc_lowpass")
+        .unwrap();
+    let dims = |name: &str| {
+        rc["vars"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|v| v["name"] == name)
+            .unwrap()["dims"]
+            .clone()
+    };
+    assert_eq!(dims("phi"), r["format"]["dims"]);
+    assert_ne!(
+        dims("f"),
+        r["format"]["dims"],
+        "a frequency is not an angle"
+    );
+}
+
 /// With the real bank (not public, so skipped without it) the shipped fingerprints answer through the real IPC.
 #[test]
 fn find_question_over_ipc_recognises_a_real_bank_question() {

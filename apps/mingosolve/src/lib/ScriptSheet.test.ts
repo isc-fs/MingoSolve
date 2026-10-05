@@ -1,6 +1,6 @@
 // The script sheet against a fake engine: what it sends, which root it puts in the answer slab, and how it copes
 // with replies that arrive late. The real engine behind these commands is covered by the IPC tests and e2e/.
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +8,7 @@ import ScriptSheet from './ScriptSheet.svelte';
 import { catalog } from './catalog.svelte';
 import { openCommand, openScript, session } from './session.svelte';
 import { defaultSettings, settings } from './settings.svelte';
+import { sessionLog } from './sessionlog.svelte';
 import { fakeEngine } from '../test/ipc';
 import { corrected, score } from '../test/tools';
 import type { FormulaInfo, SolveResult } from './types';
@@ -19,7 +20,11 @@ const motion: FormulaInfo = {
     tex: ['v = \\frac{s}{t}'],
     tags: [],
     notes: '',
-    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '' })),
+    vars: [
+        ['s', 'm', 'm'],
+        ['t', 's', 's'],
+        ['v', 'm/s', 'm·s^-1'],
+    ].map(([name, unit, dims]) => ({ name, unit, desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims })),
 };
 const battery: FormulaInfo = {
     key: 'battery_load',
@@ -28,7 +33,7 @@ const battery: FormulaInfo = {
     tex: [],
     tags: [],
     notes: '',
-    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '' })),
+    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims: '' })),
 };
 function field(name: string): HTMLInputElement {
     return document.querySelector<HTMLInputElement>(`label.field[data-var="${name}"] input`)!;
@@ -259,6 +264,141 @@ describe('values taken from the pasted problem', () => {
         render(ScriptSheet);
         expect(field('s').value).toBe('75m');
         expect(document.querySelector('.from')).toBeNull();
+    });
+});
+
+describe('the format the pasted question asks for', () => {
+    const kmh = { rounding: { decimals: 1 }, unit: 'km/h', unit_label: 'km/h', dims: 'm·s^-1', quantity: null };
+    const note = () => document.querySelector('.a-format')?.textContent?.replace(/\s+/g, ' ').trim();
+    // by class: jsdom can't compute accessible names across KaTeX's MathML
+    const formatButton = (label: string) => {
+        const b = document.querySelector<HTMLButtonElement>('.a-format .linklike')!;
+        expect(b.textContent).toBe(label);
+        return b;
+    };
+    const showIn = () => document.querySelector<HTMLInputElement>('.a-unit input')!.value;
+
+    /** v = s/t that honours the display unit, as the engine does (m/s -> km/h is x3.6). */
+    function solveShown(args: Record<string, unknown>): SolveResult {
+        const g = Object.fromEntries(args.given as [string, string][]);
+        const unit = (args.display as Record<string, string>).v;
+        const v = parseFloat(g.s) / parseFloat(g.t);
+        const [x, u] = unit === 'km/h' ? [v * 3.6, 'km/h'] : [v, 'm/s'];
+        return { found: [{ name: 'v', desc: 'v', values: [v], shown: [`${+x.toFixed(4)} ${u}`] }], defaults: [], conflicts: [] };
+    }
+    const formatAs = (a: Record<string, unknown>) => {
+        const p = a.precision as { decimals?: number; sig?: number };
+        return p.decimals !== undefined ? (a.value as number).toFixed(p.decimals) : (a.value as number).toPrecision(p.sig);
+    };
+    const formatCalls = (engine: ReturnType<typeof fakeEngine>) => engine.calls.filter((c) => c.cmd === 'format_answer');
+
+    async function openPasted(format: Record<string, unknown> | null, extra: Record<string, unknown> = {}) {
+        const engine = fakeEngine({ ...common, solve_formula: solveShown, format_answer: formatAs });
+        const copies = clipboardSpy();
+        session.problemFills = { uniform_motion: { values: [['s', '100 m'], ['t', '9.1 s']], target: 'v', format: format as never, ...extra } };
+        openScript('uniform_motion');
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBeTruthy());
+        return { engine, copies };
+    }
+
+    it("opens in the unit and rounding the question asks, says so, and copies in that format", async () => {
+        const { engine, copies } = await openPasted(kmh);
+        await waitFor(() => expect(slab()).toBe('39.5604 km/h'));
+        expect(showIn()).toBe('km/h');
+        expect(note()).toBe('Rounded to 1 decimal and shown in km/h, as the question asks. Use my Settings instead');
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 39.6'));
+        expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ decimals: 1 });
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        expect(copies).toEqual(['39.6']);
+    });
+
+    it('the session log records the text actually copied: the hinted rounding, then the Settings one after the revert', async () => {
+        sessionLog.entries = [];
+        const { copies } = await openPasted(kmh);
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 39.6'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        await userEvent.click(formatButton('Use my Settings instead'));
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 10.99'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        expect(copies).toEqual(['39.6', '10.99']);
+        expect(sessionLog.entries.map((e) => e.answer)).toEqual(copies);
+    });
+
+    it('"Use my Settings instead" drops the question\'s unit and rounding for this sheet only', async () => {
+        const { engine, copies } = await openPasted(kmh);
+        await waitFor(() => expect(note()).toContain('as the question asks'));
+        await userEvent.click(formatButton('Use my Settings instead'));
+        await waitFor(() => expect(slab()).toMatch(/ m\/s$/));
+        expect(showIn()).toBe('');
+        expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ sig: 4 });
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 10.99'));
+        expect(note()).toBe("Using your Settings. Use the question's format");
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.answer .copy')!);
+        expect(copies).toEqual(['10.99']);
+        // and back
+        await userEvent.click(formatButton("Use the question's format"));
+        await waitFor(() => expect(showIn()).toBe('km/h'));
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 39.6'));
+    });
+
+    it('a unit that measures something else than the answer variable is ignored, the rounding still applies', async () => {
+        const newtons = { rounding: { sig: 3 }, unit: 'N', unit_label: 'newtons', dims: 'm·kg·s^-2', quantity: null };
+        const { engine } = await openPasted(newtons);
+        expect(showIn()).toBe('');
+        expect(slab()).toBe('10.989 m/s');
+        expect(note()).toBe('Rounded to 3 significant figures, as the question asks. Use my Settings instead');
+        await waitFor(() => expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ sig: 3 }));
+    });
+
+    it('a unit that does not fit and no rounding leaves the sheet as Settings would, with no note', async () => {
+        const { engine } = await openPasted({ rounding: null, unit: 'N', unit_label: 'newtons', dims: 'm·kg·s^-2', quantity: null });
+        expect(showIn()).toBe('');
+        expect(note()).toBeUndefined();
+        await waitFor(() => expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ sig: 4 }));
+    });
+
+    it('a question without a format hint uses the Settings and shows no note', async () => {
+        const { engine } = await openPasted(null);
+        expect(note()).toBeUndefined();
+        expect(showIn()).toBe('');
+        await waitFor(() => expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ sig: 4 }));
+    });
+
+    it('a worked example opened from Topics (no paste) uses the Settings even while a pasted problem has a hint', async () => {
+        const engine = fakeEngine({ ...common, solve_formula: solveShown, format_answer: formatAs });
+        session.problemFills = { uniform_motion: { values: [['s', '100 m']], target: 'v', format: kmh as never } };
+        openCommand('uniform_motion s=75m t=3.8s', 19.7);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBeTruthy());
+        expect(showIn()).toBe('');
+        expect(note()).toBeUndefined();
+        await waitFor(() => expect(formatCalls(engine).at(-1)!.args.precision).toEqual({ sig: 4 }));
+    });
+
+    it('switching views and coming back keeps the question\'s format, or the choice of Settings', async () => {
+        await openPasted(kmh);
+        await waitFor(() => expect(note()).toContain('as the question asks'));
+        cleanup();
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('39.5604 km/h'));
+        expect(showIn()).toBe('km/h');
+        expect(note()).toContain('as the question asks');
+        await userEvent.click(formatButton('Use my Settings instead'));
+        await waitFor(() => expect(showIn()).toBe(''));
+        cleanup();
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toMatch(/ m\/s$/));
+        expect(showIn()).toBe('');
+        expect(note()).toBe("Using your Settings. Use the question's format");
+    });
+
+    it("typing another unit in Show in stops the note from claiming the question's unit", async () => {
+        await openPasted(kmh);
+        await waitFor(() => expect(note()).toContain('shown in km/h'));
+        await userEvent.clear(document.querySelector('.a-unit input')!);
+        await userEvent.type(document.querySelector('.a-unit input')!, 'm/s');
+        await waitFor(() => expect(note()).toBe('Rounded to 1 decimal, as the question asks. Use my Settings instead'));
     });
 });
 

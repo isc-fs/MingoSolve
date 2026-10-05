@@ -48,7 +48,7 @@
             hits = found.hits;
             quantities = found.quantities;
             past = found.past;
-            session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));
+            session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target, format: found.format }]));
         }, 160);
     });
 

@@ -33,6 +33,9 @@ or `dev`, tag, or touch iskapps without the owner's OK.
 - Past-question recognition changes (`src/past.rs`, `data/past_questions.toml`): also run
   `FSQ_BANK=<bank.json> cargo test --test past_bank -- --nocapture` (and `cargo test -p mingosolve real_bank`); every
   bank question must be recognised as itself and invented text must not match.
+- Answer-format changes (`src/format_hint.rs`, the rounding/unit a pasted question asks for): also run
+  `FSQ_BANK=<bank.json> cargo test --test format_bank -- --nocapture`; every example whose question has a hint must
+  reproduce the official answer string. Unit tests there use short phrasings, never full question text.
 - Python (from `legacy/python`): `uv sync`, `uv run fsq`, `uv run pytest`, `uv run ruff check .`, `uv run ruff format .`.
 
 ## Rules

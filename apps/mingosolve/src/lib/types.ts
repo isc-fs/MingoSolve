@@ -13,6 +13,8 @@ export interface VarInfo {
     tex: string;
     /** The unit for display (m², Ω). */
     unit_shown: string;
+    /** What the unit measures (engine `dims_key`); equal to a FormatHint's `dims` when the question's unit fits. */
+    dims: string;
 }
 
 export interface FormulaInfo {
@@ -136,10 +138,23 @@ export interface PastMatch {
     known_key: string | null;
 }
 
+/** How a pasted question wants its answer (engine format_hint::FormatHint). */
+export interface FormatHint {
+    rounding: Precision | null;
+    /** Display unit in the engine's syntax ("km/h", "N*m"). */
+    unit: string | null;
+    /** The unit as the question wrote it ("kilonewtons"). */
+    unit_label: string | null;
+    dims: string | null;
+    /** The asked quantity when named next to the unit ("average lap speed"). */
+    quantity: string | null;
+}
+
 export interface Found {
     hits: Hit[];
     quantities: string[];
     past: PastMatch | null;
+    format: FormatHint | null;
 }
 
 export interface ScriptRef {

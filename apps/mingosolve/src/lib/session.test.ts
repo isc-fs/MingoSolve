@@ -89,6 +89,18 @@ describe('opening a script with the pasted problem', () => {
         expect(session.script!.target).toBeUndefined();
     });
 
+    it("carries the question's format hint like the other provenance, but a worked example never does", () => {
+        const format = { rounding: { decimals: 2 }, unit: 'kN', unit_label: 'kN', dims: 'm·kg·s^-2', quantity: null };
+        session.problemFills = { battery_load: { values: [['N_s', '103']], target: 'I', format } };
+        openScript('battery_load');
+        expect(session.script!.format).toEqual(format);
+        openCommand('battery_load N_s=96 V_cell=4.2V', 1);
+        expect(session.script!.format).toBeUndefined();
+        session.problemFills = { battery_load: { values: [], target: null, format: null } };
+        openScript('battery_load');
+        expect(session.script!.format).toBeNull();
+    });
+
     it('every open is a fresh sheet, even for the script already open', () => {
         openScript('battery_load');
         const first = session.script!.nonce;
