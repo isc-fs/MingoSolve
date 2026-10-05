@@ -47,12 +47,13 @@ URL the app's updater reads), and finally fast-forwards `dev` to `main`.
 
 ## Dry run (nothing is published)
 
-Actions → **Release** → Run workflow → branch `dev` (or any branch). It runs the three builds with signing on and
+Actions → **Release** → Run workflow, on `main` or any branch. GitHub only offers a manual run for a workflow that
+exists on the default branch (`main`), so before the first release reaches `main` there is no dry run yet. It runs the three builds with signing on and
 uploads the installers as workflow artefacts (`installers-ubuntu-22.04`, `installers-macos-latest`,
 `installers-windows-latest`, kept 7 days). No release, no tag, no iskapps access. Do this after any change to the
 workflow, to `tauri.conf.json` or to the icons, and once before the first real release. From a terminal:
 ```bash
-gh workflow run release.yml --repo isc-fs/MingoSolve --ref dev
+gh workflow run release.yml --repo isc-fs/MingoSolve --ref main
 gh run watch --repo isc-fs/MingoSolve
 ```
 Install the macOS and Windows artefacts on a real machine before tagging.
