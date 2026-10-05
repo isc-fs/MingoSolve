@@ -40,10 +40,30 @@ export interface Shown {
     shown: string;
 }
 
+/** A typed name the engine read as another: `v_i` as `v0` (initial velocity). */
+export interface NameMap {
+    from: string;
+    to: string;
+    desc: string;
+}
+
+export interface NameChoice {
+    name: string;
+    desc: string;
+}
+
+/** A typed name the engine could not use: unknown (with suggestions) or ambiguous (with its possible meanings). */
+export interface NameProblem {
+    name: string;
+    kind: 'unknown' | 'ambiguous';
+    choices: NameChoice[];
+}
+
 export interface SolveResult {
     found: FoundVar[];
     defaults: Shown[];
     conflicts: string[];
+    mapped: NameMap[];
 }
 
 export interface ChainStep {
@@ -59,6 +79,10 @@ export interface ChainResult {
     target: string | null;
     known: string[];
     conflicts: string[];
+    /** Typed names (target included) the engine read as other names. */
+    mapped: NameMap[];
+    /** Names it could not use; when there are any, nothing was solved. */
+    problems: NameProblem[];
 }
 
 export interface Choice {

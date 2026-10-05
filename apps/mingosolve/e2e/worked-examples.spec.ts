@@ -2,7 +2,15 @@
 // palette by its id, press the Q-button, and the official answer must be on screen (answer slab or a listed root).
 // This is the path a teammate takes on quiz day; the IPC tests prove the engine, this proves the sheet wiring
 // (pre-fill, display units, positional tool arguments, auto-run) for every one of them.
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
+
+/** The "Past questions" fold is closed until opened and remembers how it was left: open it only if it is closed. */
+async function openPastQuestions(scope: Locator | Page): Promise<void> {
+    const head = scope.getByRole('button', { name: 'Past questions' });
+    if ((await head.getAttribute('aria-expanded')) !== 'true') await head.click();
+    await expect(head).toHaveAttribute('aria-expanded', 'true');
+}
 
 const BRIDGE = 'http://127.0.0.1:8799';
 
@@ -63,6 +71,7 @@ test('every chain past question shows its official answer in the Chain view', as
     expect(examples.length).toBeGreaterThan(5);
     await app.getByRole('button', { name: 'Chain' }).click();
     const section = app.getByRole('region', { name: 'Past questions' });
+    await openPastQuestions(section);
     const failures: string[] = [];
     for (const ex of examples) {
         await section.getByRole('button', { name: new RegExp(`^Q${ex.id}\\b`) }).click();
@@ -82,7 +91,7 @@ test('every calculator past question shows its official answer in the calculator
     const examples = (await res.json()) as Example[];
     expect(examples.length).toBeGreaterThan(5);
     const panel = app.getByRole('complementary', { name: 'Calculator' });
-    await panel.getByText('Past questions').click();
+    await openPastQuestions(panel);
     const failures: string[] = [];
     for (const ex of examples) {
         await panel.getByRole('button', { name: new RegExp(`^Q${ex.id}\\b`) }).click();

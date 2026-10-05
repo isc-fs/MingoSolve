@@ -133,3 +133,23 @@ it('without a Tauri runtime (browser preview) it runs on defaults and never trie
     expect(writes).toEqual([]);
     stop();
 });
+
+it('the Past questions folds load closed from an older file, and an opened fold is saved and read back', async () => {
+    disk.all = { theme: 'dark', calcOpen: true };
+    fakeStore();
+    let m = await fresh();
+    const stop = m.startAutosave();
+    await m.loadSettings();
+    expect(m.settings.chainPastOpen).toBe(false);
+    expect(m.settings.calcPastOpen).toBe(false);
+    m.settings.chainPastOpen = true;
+    m.flushSync();
+    await sleep(350);
+    expect(writes.at(-1)).toMatchObject({ theme: 'dark', chainPastOpen: true, calcPastOpen: false });
+    stop();
+
+    m = await fresh();
+    await m.loadSettings();
+    expect(m.settings.chainPastOpen).toBe(true);
+    expect(m.settings.calcPastOpen).toBe(false);
+});

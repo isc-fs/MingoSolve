@@ -5,6 +5,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::expr::Expr;
+use crate::names::{self, Mapping};
 use crate::registry::{registry, Formula};
 use crate::solve::{solve1, solve_system};
 use crate::units::{self, UnitError};
@@ -182,6 +183,8 @@ fn defaults(names: &[String], given: &Values) -> Values {
 pub struct Solved {
     pub found: Found,
     pub defaults: Values,
+    /// Typed names understood as other registry names.
+    pub mapped: Vec<Mapping>,
 }
 
 /// Solve one formula from typed values (`"100 km/h"`, `"3"`). Defaults fill variables not given.
@@ -189,21 +192,23 @@ pub fn solve(key: &str, given: &[(&str, &str)]) -> Result<Solved, String> {
     let f = registry()
         .formula(key)
         .ok_or_else(|| format!("no formula {key}"))?;
+    let named = names::normalise(None, given).map_err(|p| names::problems_message(&p))?;
     let mut known = Values::new();
-    for (n, v) in given {
-        if !f.names.iter().any(|x| x == n) {
+    for (n, v) in &named.given {
+        if !f.names.contains(n) {
             return Err(format!(
                 "{key} has no variable {n}; it uses {}",
                 f.names.join(", ")
             ));
         }
-        known.insert(n.to_string(), to_si(n, v).map_err(|e| e.0)?);
+        known.insert(n.clone(), to_si(n, v).map_err(|e| e.0)?);
     }
     let used = defaults(&f.names, &known);
     known.extend(used.clone());
     Ok(Solved {
         found: solve_step(f, &known),
         defaults: used,
+        mapped: named.mapped,
     })
 }
 
@@ -220,6 +225,10 @@ pub struct Chained {
     pub known: Values,
     pub defaults: Values,
     pub reached: bool,
+    /// Typed names understood as other registry names.
+    pub mapped: Vec<Mapping>,
+    /// The target as the registry spells it.
+    pub target: String,
 }
 
 /// Apply formulas (all, or those whose key or tags are in `only`) until `target` is known.
@@ -229,9 +238,11 @@ pub fn chain(
     only: Option<&HashSet<String>>,
 ) -> Result<Chained, String> {
     let r = registry();
+    let named = names::normalise(Some(target), given).map_err(|p| names::problems_message(&p))?;
+    let target = named.target.as_deref().unwrap_or(target);
     let mut known = Values::new();
-    for (n, v) in given {
-        known.insert(n.to_string(), to_si(n, v).map_err(|e| e.0)?);
+    for (n, v) in &named.given {
+        known.insert(n.clone(), to_si(n, v).map_err(|e| e.0)?);
     }
     let all: Vec<String> = r.vars.keys().cloned().collect();
     let used = defaults(&all, &known);
@@ -289,6 +300,8 @@ pub fn chain(
             known,
             defaults: Values::new(),
             reached: false,
+            mapped: named.mapped,
+            target: target.to_string(),
         });
     }
     let mut need = HashSet::new();
@@ -314,6 +327,8 @@ pub fn chain(
         known,
         defaults: used,
         reached: true,
+        mapped: named.mapped,
+        target: target.to_string(),
     })
 }
 

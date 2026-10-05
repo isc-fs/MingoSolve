@@ -19,6 +19,9 @@ export interface Settings {
     pinned: string[];
     recent: string[];
     calcOpen: boolean;
+    /** The "Past questions" folds in the Chain view and the calculator (older settings files load them folded). */
+    chainPastOpen: boolean;
+    calcPastOpen: boolean;
     /** Rule set used by scoring tools unless a tool call names another. */
     rules: RuleYear;
     precision: { kind: 'sig' | 'decimals'; n: number };
@@ -36,6 +39,8 @@ export function defaultSettings(): Settings {
         pinned: ['battery_load', 'cornering_downforce', 'event_score'],
         recent: [],
         calcOpen: true,
+        chainPastOpen: false,
+        calcPastOpen: false,
         rules: '2027',
         precision: { kind: 'sig', n: 4 },
         decimalComma: false,

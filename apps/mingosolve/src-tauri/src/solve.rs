@@ -6,6 +6,7 @@ use fsq::cli::{fmt_var, pretty_unit};
 use fsq::engine::{self, conflicts, conflicts_in};
 use fsq::format_hint::dims_key;
 use fsq::latex::{equation_latex, var_latex};
+use fsq::names;
 use fsq::registry::registry;
 use serde::Serialize;
 
@@ -87,11 +88,71 @@ pub struct Shown {
     shown: String,
 }
 
+/// A typed name the engine read as another: `v_i` as `v0`.
+#[derive(Serialize)]
+pub struct NameMap {
+    from: String,
+    to: String,
+    /// What `to` is, in a few words.
+    desc: String,
+}
+
+#[derive(Serialize)]
+pub struct NameChoice {
+    name: String,
+    desc: String,
+}
+
+/// A typed name the engine could not use: unknown (with suggestions) or ambiguous (with the possible meanings).
+#[derive(Serialize)]
+pub struct NameProblem {
+    name: String,
+    /// "unknown" or "ambiguous".
+    kind: String,
+    choices: Vec<NameChoice>,
+}
+
+fn name_map(m: &names::Mapping) -> NameMap {
+    NameMap {
+        from: m.from.clone(),
+        to: m.to.clone(),
+        desc: names::short_desc(&registry().var(&m.to).desc),
+    }
+}
+
+fn name_problem(p: &names::Problem) -> NameProblem {
+    NameProblem {
+        name: p.name().to_string(),
+        kind: match p {
+            names::Problem::Unknown { .. } => "unknown",
+            names::Problem::Ambiguous { .. } => "ambiguous",
+        }
+        .to_string(),
+        choices: p
+            .choices()
+            .iter()
+            .map(|n| NameChoice {
+                name: n.clone(),
+                desc: names::short_desc(&registry().var(n).desc),
+            })
+            .collect(),
+    }
+}
+
 #[derive(Serialize)]
 pub struct SolveResult {
     found: Vec<FoundVar>,
     defaults: Vec<Shown>,
     conflicts: Vec<String>,
+    mapped: Vec<NameMap>,
+}
+
+/// Display units keyed by registry names, whatever spelling the caller used.
+fn by_registry_name(display: HashMap<String, String>) -> HashMap<String, String> {
+    display
+        .into_iter()
+        .map(|(k, v)| (names::fix(&k).map_or(k, |(n, _)| n), v))
+        .collect()
 }
 
 fn show_all(
@@ -120,11 +181,13 @@ pub fn solve_formula_impl(
     given: Vec<(String, String)>,
     display: HashMap<String, String>,
 ) -> Result<SolveResult, String> {
+    let display = by_registry_name(display);
     let given_ref: Vec<(&str, &str)> = given
         .iter()
         .filter(|(_, v)| !v.trim().is_empty())
         .map(|(n, v)| (n.as_str(), v.as_str()))
         .collect();
+    let named = names::normalise(None, &given_ref).map_err(|p| names::problems_message(&p))?;
     let r = engine::solve(&key, &given_ref)?;
     let mut found = Vec::new();
     for (n, vals) in &r.found.0 {
@@ -149,8 +212,8 @@ pub fn solve_formula_impl(
     // all variables known: report any equation the given values break (over-specified input)
     let f = registry().formula(&key).ok_or("unknown formula")?;
     let mut known = HashMap::new();
-    for (n, v) in &given_ref {
-        known.insert(n.to_string(), engine::to_si(n, v).map_err(|e| e.0)?);
+    for (n, v) in &named.given {
+        known.insert(n.clone(), engine::to_si(n, v).map_err(|e| e.0)?);
     }
     known.extend(r.defaults.clone());
     for (n, vals) in &r.found.0 {
@@ -165,6 +228,7 @@ pub fn solve_formula_impl(
         found,
         defaults,
         conflicts,
+        mapped: r.mapped.iter().map(name_map).collect(),
     })
 }
 
@@ -183,6 +247,10 @@ pub struct ChainResult {
     target: Option<String>,
     known: Vec<String>,
     conflicts: Vec<String>,
+    /// Typed names (target included) read as other names.
+    mapped: Vec<NameMap>,
+    /// Names that could not be used; when there are any, nothing was solved.
+    problems: Vec<NameProblem>,
 }
 
 #[tauri::command]
@@ -201,13 +269,32 @@ pub fn chain_formulas_impl(
     only: Vec<String>,
     display: HashMap<String, String>,
 ) -> Result<ChainResult, String> {
+    let display = by_registry_name(display);
     let given_ref: Vec<(&str, &str)> = given
         .iter()
         .filter(|(n, v)| !n.trim().is_empty() && !v.trim().is_empty())
         .map(|(n, v)| (n.trim(), v.trim()))
         .collect();
     let only: Option<HashSet<String>> = (!only.is_empty()).then(|| only.into_iter().collect());
+    if let Err(problems) = names::normalise(Some(&target), &given_ref) {
+        let mapped = std::iter::once(target.as_str())
+            .chain(given_ref.iter().map(|(n, _)| *n))
+            .filter_map(|n| names::fix(n).ok()?.1)
+            .map(|m| name_map(&m))
+            .collect();
+        return Ok(ChainResult {
+            steps: vec![],
+            defaults: vec![],
+            reached: false,
+            target: None,
+            known: vec![],
+            conflicts: vec![],
+            mapped,
+            problems: problems.iter().map(name_problem).collect(),
+        });
+    }
     let c = engine::chain(&target, &given_ref, only.as_ref())?;
+    let target = c.target.clone();
     let unit = |n: &str| {
         display
             .get(n)
@@ -250,6 +337,8 @@ pub fn chain_formulas_impl(
         target: target_shown,
         known,
         conflicts: conflicts(&c.known),
+        mapped: c.mapped.iter().map(name_map).collect(),
+        problems: vec![],
     })
 }
 

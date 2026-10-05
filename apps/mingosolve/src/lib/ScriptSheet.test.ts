@@ -47,7 +47,7 @@ const slab = () => document.querySelector('.answer .a-value')?.textContent;
 function solveMotion(args: Record<string, unknown>): SolveResult {
     const g = Object.fromEntries(args.given as [string, string][]);
     const v = parseFloat(g.s) / parseFloat(g.t);
-    return { found: Number.isFinite(v) ? [{ name: 'v', desc: 'v', values: [v], shown: [`${v} m/s`] }] : [], defaults: [], conflicts: [] };
+    return { found: Number.isFinite(v) ? [{ name: 'v', desc: 'v', values: [v], shown: [`${v} m/s`] }] : [], defaults: [], conflicts: [], mapped: [] };
 }
 
 const common = {
@@ -157,6 +157,7 @@ describe('which root the answer slab shows', () => {
         ],
         defaults: [],
         conflicts: [],
+        mapped: [],
     };
 
     it('a worked example shows the root that matches its official answer, with the other root mentioned', async () => {
@@ -284,7 +285,7 @@ describe('the format the pasted question asks for', () => {
         const unit = (args.display as Record<string, string>).v;
         const v = parseFloat(g.s) / parseFloat(g.t);
         const [x, u] = unit === 'km/h' ? [v * 3.6, 'km/h'] : [v, 'm/s'];
-        return { found: [{ name: 'v', desc: 'v', values: [v], shown: [`${+x.toFixed(4)} ${u}`] }], defaults: [], conflicts: [] };
+        return { found: [{ name: 'v', desc: 'v', values: [v], shown: [`${+x.toFixed(4)} ${u}`] }], defaults: [], conflicts: [], mapped: [] };
     }
     const formatAs = (a: Record<string, unknown>) => {
         const p = a.precision as { decimals?: number; sig?: number };
@@ -471,6 +472,7 @@ describe('clearing', () => {
             ],
             defaults: [],
             conflicts: [],
+            mapped: [],
         };
         fakeEngine({ ...common, solve_formula: () => twoRoots });
         openCommand('battery_load N_s=103 V_cell=3.8V R_pack=0.08ohm P=30kW', 77.9);
