@@ -1,6 +1,6 @@
 <!--
     Global "update available" banner. Rendered once at the top of the
-    app shell (App.svelte). App.svelte runs the best-effort check on
+    main column (App.svelte), below the macOS title-bar zone. App.svelte runs the best-effort check on
     launch and passes the result in; this component owns the
     download → install → relaunch interaction and dismissal.
 -->
@@ -128,13 +128,16 @@
         align-items: center;
         justify-content: space-between;
         gap: var(--space-4);
-        margin: 10px 10px 0;
+        flex: none;
+        margin: 0 var(--space-5) var(--space-3);
         padding: var(--space-2) var(--space-4);
         border-radius: var(--r-lg);
         background: var(--glass-strong);
         border: 1px solid var(--accent-edge);
-        position: relative;
-        z-index: 1;
+    }
+    /* the overlay title bar owns the top 28px of the window (drag strip + window buttons): sit clearly below it */
+    :global(:root[data-platform='mac']) .update-banner {
+        margin-top: var(--space-4);
     }
     .body {
         display: flex;

@@ -52,6 +52,20 @@ for (const theme of ['Night glass', 'Paper glass'] as const) {
     });
 }
 
+for (const theme of ['Night glass', 'Paper glass'] as const) {
+    test(`${theme}: the update banner passes axe`, async ({ page }) => {
+        await page.addInitScript(() => localStorage.setItem('e2e-update', 'available'));
+        await page.goto('/');
+        const banner = page.getByRole('status').filter({ hasText: 'v9.9.9' });
+        await expect(banner).toBeVisible({ timeout: 30_000 });
+        await page.getByRole('button', { name: 'Settings' }).click();
+        await page.getByRole('radio', { name: new RegExp(theme) }).click();
+        await page.getByRole('button', { name: 'Solve' }).click();
+        await expect(banner).toBeVisible();
+        await audit(page, `${theme} update banner`);
+    });
+}
+
 test('the palette is a labelled dialog that keyboard users can drive', async ({ app }) => {
     await app.keyboard.press('ControlOrMeta+k');
     const dialog = app.getByRole('dialog', { name: 'Find a script' });
