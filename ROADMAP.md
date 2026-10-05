@@ -14,10 +14,10 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
-| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.2.0` |
-| 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · ✅ done `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` | `v0.3.0` |
-| 4 | Quiz rehearsal | 🔜 planned `feat/10-mock-quiz-fixes` | `v1.0.0` |
-| 5 | After the quizzes | 🔜 planned `feat/11-drop-python-fallback` · 🔜 planned `feat/12-repl` · 🔜 planned `feat/13-contributor-guide` | `v1.1.0` |
+| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.5.0 (with phase 3)` |
+| 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · ✅ done `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` · 🔄 active `feat/10-release-v0.5.0` | `v0.5.0` |
+| 4 | Quiz rehearsal | 🔜 planned `feat/11-mock-quiz-fixes` | `v1.0.0` |
+| 5 | After the quizzes | 🔜 planned `feat/12-drop-python-fallback` · 🔜 planned `feat/13-repl` · 🔜 planned `feat/14-contributor-guide` | `v1.1.0` |
 | — | Process fixes _(sidequest)_ | ✅ done `fix/7-roadmap-skip-ci` | — |
 
 ## Branch diagram
@@ -61,7 +61,7 @@ gitGraph
     checkout dev
     merge feat/3-coverage-gaps
     checkout main
-    merge dev tag: "v0.2.0"
+    merge dev tag: "v0.5.0 (with phase 3)"
     checkout dev
 
     %% Phase 3 — Quiz-day features
@@ -97,32 +97,36 @@ gitGraph
     commit id: "✔ Search the rulebook from a locally loaded PDF"
     checkout dev
     merge feat/9-rules-search
+    branch feat/10-release-v0.5.0
+    commit id: "… Release v0.5.0, the first installable version for the team"
+    checkout dev
+    merge feat/10-release-v0.5.0
     checkout main
-    merge dev tag: "v0.3.0"
+    merge dev tag: "v0.5.0"
     checkout dev
 
     %% Phase 4 — Quiz rehearsal
-    branch feat/10-mock-quiz-fixes
+    branch feat/11-mock-quiz-fixes
     commit id: "○ Fixes from two timed mock quizzes; version pinned for the quizzes"
     checkout dev
-    merge feat/10-mock-quiz-fixes
+    merge feat/11-mock-quiz-fixes
     checkout main
     merge dev tag: "v1.0.0"
     checkout dev
 
     %% Phase 5 — After the quizzes
-    branch feat/11-drop-python-fallback
+    branch feat/12-drop-python-fallback
     commit id: "○ Remove legacy/python after a handover"
     checkout dev
-    merge feat/11-drop-python-fallback
-    branch feat/12-repl
+    merge feat/12-drop-python-fallback
+    branch feat/13-repl
     commit id: "○ Full interactive command line"
     checkout dev
-    merge feat/12-repl
-    branch feat/13-contributor-guide
+    merge feat/13-repl
+    branch feat/14-contributor-guide
     commit id: "○ Contributor guide, issue templates and fsq validate"
     checkout dev
-    merge feat/13-contributor-guide
+    merge feat/14-contributor-guide
     checkout main
     merge dev tag: "v1.1.0"
     checkout dev
