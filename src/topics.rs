@@ -59,6 +59,16 @@ pub fn worked_examples(script: &str) -> Vec<Example> {
         .collect()
 }
 
+/// Past questions solved with `chain <target> ...` (no single script owns them).
+pub fn chain_examples() -> Vec<Example> {
+    worked_examples("chain")
+}
+
+/// Past questions solved with `calc <expression>`.
+pub fn calc_examples() -> Vec<Example> {
+    worked_examples("calc")
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -114,6 +124,37 @@ mod tests {
         }
         for k in f.aliases.keys() {
             assert!(topic_of(k).is_some(), "[aliases] names unknown script {k}");
+        }
+    }
+
+    #[test]
+    fn chain_and_calc_lists_hold_exactly_the_rows_of_examples_toml() {
+        #[derive(Deserialize)]
+        struct Rows {
+            example: Vec<Row>,
+        }
+        #[derive(Deserialize)]
+        struct Row {
+            id: u32,
+            cmd: String,
+        }
+        let rows: Rows = toml::from_str(include_str!("../data/examples.toml")).unwrap();
+        for head in ["chain", "calc"] {
+            let want: Vec<u32> = rows
+                .example
+                .iter()
+                .filter(|r| r.cmd.starts_with(&format!("{head} ")))
+                .map(|r| r.id)
+                .collect();
+            let got: Vec<u32> = match head {
+                "chain" => chain_examples(),
+                _ => calc_examples(),
+            }
+            .iter()
+            .map(|e| e.id)
+            .collect();
+            assert!(!want.is_empty(), "no {head} rows in examples.toml");
+            assert_eq!(got, want, "{head} examples");
         }
     }
 

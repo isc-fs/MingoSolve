@@ -61,6 +61,8 @@ fn dispatch_inner(cmd: &str, a: &Value) -> Result<Value, String> {
         .map(|r| json!(r)),
         "list_topics" => ok(json!(topics::list_topics())),
         "script_examples" => ok(json!(topics::script_examples(arg(a, "script")?))),
+        "chain_examples" => ok(json!(topics::chain_examples())),
+        "calc_examples" => ok(json!(topics::calc_examples())),
         other => Err(format!("unknown command {other}")),
     }
 }

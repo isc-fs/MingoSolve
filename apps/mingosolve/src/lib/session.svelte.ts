@@ -28,6 +28,10 @@ export const session = $state({
     /** Topic to expand when the Topics view opens. */
     topic: null as string | null,
     calcInput: '',
+    /** Bumped to make the calculator evaluate its input (a past question was opened). */
+    calcRun: 0,
+    /** The Chain view's form, kept here so a past question can fill it; `run` is bumped to evaluate it. */
+    chain: { target: '', given: '', only: '', shownIn: '', run: 0 },
     /** The open sheet's working state, kept here so switching views doesn't lose typed values. */
     sheet: null as null | {
         nonce: number;
@@ -104,6 +108,12 @@ export function openCommand(cmd: string, answer?: number): void {
     if (head === undefined) return;
     if (head === 'calc') {
         session.calcInput = rest.join(' ');
+        settings.calcOpen = true;
+        session.calcRun += 1;
+        return;
+    }
+    if (head === 'chain') {
+        openChain(rest);
         return;
     }
     const values: [string, string][] = [];
@@ -119,6 +129,25 @@ export function openCommand(cmd: string, answer?: number): void {
             positional.push(arg);
         }
     }
-    if (head === 'chain') return;
     openScript(head, values, { display, positional, answer });
+}
+
+/** Fill the Chain view from `chain <target> k=v ... [@target=unit] [only=tag,tag]` and run it. */
+function openChain(args: string[]): void {
+    const target = args.find((a) => !a.includes('=')) ?? '';
+    const known: string[] = [];
+    let only = '';
+    let shownIn = '';
+    for (const arg of args) {
+        const eq = arg.indexOf('=');
+        if (eq <= 0) continue;
+        const k = arg.slice(0, eq);
+        const v = arg.slice(eq + 1);
+        if (k === 'only') only = v.split(',').join(', ');
+        else if (k.startsWith('@')) {
+            if (k.slice(1) === target) shownIn = v;
+        } else if (v !== '' && v !== '?') known.push(`${k} = ${v}`);
+    }
+    session.chain = { target, given: known.join('\n'), only, shownIn, run: session.chain.run + 1 };
+    session.activeView = 'chain';
 }

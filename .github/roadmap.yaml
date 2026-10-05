@@ -77,4 +77,7 @@ phases:
       - name: feat/13-contributor-guide
         scope: Contributor guide, issue templates and fsq validate
 
-sidequests: []
+sidequests:
+  - title: Process fixes
+    branches:
+      - fix/7-roadmap-skip-ci
