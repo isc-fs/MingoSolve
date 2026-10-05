@@ -51,7 +51,7 @@ function startApp(): void {
     vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {} }));
     mockIPC(async (cmd) => {
         if (cmd === 'plugin:store|load') return 1;
-        if (cmd === 'plugin:store|get') return [null, false];
+        if (cmd === 'plugin:store|get') return [{ tourDone: true }, true]; // the tour would otherwise own the keyboard
         if (['list_formulas', 'list_tools', 'list_topics'].includes(cmd)) return [];
         return null;
     });

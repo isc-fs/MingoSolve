@@ -594,7 +594,7 @@
         {/if}
 
         {#if answer !== null}
-            <div class="answer sticky">
+            <div class="answer sticky" data-tour="answer">
                 <div class="answer-row">
                     <span class="a-label">{#if texOf.has(answer.label)}<Tex tex={texOf.get(answer.label) ?? ''} />{:else}{answer.label}{/if} =</span>
                     <span class="a-value" class:block={answer.block}>{answer.shown}</span>
@@ -660,7 +660,7 @@
         {/if}
 
         {#if answer !== null && answer.n !== null}
-            <div class="check">
+            <div class="check" data-tour="check">
                 <button type="button" class="btn btn-ghost btn-sm" onclick={() => (showOptions = !showOptions)} aria-expanded={showOptions}>
                     <Icon name="chevron" size={14} />Check against options
                 </button>

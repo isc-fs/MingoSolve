@@ -493,3 +493,8 @@ kbd {
         animation: none !important;
     }
 }
+
+/* during the guided tour the Solve view gets room below its content so any target can be scrolled clear of the edge */
+:root[data-touring] main > .view {
+    padding-bottom: 55vh;
+}

@@ -10,6 +10,8 @@ Print this (two pages). The same content is in the app under **Help** (<kbd>⌘/
 
 A blank field is an unknown: the script solves for whatever you leave empty.
 
+New here? **Help > Take the tour** (or Settings) replays a short guided tour of the real screen; **Esc** skips it.
+
 ## 2. Finding scripts
 
 - **Paste a problem.** Each match shows how many values it filled in; the best one is first.

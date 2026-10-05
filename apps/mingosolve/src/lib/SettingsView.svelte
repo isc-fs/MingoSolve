@@ -9,6 +9,7 @@
     import { platform, searchShortcut } from './platform';
     import { radioArrows } from './radio';
     import { settings, TEXT_SIZES, type TextSize, type Theme } from './settings.svelte';
+    import { startTour } from './onboarding.svelte';
     import { checkForUpdate, type AvailableUpdate } from './updater';
 
     let { update = $bindable() }: { update: AvailableUpdate | null } = $props();
@@ -118,6 +119,10 @@
 
     <section class="glass panel">
         <h2>About</h2>
+        <div class="row">
+            <button type="button" class="btn" id="take-tour" onclick={startTour}>Take the tour</button>
+            <span class="muted small">A short walk through the app, on the real screen.</span>
+        </div>
         <p>ISC MingoSolve {version !== '' ? `v${version}` : ''} · ISC Racing Team</p>
         <p class="muted small">
             Scripts are checked against past FS-Quiz questions (fs-quiz.eu, Open Database License). Shortcuts:

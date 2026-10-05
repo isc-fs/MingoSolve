@@ -29,6 +29,8 @@ export interface Settings {
     decimalComma: boolean;
     /** Look for a newer version when the app starts. The manual button in Settings works either way. */
     autoUpdateCheck: boolean;
+    /** The guided tour was finished or skipped; settings files from before the tour existed lack it and see it once. */
+    tourDone: boolean;
 }
 
 export function defaultSettings(): Settings {
@@ -45,6 +47,7 @@ export function defaultSettings(): Settings {
         precision: { kind: 'sig', n: 4 },
         decimalComma: false,
         autoUpdateCheck: true,
+        tourDone: false,
     };
 }
 

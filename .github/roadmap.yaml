@@ -64,23 +64,29 @@ phases:
         scope: Release v0.5.0, the first installable version for the team
   - number: 4
     title: Quiz rehearsal
-    tag: v1.0.0
+    tag: "v1.1.0, then the quiz-pinned v1.x"
     branches:
       - name: feat/11-chain-names-and-folding
         scope: Common variable spellings (v_i, v_f) understood; past questions folded away
       - name: fix/8-release-v0.5.1
         scope: Release v0.5.1 with readable variable names; first in-app update
-      - name: feat/12-mock-quiz-fixes
+      - name: fix/9-update-banner-titlebar
+        scope: Update banner moved below the macOS title bar
+      - name: feat/12-onboarding-tutorial
+        scope: A short, skippable first-run tour of the app
+      - name: feat/17-release-v1.1.0
+        scope: Release v1.1.0 with the guided tour
+      - name: feat/13-mock-quiz-fixes
         scope: Fixes from two timed mock quizzes; version pinned for the quizzes
   - number: 5
     title: After the quizzes
-    tag: v1.1.0
+    tag: v2.0.0
     branches:
-      - name: feat/13-drop-python-fallback
+      - name: feat/14-drop-python-fallback
         scope: Remove legacy/python after a handover
-      - name: feat/14-repl
+      - name: feat/15-repl
         scope: Full interactive command line
-      - name: feat/15-contributor-guide
+      - name: feat/16-contributor-guide
         scope: Contributor guide, issue templates and fsq validate
 
 sidequests:
