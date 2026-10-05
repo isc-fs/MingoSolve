@@ -1,11 +1,13 @@
 <!--
     The open script. Formula scripts: one field per variable (value with units, blank = unknown), solved live; every
     root is listed and the picked one fills the answer slab, which copies it in quiz format and can be checked
-    against pasted multiple-choice options. Tool scripts: parameters with their defaults, Enter runs.
+    against pasted multiple-choice options. Tool scripts: parameters with their defaults, Enter runs; a tool that
+    takes a rule year also shows what the other years would answer. The answer slab sticks to the bottom of the
+    scrolling view so it stays on screen with long forms. Copy: ⌘/Ctrl+Enter anywhere in the sheet.
     Worked examples (past FS-Quiz questions that use this script) load their inputs in one click.
 -->
 <script lang="ts">
-    import { untrack } from 'svelte';
+    import { onDestroy, untrack } from 'svelte';
 
     import Icon from './Icon.svelte';
     import Tex from './Tex.svelte';
@@ -15,7 +17,8 @@
     import { formatAnswer, matchOptions } from './finder';
     import { scriptExamples } from './topics';
     import { openCommand, session, togglePin } from './session.svelte';
-    import { settings } from './settings.svelte';
+    import { RULE_YEARS, settings } from './settings.svelte';
+    import { platform } from './theme.svelte';
     import type { Matching, SolveResult, WorkedExample } from './types';
 
     const script = $derived(session.script !== null ? catalog.scripts.get(session.script.id) ?? null : null);
@@ -33,6 +36,24 @@
     let matching = $state<Matching | null>(null);
     let formatted = $state('');
     let copied = $state(false);
+    let announce = $state('');
+    let announceFlip = false;
+    // Tool runs: the rule year that produced the answer on screen, and what the other years answer.
+    let toolYear = $state<string | null>(null);
+    let otherYears = $state<{ year: string; out: string }[]>([]);
+    let yearHint = $state<string | null>(null);
+    let undo = $state<Snapshot | null>(null);
+    let undoTimer: ReturnType<typeof setTimeout> | null = null;
+    const shortcut = platform === 'mac' ? '⌘↵' : 'Ctrl+↵';
+
+    interface Snapshot {
+        values: Record<string, string>;
+        display: Record<string, string>;
+        fromProblem: Record<string, string>;
+        picked: { name: string; index: number } | null;
+        options: string;
+        showOptions: boolean;
+    }
 
     // Reset and pre-fill whenever a script is opened (nonce changes even for the same script); coming back to the
     // same opened script from another view restores what was typed.
@@ -73,6 +94,10 @@
             }
             result = null;
             toolOut = null;
+            toolYear = null;
+            otherYears = [];
+            latestRun++;
+            dropUndo();
             error = null;
             matching = null;
             void scriptExamples(s.id).then((ex) => (examples = ex));
@@ -134,30 +159,66 @@
         return r.found.length > 0 ? { name: r.found[0].name, index: 0 } : null;
     }
 
+    // Same rule as the live solve: only the reply to the latest run is shown, for the answer and for the other years.
+    let latestRun = 0;
     async function run(): Promise<void> {
         const s = script;
         if (s === null || s.tool === undefined) return;
+        const seq = ++latestRun;
+        const entries = Object.entries(values);
+        const year = s.tool.params.some((p) => p.name === 'rules') ? (values.rules ?? '').trim() || RULE_YEARS[0] : null;
+        toolYear = year;
+        otherYears = [];
+        const others = year !== null && (RULE_YEARS as string[]).includes(year) ? RULE_YEARS.filter((y) => y !== year) : [];
+        const main = runTool(s.id, entries);
+        for (const y of others) {
+            const withYear = entries.map(([k, v]): [string, string] => (k === 'rules' ? [k, y] : [k, v]));
+            runTool(s.id, withYear)
+                .then((out) => {
+                    if (seq !== latestRun) return;
+                    otherYears = [...otherYears, { year: y, out }].sort((a, b) => (RULE_YEARS as string[]).indexOf(a.year) - (RULE_YEARS as string[]).indexOf(b.year));
+                })
+                .catch(() => {});
+        }
         try {
-            toolOut = await runTool(s.id, Object.entries(values));
+            const out = await main;
+            if (seq !== latestRun) return;
+            toolOut = out;
             error = null;
         } catch (e) {
+            if (seq !== latestRun) return;
             toolOut = null;
             error = String(e);
         }
     }
 
+    const NUMBER = /^-?[\d.]+(e[-+]?\d+)?$/;
+    /** Same 2 % the engine uses to call an option a match. */
+    const CLOSE = 0.02;
+
     const answer = $derived.by(() => {
         if (script?.tool !== undefined) {
             if (toolOut === null) return null;
-            const n = parseFloat(toolOut);
-            return { label: script.id, shown: toolOut, n: Number.isFinite(n) && /^-?[\d.]+(e[-+]?\d+)?$/.test(toolOut.trim()) ? n : null, others: [] as string[] };
+            // multi-line outputs: the first line is the value when it is a number, the rest is detail
+            const full = toolOut.trimEnd();
+            const [head, ...rest] = full.split('\n');
+            const numeric = NUMBER.test(head.trim());
+            return {
+                label: script.title,
+                shown: numeric ? head.trim() : full,
+                n: numeric ? parseFloat(head) : null,
+                others: [] as string[],
+                extra: numeric ? rest.join('\n') : '',
+                full,
+                block: !numeric && rest.length > 0,
+            };
         }
         if (result === null || picked === null) return null;
         const fv = result.found.find((f) => f.name === picked!.name);
         const shown = fv?.shown[picked.index];
         if (fv === undefined || shown === undefined) return null;
         const n = parseFloat(shown);
-        return { label: fv.name, shown, n: Number.isFinite(n) ? n : null, others: fv.shown.filter((_, i) => i !== picked!.index) };
+        return { label: fv.name, shown, n: Number.isFinite(n) ? n : null, others: fv.shown.filter((_, i) => i !== picked!.index), extra: '', full: shown, block: false };
     });
 
     // The copy text must belong to the answer on screen, so stale formatting replies are dropped too.
@@ -194,15 +255,103 @@
         }
     });
 
-    function copy(): void {
-        if (formatted.length === 0) return;
-        void navigator.clipboard.writeText(formatted);
-        copied = true;
+    // If the pasted options fit another rule year clearly better than the selected one, say so (reused questions
+    // often carry the old key). Own sequence: a late reply for earlier input must not show.
+    let latestHint = 0;
+    $effect(() => {
+        const a = answer;
+        const opts = options;
+        const year = toolYear;
+        const others = otherYears;
+        const seq = ++latestHint;
+        yearHint = null;
+        if (a === null || a.n === null || year === null || opts.trim().length === 0 || others.length === 0) return;
+        const bestOf = (m: Matching) => m.options.find((o) => o.best && o.rel_diff !== null) ?? null;
+        void (async () => {
+            try {
+                const mine = bestOf(await matchOptions(a.shown, opts));
+                if (mine !== null && mine.rel_diff! <= CLOSE) return;
+                let found: { year: string; text: string; d: number } | null = null;
+                for (const o of others) {
+                    const head = o.out.split('\n')[0].trim();
+                    if (!NUMBER.test(head)) continue;
+                    const b = bestOf(await matchOptions(head, opts));
+                    if (b !== null && b.rel_diff! <= CLOSE && (found === null || b.rel_diff! < found.d)) found = { year: o.year, text: b.text, d: b.rel_diff! };
+                }
+                if (seq !== latestHint || found === null) return;
+                yearHint = `The ${found.year} rules match option ${found.text}; this question may use ${found.year === 'legacy' ? 'the old key' : `the ${found.year} key`}.`;
+            } catch {
+                /* the hint is optional */
+            }
+        })();
+    });
+
+    function announceText(text: string): void {
+        announceFlip = !announceFlip;
+        announce = text + (announceFlip ? '\u200b' : '');
     }
 
+    function copyText(text: string, said: string): void {
+        if (text.length === 0) return;
+        navigator.clipboard.writeText(text).then(
+            () => {
+                copied = true;
+                announceText(said);
+            },
+            () => announceText('Copy failed'),
+        );
+    }
+
+    function copy(): void {
+        copyText(formatted, `Copied ${formatted}`);
+    }
+
+    function copyAll(): void {
+        if (answer !== null) copyText(answer.full, `Copied all ${answer.full.split('\n').length} lines`);
+    }
+
+    function onKeydown(e: KeyboardEvent): void {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && answer !== null) {
+            e.preventDefault();
+            copy();
+        }
+    }
+
+    function dropUndo(): void {
+        if (undoTimer !== null) clearTimeout(undoTimer);
+        undoTimer = null;
+        undo = null;
+    }
+    onDestroy(dropUndo);
+
     function clear(): void {
+        undo = $state.snapshot({ values, display, fromProblem, picked, options, showOptions });
+        if (undoTimer !== null) clearTimeout(undoTimer);
+        undoTimer = setTimeout(dropUndo, 8000);
         for (const k of Object.keys(values)) values[k] = k === 'rules' ? settings.rules : '';
+        display = {};
         fromProblem = {};
+        picked = null;
+        options = '';
+        toolOut = null;
+        toolYear = null;
+        otherYears = [];
+        latestRun++;
+        error = null;
+    }
+
+    function undoClear(): void {
+        const u = undo;
+        if (u === null) return;
+        dropUndo();
+        values = { ...u.values };
+        display = { ...u.display };
+        fromProblem = { ...u.fromProblem };
+        picked = u.picked;
+        options = u.options;
+        showOptions = u.showOptions;
+        if (script?.tool !== undefined && Object.values(values).some((v) => v.trim().length > 0 && v !== settings.rules)) void run();
+        announceText('Restored');
     }
 
     const pinned = $derived(script !== null && settings.pinned.includes(script.id));
@@ -221,7 +370,8 @@
         </p>
     </div>
 {:else}
-    <section class="sheet glass" onkeydown={(e) => e.key === 'Escape' && clear()} role="presentation">
+    <section class="sheet glass" onkeydown={onKeydown} role="presentation">
+        <p class="sr-only" role="status" aria-live="polite">{announce}</p>
         <header>
             <div class="titles">
                 <span class="label">{script.topic?.name ?? 'Script'} · {script.kind === 'formula' ? 'solve for the blank' : 'tool'}</span>
@@ -230,7 +380,10 @@
             <button type="button" class="btn btn-ghost btn-sm" class:pinned onclick={() => togglePin(script.id)} aria-pressed={pinned} title={pinned ? 'Unpin from the rail' : 'Pin to the rail'}>
                 <Icon name="pin" size={15} />{pinned ? 'Pinned' : 'Pin'}
             </button>
-            <button type="button" class="btn btn-ghost btn-sm" onclick={clear} title="Clear all fields (Esc)">Clear</button>
+            {#if undo !== null}
+                <button type="button" class="btn btn-sm undo" onclick={undoClear} title="Put back what was cleared">Undo clear</button>
+            {/if}
+            <button type="button" class="btn btn-ghost btn-sm" onclick={clear} title="Clear all fields">Clear</button>
         </header>
 
         {#if script.formula !== undefined}
@@ -295,14 +448,26 @@
         {/if}
 
         {#if answer !== null}
-            <div class="answer">
+            <div class="answer sticky">
                 <div class="answer-row">
                     <span class="a-label">{#if texOf.has(answer.label)}<Tex tex={texOf.get(answer.label) ?? ''} />{:else}{answer.label}{/if} =</span>
-                    <span class="a-value">{answer.shown}</span>
-                    <button type="button" class="btn copy" onclick={copy} title="Copy as {formatted}">
-                        <Icon name={copied ? 'check' : 'copy'} size={15} />{copied ? 'Copied' : `Copy ${formatted}`}
-                    </button>
+                    <span class="a-value" class:block={answer.block}>{answer.shown}</span>
+                    {#if toolYear !== null}<span class="pill" title="Rule set that produced this answer">rules {toolYear}</span>{/if}
+                    <span class="a-actions">
+                        {#if answer.extra.length > 0}
+                            <button type="button" class="btn btn-sm copy-all" onclick={copyAll} title="Copy every line of the output">Copy all</button>
+                        {/if}
+                        <button type="button" class="btn copy" onclick={copy} title="Copy as {formatted.length > 40 ? 'the text' : formatted} ({shortcut})">
+                            <Icon name={copied ? 'check' : 'copy'} size={15} />{copied ? 'Copied' : answer.block ? 'Copy' : `Copy ${formatted}`}<kbd>{shortcut}</kbd>
+                        </button>
+                    </span>
                 </div>
+                {#if answer.extra.length > 0}
+                    <pre class="a-extra">{answer.extra}</pre>
+                {/if}
+                {#if otherYears.length > 0}
+                    <p class="a-note a-years">Other rules: {otherYears.map((o) => `${o.year}: ${o.out.split('\n')[0].trim()}`).join(' · ')}</p>
+                {/if}
                 {#if answer.others.length > 0}
                     <p class="a-note">Other root{answer.others.length > 1 ? 's' : ''}: {answer.others.join(' · ')}. Pick one below if the physics says so.</p>
                 {/if}
@@ -344,6 +509,7 @@
                 </button>
                 {#if showOptions}
                     <textarea autocomplete="off" autocapitalize="off" spellcheck="false" class="input mono" rows="3" bind:value={options} placeholder={'a) 73.4 A\nb) 77.9 A\nc) 80.4 A'}></textarea>
+                    {#if yearHint !== null}<p class="note note-warn note-year"><strong>Rule year:</strong> {yearHint}</p>{/if}
                     {#if matching !== null}
                         {#if matching.warning !== null}<p class="note note-warn"><strong>Careful:</strong> {matching.warning}</p>{/if}
                         <ul class="opts">
@@ -487,10 +653,16 @@
         color: var(--ink-accent);
         opacity: 1;
     }
-    .answer {
+    /* Sticks to the bottom of the scrolling view (.view in SolveView) while its place in the sheet is below the fold.
+       The solid layer under the tint keeps the fields that scroll beneath it readable (also in [data-solid]). */
+    .answer.sticky {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
         padding: var(--space-4) var(--space-5);
         border-radius: var(--r-lg);
-        background: var(--answer-bg);
+        background: var(--answer-bg), var(--glass-solid);
+        box-shadow: 0 -10px 18px -10px rgba(0, 0, 0, 0.35), var(--shadow);
         border: 1px solid var(--answer-edge);
         display: flex;
         flex-direction: column;
@@ -515,9 +687,50 @@
         color: var(--answer-text);
         overflow-wrap: anywhere;
     }
-    .copy {
+    .a-value.block {
+        font-family: var(--font-mono);
+        font-size: var(--text-lg);
+        white-space: pre-wrap;
+        flex-basis: 100%;
+    }
+    .a-extra {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        color: var(--answer-note);
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+    .pill {
+        align-self: center;
+        padding: 0 8px;
+        border-radius: var(--r-pill);
+        border: 1px solid var(--answer-edge);
+        color: var(--answer-label);
+        font-size: var(--text-xs);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .a-actions {
         margin-left: auto;
         align-self: center;
+        display: flex;
+        gap: var(--space-2);
+        align-items: center;
+    }
+    .copy kbd {
+        margin-left: var(--space-2);
+        color: inherit;
+        opacity: 0.7;
+        border-color: currentColor;
+    }
+    .undo {
+        color: var(--ink-accent);
+    }
+    .copy {
         background: var(--isc-gold);
         color: #1a1406;
         border-color: transparent;
