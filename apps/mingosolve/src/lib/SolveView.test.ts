@@ -10,7 +10,12 @@ import { session } from './session.svelte';
 import { fakeEngine } from '../test/ipc';
 import type { Found, FormulaInfo, Hit, PastMatch } from './types';
 
-const hit = (id: string, prefill: [string, string][]): Hit => ({ kind: 'formula', id, title: id, score: 1, prefill, target: null, warning: null });
+const titles: Record<string, string> = {
+    cornering_downforce: 'Max cornering speed with downforce',
+    ts_discharge: 'Discharging the TS through a resistor',
+    uniform_motion: 'Uniform motion',
+};
+const hit = (id: string, prefill: [string, string][]): Hit => ({ kind: 'formula', id, title: titles[id], score: 1, prefill, target: null, warning: null });
 
 const finds: Record<string, Found> = {
     skidpad: { hits: [hit('cornering_downforce', [['m', '240 kg']])], quantities: ['240 kg'], past: null, format: null },
@@ -34,10 +39,10 @@ it('shows the matches for the problem on screen when an earlier search replies l
     session.problem = 'discharge from 396 V';
     await waitFor(() => expect(replies.pending()).toBe(2));
     replies.release(1);
-    await waitFor(() => expect(screen.getByLabelText('Scripts that fit').textContent).toContain('Ts discharge'));
+    await waitFor(() => expect(screen.getByLabelText('Scripts that fit').textContent).toContain('Discharging the TS through a resistor'));
     replies.release(0);
     await new Promise((r) => setTimeout(r, 50));
-    expect(screen.getByLabelText('Scripts that fit').textContent).not.toContain('Cornering downforce');
+    expect(screen.getByLabelText('Scripts that fit').textContent).not.toContain('Max cornering speed');
     expect(Object.keys(session.problemFills)).toEqual(['ts_discharge']);
 });
 
@@ -81,7 +86,7 @@ describe('which detected values the open script uses', () => {
         tex: ['v = \\frac{s}{t}'],
         tags: [],
         notes: '',
-        vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, default: null, tex: name, unit_shown: '', dims: 'm' })),
+        vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims: 'm' })),
     };
     const chip = (text: string) => [...document.querySelectorAll('.chips .chip')].find((c) => c.textContent?.includes(text))!;
 
@@ -129,6 +134,19 @@ describe('which detected values the open script uses', () => {
         expect(chip('75 m').classList.contains('unused')).toBe(false);
         expect(chip('75 m').textContent).not.toContain('not used');
     });
+});
+
+it('names each match by the script title, in full on hover, not by a shortened id', async () => {
+    const title = 'Discharging the TS through a resistor';
+    fakeEngine({ find_question: () => ({ hits: [hit('ts_discharge', [['V_0', '396 V']])], quantities: ['396 V'], past: null }) });
+    catalog.scripts = new Map([['ts_discharge', { id: 'ts_discharge', kind: 'formula', title, aliases: '', topic: null }]]);
+    render(SolveView);
+    session.problem = 'discharge from 396 V';
+    await waitFor(() => expect(screen.getByLabelText('Scripts that fit').querySelector('.match')).not.toBeNull());
+    const chip = screen.getByLabelText('Scripts that fit').querySelector<HTMLElement>('.match')!;
+    expect(chip.querySelector('.mtitle')?.textContent).toBe(title);
+    expect(chip.title).toBe(title);
+    expect(chip.textContent).not.toContain('Ts discharge');
 });
 
 describe('past question banner', () => {

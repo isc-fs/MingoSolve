@@ -43,8 +43,17 @@ export async function openFromPalette(page: Page, query: string, title: RegExp):
     await page.getByRole('dialog', { name: 'Find a script' }).getByRole('option').filter({ hasText: title }).first().click();
 }
 
+/** The text input of a field (a select for tool choices is `choice`, a tool's on/off box `switchBox`). */
 export function field(page: Page, variable: string) {
-    return page.locator(`label.field[data-var="${variable}"]`).locator('input');
+    return page.locator(`label.field[data-var="${variable}"]`).locator('input:not([type="checkbox"])');
+}
+
+export function choice(page: Page, parameter: string) {
+    return page.locator(`label.field[data-var="${parameter}"]`).locator('select');
+}
+
+export function switchBox(page: Page, parameter: string) {
+    return page.locator(`label.field[data-var="${parameter}"]`).locator('input[type="checkbox"]');
 }
 
 export function answer(page: Page) {

@@ -14,6 +14,8 @@ pub struct Var {
     pub name: String,
     pub unit: String,
     pub desc: String,
+    /// How to type the value (unit, syntax); shown under the field, kept out of `desc`.
+    pub hint: Option<String>,
     #[serde(default)]
     pub signed: bool,
     pub default: Option<f64>,
@@ -190,6 +192,53 @@ mod tests {
             orphans.is_empty(),
             "variables no formula uses (dead data or a typo in an equation): {orphans:?}"
         );
+    }
+
+    #[test]
+    fn typing_advice_lives_in_hints_not_descriptions() {
+        let r = registry();
+        for v in r.vars.values() {
+            for bad in ["(type", "type ", "@", "**"] {
+                assert!(
+                    !v.desc.contains(bad),
+                    "{}: how to type it belongs in `hint`, not desc {:?}",
+                    v.name,
+                    v.desc
+                );
+            }
+            if let Some(h) = &v.hint {
+                assert!(h.ends_with('.'), "{}: a hint is a sentence", v.name);
+            }
+        }
+        assert!(
+            r.vars.values().filter(|v| v.hint.is_some()).count() >= 15,
+            "the typing hints were removed"
+        );
+    }
+
+    #[test]
+    fn notes_name_scripts_by_title_not_by_id() {
+        let r = registry();
+        let ids: Vec<&str> = r
+            .formulas
+            .iter()
+            .map(|f| f.key.as_str())
+            .chain(crate::tools::tools().iter().map(|t| t.name))
+            .filter(|id| id.contains('_'))
+            .collect();
+        for f in &r.formulas {
+            let texts = std::iter::once(&f.notes).chain(f.names.iter().map(|n| &r.vars[n].desc));
+            for text in texts {
+                assert!(
+                    !text.contains("tool "),
+                    "{}: says \"tool <id>\": {text}",
+                    f.key
+                );
+                for w in text.split(|c: char| !(c.is_alphanumeric() || c == '_')) {
+                    assert!(!ids.contains(&w), "{}: cites script id {w}", f.key);
+                }
+            }
+        }
     }
 
     #[test]

@@ -62,7 +62,8 @@ desc = "corner radius (skidpad centreline 9.125)"
 [[var]]
 name = "ay"
 unit = "m/s**2"
-desc = "lateral acceleration (type 1.5g0 for 1.5 g)"
+desc = "lateral acceleration"
+hint = "Type 1.5g0 for 1.5 g."
 signed = true
 
 [[var]]
@@ -109,7 +110,8 @@ desc = "track width"
 [[var]]
 name = "omega"
 unit = "rad/s"
-desc = "angular speed (type rpm)"
+desc = "angular speed"
+hint = "Type the unit you have, like 3000 rpm."
 
 [[var]]
 name = "Tq"
@@ -368,7 +370,8 @@ desc = "maximum power transferable to a load"
 [[var]]
 name = "C_cell"
 unit = "C"
-desc = "cell capacity (type it as Ah)"
+desc = "cell capacity"
+hint = "Type it with its unit, like 20 Ah."
 
 [[var]]
 name = "E_cell"
@@ -428,7 +431,8 @@ desc = "temperature coefficient of resistance"
 [[var]]
 name = "T"
 unit = "K"
-desc = "temperature (type degC; absolute for NTC, differences elsewhere)"
+desc = "temperature"
+hint = "Type it in degC, like 25 degC. An absolute temperature for an NTC sensor, a difference elsewhere."
 
 [[var]]
 name = "T_0"
@@ -519,7 +523,8 @@ desc = "cutoff frequency"
 [[var]]
 name = "phi"
 unit = "rad"
-desc = "phase shift (type @phi=deg to show degrees)"
+desc = "phase shift"
+hint = "To see the answer in degrees, type deg in the Show in box."
 signed = true
 
 [[var]]
@@ -648,12 +653,14 @@ signed = true
 [[var]]
 name = "C1"
 unit = "C"
-desc = "capacity at current I1 (type Ah)"
+desc = "capacity at current I1"
+hint = "Type it with its unit, like 20 Ah."
 
 [[var]]
 name = "C2"
 unit = "C"
-desc = "capacity at current I2 (type Ah)"
+desc = "capacity at current I2"
+hint = "Type it with its unit, like 20 Ah."
 
 [[var]]
 name = "I1"
@@ -738,12 +745,14 @@ desc = "average speed over a distance"
 [[var]]
 name = "omega_m"
 unit = "rad/s"
-desc = "motor / engine speed (type rpm)"
+desc = "motor / engine speed"
+hint = "Type the unit you have, like 3000 rpm."
 
 [[var]]
 name = "omega_w"
 unit = "rad/s"
-desc = "wheel speed (type rpm)"
+desc = "wheel speed"
+hint = "Type the unit you have, like 600 rpm."
 
 [[var]]
 name = "i_g"
@@ -862,7 +871,8 @@ desc = "pad friction coefficient"
 [[var]]
 name = "p_h"
 unit = "Pa"
-desc = "hydraulic pressure (type bar)"
+desc = "hydraulic pressure"
+hint = "Type it with its unit, like 80 bar."
 
 [[var]]
 name = "A_pis"
@@ -1021,7 +1031,8 @@ desc = "specific heat (water 4186)"
 [[var]]
 name = "dT"
 unit = "K"
-desc = "temperature change (type delta_degC or K)"
+desc = "temperature change"
+hint = "A change, not a level: type 5 K or 5 delta_degC."
 
 [[var]]
 name = "L_lat"
@@ -1046,7 +1057,8 @@ desc = "thermal elongation"
 [[var]]
 name = "p_1"
 unit = "Pa"
-desc = "pressure state 1, ABSOLUTE (type bar)"
+desc = "pressure state 1, absolute"
+hint = "Absolute, not gauge pressure. Type it with its unit, like 2 bar."
 
 [[var]]
 name = "p_2"
@@ -1056,12 +1068,14 @@ desc = "pressure state 2, ABSOLUTE"
 [[var]]
 name = "T_1"
 unit = "K"
-desc = "temperature state 1 (type degC)"
+desc = "temperature state 1"
+hint = "Type it in degC, like 25 degC."
 
 [[var]]
 name = "T_2"
 unit = "K"
-desc = "temperature state 2 (type degC)"
+desc = "temperature state 2"
+hint = "Type it in degC, like 25 degC."
 
 [[var]]
 name = "V_g"
@@ -1323,7 +1337,7 @@ eqs = [
     "z_def = F/k_ride",
 ]
 tags = ["dynamics", "suspension", "spring", "motion", "ratio", "wheel", "rate", "ride", "frequency", "damping"]
-notes = "Official convention: MR = wheel travel / spring travel, k_w = k_s/MR^2. Without a tyre, pass k_ride = k_w (or a huge k_t)."
+notes = "Official convention: MR = wheel travel / spring travel, k_w = k_s/MR^2. Without a tyre, set the ride rate equal to the wheel rate (or enter a huge tyre rate)."
 
 [[formula]]
 key = "coil_spring"
@@ -1379,7 +1393,7 @@ eqs = [
     "E_pack = N_s*N_p*E_cell",
 ]
 tags = ["electrical", "hv", "accumulator", "energy", "capacity", "cell"]
-notes = "Rules cell energy (EV 5.1.2, 2026/2027) = MAX cell voltage x nominal capacity. Old keys mixed V_max (Q577/Q781) and V_nom (Q396). See tool segment_max_cells."
+notes = "Rules cell energy (EV 5.1.2, 2026/2027) = MAX cell voltage x nominal capacity. Old keys mixed V_max (Q577/Q781) and V_nom (Q396). See the Max cells per accumulator section tool."
 
 [[formula]]
 key = "energy_power"
@@ -1491,7 +1505,7 @@ eqs = [
     "H = 1/sqrt(1 + (f/f_c)**2)",
 ]
 tags = ["electrical", "filter", "low", "pass", "rc", "cutoff", "phase"]
-notes = "Phase is negative. E12 pick: tool e_series."
+notes = "Phase is negative. E12 pick: the Nearest E-series resistor value tool."
 
 [[formula]]
 key = "vswr"
@@ -1501,7 +1515,7 @@ eqs = [
     "eta_tx = 1 - Gm**2",
 ]
 tags = ["electrical", "rf", "vswr", "reflection", "transmission", "line", "antenna"]
-notes = "Gamma = (Z_L - Z_0)/(Z_L + Z_0) for complex loads: tool gamma."
+notes = "Gamma = (Z_L - Z_0)/(Z_L + Z_0) for complex loads: the Reflection coefficient and VSWR of a load tool."
 
 [[formula]]
 key = "nyquist"
@@ -1510,7 +1524,7 @@ eqs = [
     "f_s = 2*f_max",
 ]
 tags = ["electrical", "sampling", "nyquist", "adc"]
-notes = "Aliased frequency: tool alias."
+notes = "Aliased frequency: the Aliased frequency after sampling tool."
 
 [[formula]]
 key = "adc"
@@ -1751,7 +1765,7 @@ eqs = [
     "P*t*eta = Q_h",
 ]
 tags = ["thermo", "heat", "capacity", "energy", "heating", "water", "time"]
-notes = "eta defaults to nothing: pass eta=1 if lossless. Water: 1 kg/L, 4186 J/kgK."
+notes = "eta defaults to nothing: enter eta = 1 if lossless. Water: 1 kg/L, 4186 J/kgK."
 
 [[formula]]
 key = "latent_heat"
@@ -1776,7 +1790,7 @@ eqs = [
     "p_1*V_g = m*R_s*T_1",
 ]
 tags = ["thermo", "gas", "pressure", "tyre", "bottle", "air"]
-notes = "Gauge -> absolute: add ~1.013 bar. See tool gauge."
+notes = "Gauge -> absolute: add ~1.013 bar. See the Gauge and absolute pressure tool."
 
 [[formula]]
 key = "gas_states"

@@ -9,6 +9,7 @@
     import Library from './Library.svelte';
     import ScriptSheet from './ScriptSheet.svelte';
     import { catalog, shortName } from './catalog.svelte';
+    import { searchShortcut } from './platform';
     import { findQuestion } from './finder';
     import { openCommand, openScript, prettyQuantity, session } from './session.svelte';
     import { problemChanged } from './sessionlog.svelte';
@@ -61,6 +62,8 @@
     );
     const used = (q: string): boolean | null => (sheetValues === null ? null : sheetValues.includes(q.replace(/\s+/g, '')));
 
+    const titleOf = (h: Hit): string => catalog.scripts.get(h.id)?.title ?? (h.title.length > 0 ? h.title : shortName(h.id));
+
     const hasProblem = $derived(session.problem.trim().length > 0);
 
     const quizzesShown = (p: PastMatch) =>
@@ -108,14 +111,14 @@
                         class="match"
                         class:best={i === 0}
                         class:on={session.script?.id === h.id}
-                        title={catalog.scripts.get(h.id)?.title ?? h.id}
+                        title={titleOf(h)}
                         onclick={() => openScript(h.id)}
                     >
-                        <span>{shortName(h.id)}</span>
+                        <span class="mtitle">{titleOf(h)}</span>
                         {#if h.prefill.length > 0}<span class="fills">{h.prefill.length}</span>{/if}
                     </button>
                 {/each}
-                {#if hits.length === 0}<span class="muted small">No script fits yet. Try <kbd>⌘K</kbd> with a keyword.</span>{/if}
+                {#if hits.length === 0}<span class="muted small">No script fits yet. Try <kbd>{searchShortcut()}</kbd> with a keyword.</span>{/if}
             </div>
         {/if}
     </div>
@@ -285,6 +288,14 @@
         cursor: pointer;
         font-size: var(--text-sm);
         transition: border-color var(--motion);
+        max-width: 100%;
+        min-width: 0;
+    }
+    .mtitle {
+        max-width: 28ch;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .match:hover,
     .match.best {

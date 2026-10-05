@@ -7,7 +7,8 @@
     import { onMount } from 'svelte';
 
     import { loadSettings, registerAutosaveEffect, settings } from './lib/settings.svelte';
-    import { platform, registerThemeEffect } from './lib/theme.svelte';
+    import { platform } from './lib/platform';
+    import { registerThemeEffect } from './lib/theme.svelte';
     import { loadCatalog } from './lib/catalog.svelte';
     import { session, toggleHelp } from './lib/session.svelte';
     import { loadSessionLog } from './lib/sessionlog.svelte';

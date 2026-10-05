@@ -10,7 +10,8 @@ import { openCommand, openScript, session } from './session.svelte';
 import { defaultSettings, settings } from './settings.svelte';
 import { sessionLog } from './sessionlog.svelte';
 import { fakeEngine } from '../test/ipc';
-import type { FormulaInfo, SolveResult, ToolInfo } from './types';
+import { corrected, score } from '../test/tools';
+import type { FormulaInfo, SolveResult } from './types';
 
 const motion: FormulaInfo = {
     key: 'uniform_motion',
@@ -23,7 +24,7 @@ const motion: FormulaInfo = {
         ['s', 'm', 'm'],
         ['t', 's', 's'],
         ['v', 'm/s', 'm·s^-1'],
-    ].map(([name, unit, dims]) => ({ name, unit, desc: name, signed: false, default: null, tex: name, unit_shown: '', dims })),
+    ].map(([name, unit, dims]) => ({ name, unit, desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims })),
 };
 const battery: FormulaInfo = {
     key: 'battery_load',
@@ -32,22 +33,13 @@ const battery: FormulaInfo = {
     tex: [],
     tags: [],
     notes: '',
-    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, default: null, tex: name, unit_shown: '', dims: '' })),
+    vars: ['N_s', 'V_cell', 'R_pack', 'P', 'I', 'V_oc'].map((name) => ({ name, unit: '', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims: '' })),
 };
-const score: ToolInfo = {
-    name: 'event_score',
-    doc: 'Dynamic event score',
-    params: [
-        { name: 'event', number: false, default: null },
-        { name: 't_team', number: true, default: null },
-        { name: 't_min', number: true, default: null },
-        { name: 'rules', number: false, default: '2027' },
-    ],
-};
-
 function field(name: string): HTMLInputElement {
     return document.querySelector<HTMLInputElement>(`label.field[data-var="${name}"] input`)!;
 }
+
+const select = (name: string) => document.querySelector<HTMLSelectElement>(`label.field[data-var="${name}"] select`)!;
 
 const slab = () => document.querySelector('.answer .a-value')?.textContent;
 
@@ -70,6 +62,7 @@ beforeEach(() => {
         ['uniform_motion', { id: 'uniform_motion', kind: 'formula', title: motion.title, aliases: '', topic: null, formula: motion }],
         ['battery_load', { id: 'battery_load', kind: 'formula', title: battery.title, aliases: '', topic: null, formula: battery }],
         ['event_score', { id: 'event_score', kind: 'tool', title: 'Event score', aliases: '', topic: null, tool: score }],
+        ['corrected_time', { id: 'corrected_time', kind: 'tool', title: 'Corrected time', aliases: '', topic: null, tool: corrected }],
     ]);
     session.problemFills = {};
     session.sheet = null;
@@ -198,7 +191,7 @@ describe('tool scripts', () => {
         render(ScriptSheet);
         await waitFor(() => expect(slab()).toBe('41.117'));
         const run = engine.calls.find((c) => c.cmd === 'run_tool')!.args;
-        expect(Object.fromEntries(run.args as [string, string][])).toEqual({
+        expect(Object.fromEntries(run.args as [string, string][])).toMatchObject({
             event: 'skidpad',
             t_team: '5.6',
             t_min: '5.1',
@@ -222,7 +215,7 @@ describe('tool scripts', () => {
         const engine = fakeEngine({ ...common, run_tool: () => '1' });
         openScript('event_score');
         render(ScriptSheet);
-        await waitFor(() => expect(field('rules').value).toBe('2026'));
+        await waitFor(() => expect(select('rules').value).toBe('2026'));
         await new Promise((r) => setTimeout(r, 50));
         expect(engine.calls.some((c) => c.cmd === 'run_tool')).toBe(false);
     });

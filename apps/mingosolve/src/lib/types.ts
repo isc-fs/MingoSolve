@@ -5,6 +5,8 @@ export interface VarInfo {
     name: string;
     unit: string;
     desc: string;
+    /** How to type the value, shown under the field (`hint` in data/formulas). */
+    hint: string | null;
     signed: boolean;
     default: number | null;
     /** The name typeset (LaTeX). */
@@ -59,15 +61,32 @@ export interface ChainResult {
     conflicts: string[];
 }
 
+export interface Choice {
+    value: string;
+    label: string;
+}
+
 export interface ParamInfo {
     name: string;
     number: boolean;
     default: string | null;
+    /** Plain-English name (data/tool_params.toml). */
+    label: string;
+    /** Unit a bare number is read in, shown next to the input. */
+    unit: string | null;
+    help: string | null;
+    /** A select with these values (blank = leave to the tool's default). */
+    choices: Choice[] | null;
+    /** An on/off checkbox, sent as 1 or 0. */
+    switch: boolean;
 }
 
 export interface ToolInfo {
     name: string;
+    /** The technical description, kept behind "Details". */
     doc: string;
+    /** One plain sentence. */
+    summary: string;
     params: ParamInfo[];
 }
 

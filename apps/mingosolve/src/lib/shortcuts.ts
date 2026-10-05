@@ -1,5 +1,7 @@
 // Every keyboard shortcut in the app, one row each, for the Help view. Each is wired in the component named in
 // `where`; shortcuts.test.ts dispatches the keys of the main ones.
+import { searchShortcut, type Platform } from './platform';
+
 export interface Shortcut {
     id: string;
     /** Key labels per platform (macOS, everywhere else). */
@@ -10,7 +12,7 @@ export interface Shortcut {
 }
 
 export const SHORTCUTS: Shortcut[] = [
-    { id: 'palette', mac: '⌘K', other: 'Ctrl+K', does: 'Find a script by name, topic or variable (again to close)', where: 'anywhere' },
+    { id: 'palette', mac: searchShortcut('mac'), other: searchShortcut('windows'), does: 'Find a script by name, topic or variable (again to close)', where: 'anywhere' },
     { id: 'help', mac: '⌘/', other: 'Ctrl+/', does: 'Open Help (again to go back)', where: 'anywhere' },
     { id: 'paste', mac: '⌘V', other: 'Ctrl+V', does: 'Paste a problem: scripts that fit open with its values filled in', where: 'anywhere outside a text field' },
     { id: 'copy', mac: '⌘↵', other: 'Ctrl+Enter', does: 'Copy the answer in quiz format (also from inside a field)', where: 'script sheet' },
@@ -24,4 +26,4 @@ export const SHORTCUTS: Shortcut[] = [
     { id: 'calc', mac: '↵', other: 'Enter', does: 'Evaluate the calculator expression', where: 'calculator' },
 ];
 
-export const keysFor = (s: Shortcut, platform: 'mac' | 'windows' | 'linux'): string => (platform === 'mac' ? s.mac : s.other);
+export const keysFor = (s: Shortcut, platform: Platform): string => (platform === 'mac' ? s.mac : s.other);

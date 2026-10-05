@@ -14,6 +14,8 @@ pub struct VarInfo {
     name: String,
     unit: String,
     desc: String,
+    /// How to type the value, shown under the field.
+    hint: Option<String>,
     signed: bool,
     default: Option<f64>,
     /// The name typeset (LaTeX): rho_air → ρ_air.
@@ -57,6 +59,7 @@ pub fn list_formulas() -> Vec<FormulaInfo> {
                         name: n.clone(),
                         unit: v.unit.clone(),
                         desc: v.desc.clone(),
+                        hint: v.hint.clone(),
                         signed: v.signed,
                         default: v.default,
                         tex: var_latex(n),

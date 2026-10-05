@@ -35,7 +35,7 @@ eqs = [
     "S_k = 2*r_cr",
 ]
 tags = ["engine", "piston", "crank", "rod", "ignition", "timing", "tdc", "position", "stroke"]
-notes = "x = r(1 - cos th) + l(1 - sqrt(1 - (r/l sin th)^2)), written through c_th = cos th. Ignition '2.0 mm before TDC' -> x_p = 2mm, solve th_cr (type @th_cr=deg). Q621's displacement is inconsistent: use stroke and rod only."
+notes = "x = r(1 - cos th) + l(1 - sqrt(1 - (r/l sin th)^2)), written through c_th = cos th. Ignition '2.0 mm before TDC' -> x_p = 2mm, solve th_cr (show it in degrees). Q621's displacement is inconsistent: use stroke and rod only."
 
 [[var]]
 name = "i_cp"
@@ -145,7 +145,7 @@ eqs = [
     "n_dw*Tq_wh/r_w = mu*(m*g + rho_air*ClA*v**2/2)",
 ]
 tags = ["traction", "torque", "wheel", "grip", "downforce", "launch", "acceleration", "hub", "motor"]
-notes = "All wheels driven with ideal split (no load transfer). ClA positive = downforce (cl = -1.25 in Q75 means downforce). Above v the motor torque limit rules; the power corner is v = P_wheel*r_w/Tq_wh (power_torque)."
+notes = "All wheels driven with ideal split (no load transfer). ClA positive = downforce (cl = -1.25 in Q75 means downforce). Above v the motor torque limit rules; the power corner is v = P_wheel*r_w/Tq_wh (Power = torque x speed)."
 
 [[var]]
 name = "P_w"
@@ -175,7 +175,7 @@ eqs = [
     "eta_g*P_m = (rho_air*CdA/2 + k_v2)*v**3",
 ]
 tags = ["top", "speed", "power", "drag", "friction", "loss", "maximum", "velocity"]
-notes = "Also check the rpm limit v = omega_max*r_w/i_g (gear_drive): the top speed is the lower of the two."
+notes = "Also check the rpm limit v = omega_max*r_w/i_g (Gear ratio: speeds, torques, road speed): the top speed is the lower of the two."
 
 [[var]]
 name = "E_b"
@@ -205,12 +205,13 @@ eqs = [
     "dT = E_b*frac_d/(n_d*m_d*c_p)",
 ]
 tags = ["brake", "disc", "energy", "temperature", "heat", "braking", "kinetic"]
-notes = "Only front brakes working -> n_d = 2. Steel/iron c_p about 460 J/(kg K). Brake torque per disc: mu F r (brake_torque)."
+notes = "Only front brakes working -> n_d = 2. Steel/iron c_p about 460 J/(kg K). Brake torque per disc: mu F r (Disc brake torque and ground force)."
 
 [[var]]
 name = "p_g"
 unit = "Pa"
-desc = "gauge gas pressure on the piston (type 80bar)"
+desc = "gauge gas pressure on the piston"
+hint = "Type it with its unit, like 80 bar."
 
 [[var]]
 name = "F_pist"
@@ -231,4 +232,4 @@ eqs = [
     "CR = V_tot/V_cc",
 ]
 tags = ["engine", "compression", "ratio", "piston", "force", "pressure", "bore", "clearance", "volume", "cylinder"]
-notes = "The force and gauge pressure fix the piston area (A = F/p), the stroke then gives the swept volume, the rest of the total volume is the clearance volume. Atmospheric pressure, friction, inertia and rod angle ignored (Q373, Q1087: 649 cm3, 150 mm, 80 bar, 31.728 kN -> CR 12). Several cylinders: use one cylinder's volume. Bore and stroke: engine_geometry."
+notes = "The force and gauge pressure fix the piston area (A = F/p), the stroke then gives the swept volume, the rest of the total volume is the clearance volume. Atmospheric pressure, friction, inertia and rod angle ignored (Q373, Q1087: 649 cm3, 150 mm, 80 bar, 31.728 kN -> CR 12). Several cylinders: use one cylinder's volume. Bore and stroke: Displacement, compression ratio, piston speed, bmep power."

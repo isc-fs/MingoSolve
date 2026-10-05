@@ -10,6 +10,7 @@
     import { chainFormulas } from './solve';
     import { catalog, searchVariables, variableInfo, type VarEntry } from './catalog.svelte';
     import { openCommand, session } from './session.svelte';
+    import { friendlyError } from './errors';
     import { chainExamples } from './topics';
     import type { ChainResult, WorkedExample } from './types';
 
@@ -46,6 +47,9 @@
         void tick().then(() => list?.querySelector(`#chain-opt-${i}`)?.scrollIntoView?.({ block: 'nearest' }));
     });
 
+    const descOf = (name: string): string | undefined =>
+        [...catalog.scripts.values()].flatMap((s) => s.formula?.vars ?? []).find((v) => v.name === name)?.desc;
+
     function parseGiven(): [string, string][] {
         return session.chain.given
             .split(/\n|;/)
@@ -73,7 +77,13 @@
         } catch (e) {
             if (mine !== latest) return;
             result = null;
-            error = String(e);
+            error = friendlyError(e, {
+                fields: [
+                    ...parseGiven().map(([name, value]) => ({ name, label: descOf(name) ?? name, value })),
+                    { name: '@show', label: 'Show in', value: c.shownIn },
+                ],
+                nameOf: descOf,
+            });
         }
     }
 

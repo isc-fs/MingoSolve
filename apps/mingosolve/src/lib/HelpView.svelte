@@ -7,7 +7,7 @@
 <script lang="ts">
     import { SHORTCUTS, keysFor } from './shortcuts';
     import { session } from './session.svelte';
-    import { platform } from './theme.svelte';
+    import { platform, searchShortcut } from './platform';
 
     const sections = [
         { id: 'help-quick', label: 'Quick start' },
@@ -54,7 +54,7 @@
         <ul>
             <li><strong>Paste a problem.</strong> Each match shows how many of the problem's values it filled in. The best match is first.</li>
             <li><strong>Search the library</strong> on the Solve page, or browse <strong>Topics</strong>. Type a word such as <span class="mono">spring</span>, or a variable such as <span class="mono">k_s</span>.</li>
-            <li><strong>Press <kbd>{platform === 'mac' ? '⌘K' : 'Ctrl+K'}</kbd></strong> from anywhere and type <span class="mono">discharge</span> or <span class="mono">skidpad score</span>. A whole sentence there is searched as a problem.</li>
+            <li><strong>Press <kbd>{searchShortcut()}</kbd></strong> from anywhere and type <span class="mono">discharge</span> or <span class="mono">skidpad score</span>. A whole sentence there is searched as a problem.</li>
             <li>Every script lists the past questions it solves under <strong>Worked examples</strong>: one click loads the inputs.</li>
         </ul>
     </section>
