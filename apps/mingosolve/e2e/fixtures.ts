@@ -1,10 +1,13 @@
 // Shared helpers: a page whose clipboard writes are captured, and small actions the journeys reuse.
 import { test as base, expect, type Page } from '@playwright/test';
 
-export const test = base.extend<{ app: Page; tour: boolean }>({
+export const test = base.extend<{ app: Page; tour: boolean; update: boolean }>({
     /** Opt in with `test.use({ tour: true })`: every other spec starts as someone who already did the tour. */
     tour: [false, { option: true }],
-    app: async ({ page, tour }, use) => {
+    /** `test.use({ update: true })`: the fake updater offers v9.9.9 (src/e2e-ipc.ts). */
+    update: [false, { option: true }],
+    app: async ({ page, tour, update }, use) => {
+        if (update) await page.addInitScript(() => localStorage.setItem('e2e-update', 'available'));
         await page.addInitScript((seedTourDone) => {
             // only when nothing is stored yet, so a reload keeps what the app saved (src/e2e-ipc.ts keeps the store here)
             const key = 'e2e-store:settings.json';
