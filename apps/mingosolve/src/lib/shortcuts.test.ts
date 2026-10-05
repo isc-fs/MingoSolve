@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('the search shortcut in texts', () => {
     it('is the platform shortcut in the rail, the empty sheet and the Solve hint', async () => {
-        fakeEngine({ find_question: () => ({ hits: [], quantities: [] }) });
+        fakeEngine({ find_question: () => ({ hits: [], quantities: [], past: null }) });
         const rail = render(Rail);
         expect(rail.container.querySelector('.search kbd')?.textContent).toBe('KEYS');
         rail.unmount();

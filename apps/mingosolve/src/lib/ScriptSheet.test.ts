@@ -2,7 +2,7 @@
 // with replies that arrive late. The real engine behind these commands is covered by the IPC tests and e2e/.
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ScriptSheet from './ScriptSheet.svelte';
 import { catalog } from './catalog.svelte';
@@ -199,7 +199,10 @@ describe('tool scripts', () => {
         openCommand('event_score', 18.25);
         render(ScriptSheet);
         await waitFor(() => expect(slab()).toBe('18.25'));
-        expect(engine.calls.filter((c) => c.cmd === 'run_tool')).toHaveLength(1);
+        // one run in the selected rule year (the other years are compared separately)
+        const year = (c: { args: Record<string, unknown> }) => Object.fromEntries(c.args.args as [string, string][]).rules;
+        const main = engine.calls.filter((c) => c.cmd === 'run_tool' && [undefined, '', settings.rules].includes(year(c)));
+        expect(main).toHaveLength(1);
     });
 
     it('opening a bare tool waits for Run instead of erroring on the empty required fields, and uses the rule year from Settings', async () => {
@@ -256,5 +259,245 @@ describe('values taken from the pasted problem', () => {
         render(ScriptSheet);
         expect(field('s').value).toBe('75m');
         expect(document.querySelector('.from')).toBeNull();
+    });
+});
+
+function clipboardSpy(): string[] {
+    const copies: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (t: string) => void copies.push(t) }, configurable: true });
+    return copies;
+}
+
+const status = () => document.querySelector('[role="status"]')?.textContent ?? '';
+const ctrlEnter = '{Control>}{Enter}{/Control}';
+
+describe('copy shortcut', () => {
+    it('Ctrl+Enter copies the current answer from a field and from the options box, and says so', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        const copies = clipboardSpy();
+        openScript('uniform_motion', [['s', '100 m'], ['t', '8 s']]);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('12.5 m/s'));
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 12.5'));
+        field('t').focus();
+        await userEvent.keyboard(ctrlEnter);
+        await waitFor(() => expect(status()).toContain('Copied 12.5'));
+        expect(copies).toEqual(['12.5']);
+        expect(document.querySelector('.copy')?.textContent).toContain('Copied');
+
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        const box = document.querySelector<HTMLTextAreaElement>('textarea.input')!;
+        box.focus();
+        await userEvent.keyboard(ctrlEnter);
+        await waitFor(() => expect(copies).toEqual(['12.5', '12.5']));
+        // the shortcut never types into the box
+        expect(box.value).toBe('');
+    });
+
+    it('does nothing while there is no answer', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        const copies = clipboardSpy();
+        openScript('uniform_motion');
+        render(ScriptSheet);
+        field('s').focus();
+        await userEvent.keyboard(ctrlEnter);
+        expect(copies).toEqual([]);
+    });
+});
+
+describe('clearing', () => {
+    it('Esc wipes nothing, in a field or in the options box', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        openScript('uniform_motion', [['s', '100 m'], ['t', '10 s']]);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('10 m/s'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        const box = document.querySelector<HTMLTextAreaElement>('textarea.input')!;
+        await userEvent.type(box, 'a) 36 km/h');
+        await userEvent.keyboard('{Escape}');
+        field('s').focus();
+        await userEvent.keyboard('{Escape}');
+        expect(field('s').value).toBe('100 m');
+        expect(field('t').value).toBe('10 s');
+        expect(box.value).toBe('a) 36 km/h');
+        expect(document.querySelector('.undo')).toBeNull();
+    });
+
+    it('Clear then Undo restores values, display unit, the picked root and the options exactly', async () => {
+        const twoRoots: SolveResult = {
+            found: [
+                { name: 'V_oc', desc: '', values: [391.4], shown: ['391.4 V'] },
+                { name: 'I', desc: '', values: [4814.6, 77.887], shown: ['4814.6 A', '77.887 A'] },
+            ],
+            defaults: [],
+            conflicts: [],
+        };
+        fakeEngine({ ...common, solve_formula: () => twoRoots });
+        openCommand('battery_load N_s=103 V_cell=3.8V R_pack=0.08ohm P=30kW', 77.9);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('77.887 A'));
+        // a root the sheet would not choose by itself, a unit, and pasted options
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.res[data-var="V_oc"]')!);
+        await waitFor(() => expect(slab()).toBe('391.4 V'));
+        await userEvent.type(screen.getByPlaceholderText(/km\/h/), 'kV');
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        await userEvent.type(document.querySelector('textarea.input')!, 'a) 391 V');
+        const before = { n: field('N_s').value, v: field('V_cell').value, p: field('P').value };
+
+        // by text: jsdom can't compute accessible names across KaTeX's MathML
+        const button = (text: string) => [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === text)!;
+        await userEvent.click(button('Clear'));
+        expect(field('N_s').value).toBe('');
+        expect(field('P').value).toBe('');
+        await waitFor(() => expect(slab()).toBe('77.887 A'));
+
+        await userEvent.click(button('Undo clear'));
+        expect({ n: field('N_s').value, v: field('V_cell').value, p: field('P').value }).toEqual(before);
+        await waitFor(() => expect(slab()).toBe('391.4 V'));
+        expect((screen.getByPlaceholderText(/km\/h/) as HTMLInputElement).value).toBe('kV');
+        expect(document.querySelector<HTMLTextAreaElement>('textarea.input')!.value).toBe('a) 391 V');
+        expect(document.querySelector('.undo')).toBeNull();
+    });
+
+    it('the Undo offer goes away by itself after a few seconds', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        try {
+            fakeEngine({ ...common, solve_formula: solveMotion });
+            openScript('uniform_motion', [['s', '100 m']]);
+            render(ScriptSheet);
+            await fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+            expect(document.querySelector('.undo')).not.toBeNull();
+            await vi.advanceTimersByTimeAsync(8100);
+            expect(document.querySelector('.undo')).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});
+
+const nodal = '12.5\n  I1 = 3 A\n  I2 = 4 A';
+
+describe('multi-line tool output', () => {
+    it('shows the first number as the value and the rest line by line, labelled with the tool title; Copy takes the number, Copy all the text', async () => {
+        fakeEngine({ ...common, run_tool: () => nodal });
+        const copies = clipboardSpy();
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('12.5'));
+        expect(document.querySelector('.a-label')?.textContent).toContain('Event score');
+        expect(document.querySelector('.a-extra')?.textContent).toBe('  I1 = 3 A\n  I2 = 4 A');
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 12.5'));
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.copy')!);
+        await userEvent.click(screen.getByRole('button', { name: 'Copy all' }));
+        await waitFor(() => expect(copies).toHaveLength(2));
+        expect(copies).toEqual(['12.5', nodal]);
+        expect(status()).toContain('3 lines');
+    });
+
+    it('a text-only output stays one block with no number to copy separately', async () => {
+        fakeEngine({ ...common, run_tool: () => 'insulation test 1000 V\nclearance 2 mm' });
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(document.querySelector('.a-value.block')?.textContent).toBe('insulation test 1000 V\nclearance 2 mm'));
+        expect(screen.queryByRole('button', { name: 'Copy all' })).toBeNull();
+    });
+});
+
+describe('rule years', () => {
+    /** The skidpad score for 5.5 / 5.0 s under each rule set (2027 26.73, legacy 40.53), scaled by t_team. */
+    const base: Record<string, number> = { '2027': 26.73, '2026': 26.73, legacy: 40.53 };
+    const byYear = (a: Record<string, unknown>) => {
+        const g = Object.fromEntries(a.args as [string, string][]);
+        if (!(g.rules in base)) throw new Error(`unknown rules ${g.rules}`);
+        return String(+(base[g.rules] * (parseFloat(g.t_team) / 5.5)).toFixed(2));
+    };
+    /** Nearest option wins, like the engine's matcher. */
+    const nearest = (a: Record<string, unknown>) => {
+        const ans = parseFloat(String(a.answer));
+        const options = String(a.options)
+            .split('\n')
+            .map((text) => {
+                const value = parseFloat(text.replace(/^\w\)\s*/, ''));
+                return { text, value, rel_diff: Math.abs(value - ans) / ans, best: false };
+            });
+        options.reduce((b, o) => (o.rel_diff < b.rel_diff ? o : b)).best = true;
+        return { options, warning: null };
+    };
+    const paste = async (text: string) => {
+        await userEvent.click(document.querySelector<HTMLButtonElement>('.check button')!);
+        await fireEvent.input(document.querySelector('textarea.input')!, { target: { value: text } });
+    };
+
+    it('names the rule set behind the answer and lists what the other years give', async () => {
+        fakeEngine({ ...common, run_tool: byYear });
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('26.73'));
+        expect(document.querySelector('.answer .pill')?.textContent).toBe('rules 2027');
+        await waitFor(() => expect(document.querySelector('.a-years')?.textContent).toBe('Other rules: 2026: 26.73 · legacy: 40.53'));
+    });
+
+    it('skips a year that errors', async () => {
+        fakeEngine({
+            ...common,
+            run_tool: (a) => {
+                if ((a.args as [string, string][]).some(([k, v]) => k === 'rules' && v === '2026')) throw new Error('no such rules');
+                return byYear(a);
+            },
+        });
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(document.querySelector('.a-years')?.textContent).toBe('Other rules: legacy: 40.53'));
+    });
+
+    it('says when pasted options fit only the legacy rules', async () => {
+        fakeEngine({ ...common, run_tool: byYear, match_options: nearest });
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(document.querySelector('.a-years')).not.toBeNull());
+        await paste('a) 40.5\nb) 55.0');
+        await waitFor(() => expect(document.querySelector('.note-year')?.textContent).toContain('The legacy rules match option a) 40.5; this question may use the old key.'));
+    });
+
+    it('stays quiet when the selected year already matches an option', async () => {
+        fakeEngine({ ...common, run_tool: byYear, match_options: nearest });
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        await waitFor(() => expect(document.querySelector('.a-years')).not.toBeNull());
+        await paste('a) 26.7\nb) 40.5');
+        await waitFor(() => expect(document.querySelector('.opts li.best')).not.toBeNull());
+        await new Promise((r) => setTimeout(r, 80));
+        expect(document.querySelector('.note-year')).toBeNull();
+    });
+
+    it('never shows replies of an earlier run once a newer one is on screen', async () => {
+        const engine = fakeEngine({ ...common, run_tool: byYear });
+        const runs = engine.hold('run_tool');
+        openCommand('event_score skidpad 5.5 5.0');
+        render(ScriptSheet);
+        // run 1 = main + two other years; run 2 (t_team edited, Run pressed) = three more
+        await waitFor(() => expect(runs.pending()).toBe(3));
+        await fireEvent.input(field('t_team'), { target: { value: '11' } });
+        await userEvent.click(screen.getByRole('button', { name: /^Run/ }));
+        await waitFor(() => expect(runs.pending()).toBe(6));
+        [3, 4, 5].forEach(runs.release);
+        await waitFor(() => expect(slab()).toBe('53.46'));
+        await waitFor(() => expect(document.querySelector('.a-years')?.textContent).toBe('Other rules: 2026: 53.46 · legacy: 81.06'));
+        [0, 1, 2].forEach(runs.release);
+        await new Promise((r) => setTimeout(r, 60));
+        expect(slab()).toBe('53.46');
+        expect(document.querySelector('.a-years')?.textContent).toBe('Other rules: 2026: 53.46 · legacy: 81.06');
+    });
+});
+
+describe('answer slab placement', () => {
+    it('is the sticky slab when there is a solution, and absent otherwise', async () => {
+        fakeEngine({ ...common, solve_formula: solveMotion });
+        openScript('uniform_motion');
+        render(ScriptSheet);
+        expect(document.querySelector('.answer')).toBeNull();
+        await fireEvent.input(field('s'), { target: { value: '100 m' } });
+        await fireEvent.input(field('t'), { target: { value: '10 s' } });
+        await waitFor(() => expect(document.querySelector('.answer')?.classList.contains('sticky')).toBe(true));
     });
 });

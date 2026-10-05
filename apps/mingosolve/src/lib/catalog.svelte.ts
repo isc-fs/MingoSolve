@@ -135,3 +135,86 @@ export function shortName(id: string): string {
     const words = id.replaceAll('_', ' ');
     return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+export interface VarEntry {
+    name: string;
+    tex: string;
+    desc: string;
+    unit: string;
+    /** Formulas using it: the most used variable wins a tie. */
+    uses: number;
+}
+
+type VarIndex = { entries: VarEntry[]; fields: Map<string, [string[], number][]> };
+
+const varCache = new WeakMap<Map<string, Script>, VarIndex>();
+
+const SYNONYMS: Record<string, string> = { speed: 'velocity', velocity: 'speed' };
+
+function withSynonyms(w: string): string[] {
+    return SYNONYMS[w] === undefined ? [w] : [w, SYNONYMS[w]];
+}
+
+function varIndex(): VarIndex {
+    let c = varCache.get(catalog.scripts);
+    if (c === undefined) {
+        const byName = new Map<string, VarEntry & { context: Set<string>; own: Set<string> }>();
+        for (const s of catalog.scripts.values()) {
+            for (const v of s.formula?.vars ?? []) {
+                let e = byName.get(v.name);
+                if (e === undefined) {
+                    e = { name: v.name, tex: v.tex, desc: v.desc, unit: v.unit_shown, uses: 0, context: new Set(), own: new Set() };
+                    byName.set(v.name, e);
+                }
+                e.uses += 1;
+                for (const w of words(v.desc)) e.own.add(w);
+                for (const w of [...words(s.title), ...(s.formula?.tags.flatMap(words) ?? [])]) e.context.add(w);
+            }
+        }
+        const fields = new Map<string, [string[], number][]>();
+        for (const e of byName.values()) {
+            fields.set(e.name, [
+                [[e.name.toLowerCase(), ...words(e.name.replaceAll('_', ' '))], 100],
+                [[...e.own].flatMap(withSynonyms), 50],
+                [[...e.context].flatMap(withSynonyms), 20],
+            ]);
+        }
+        c = { entries: [...byName.values()], fields };
+        varCache.set(catalog.scripts, c);
+    }
+    return c;
+}
+
+/** Variables matching what the user types: by symbol, then description, then the formulas that use them
+ *  ("velocity", "rollover speed", "h_cg"). One unmatched word costs a rank, not the whole result; ties go to
+ *  the variable used by the most formulas. */
+export function searchVariables(query: string, limit = 8): VarEntry[] {
+    const { entries, fields } = varIndex();
+    const queryWords = words(query).filter((w) => !STOP.has(w));
+    if (queryWords.length === 0) return [];
+    const exact = query.trim();
+    const scored = entries.map((e) => {
+        let matched = 0;
+        let score = e.name === exact ? 500 : 0;
+        for (const w of queryWords) {
+            let best = 0;
+            for (const [tokens, weight] of fields.get(e.name) ?? []) {
+                for (const t of tokens) best = Math.max(best, weight * closeness(w, t));
+            }
+            if (best > 0) matched += 1;
+            score += best;
+        }
+        return { e, matched, score: score + Math.min(e.uses, 20) / 2 };
+    });
+    const top = Math.max(0, ...scored.map((r) => r.matched));
+    return scored
+        .filter((r) => r.matched > 0 && r.matched >= top - 1)
+        .sort((a, b) => b.matched - a.matched || b.score - a.score || a.e.name.localeCompare(b.e.name))
+        .slice(0, limit)
+        .map((r) => r.e);
+}
+
+/** One variable by exact name: the symbol, description and unit shown under the target. */
+export function variableInfo(name: string): VarEntry | undefined {
+    return varIndex().entries.find((e) => e.name === name);
+}

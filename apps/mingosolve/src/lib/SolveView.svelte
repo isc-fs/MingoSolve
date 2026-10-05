@@ -11,11 +11,12 @@
     import { catalog, shortName } from './catalog.svelte';
     import { searchShortcut } from './platform';
     import { findQuestion } from './finder';
-    import { openScript, prettyQuantity, session } from './session.svelte';
-    import type { Hit } from './types';
+    import { openCommand, openScript, prettyQuantity, session } from './session.svelte';
+    import type { Hit, PastMatch } from './types';
 
     let hits = $state<Hit[]>([]);
     let quantities = $state<string[]>([]);
+    let past = $state<PastMatch | null>(null);
 
     // Only the reply for the text on screen counts; a slower search for earlier text is dropped.
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -28,6 +29,7 @@
             if (q.trim().length === 0) {
                 hits = [];
                 quantities = [];
+                past = null;
                 session.problemFills = {};
                 return;
             }
@@ -36,11 +38,13 @@
             if (found === null) {
                 hits = [];
                 quantities = [];
+                past = null;
                 session.problemFills = {};
                 return;
             }
             hits = found.hits;
             quantities = found.quantities;
+            past = found.past;
             session.problemFills = Object.fromEntries(found.hits.map((h) => [h.id, { values: h.prefill, target: h.target }]));
         }, 160);
     });
@@ -58,6 +62,11 @@
     const titleOf = (h: Hit): string => catalog.scripts.get(h.id)?.title ?? (h.title.length > 0 ? h.title : shortName(h.id));
 
     const hasProblem = $derived(session.problem.trim().length > 0);
+
+    const quizzesShown = (p: PastMatch) =>
+        p.quizzes.length > 3 ? `${p.quizzes.slice(0, 3).join(', ')} +${p.quizzes.length - 3} more` : p.quizzes.join(', ');
+    // typographic minus for a leading hyphen
+    const answerShown = (a: string) => a.replace(/^-/, '\u2212');
 </script>
 
 <div class="view">
@@ -111,6 +120,42 @@
         {/if}
     </div>
 
+    {#if hasProblem && past !== null}
+        <section class="past glass" aria-label="Past question">
+            <div class="pline">
+                <Icon name="clock" size={15} />
+                <span role="status">
+                    <strong>{past.probable ? 'Probably past question' : 'Past question'} Q{past.id}</strong>
+                    {#if past.quizzes.length > 0}({quizzesShown(past)}){/if}
+                    {#if past.answer !== null}
+                        · {past.same_numbers ? 'official answer' : 'official answer for the original numbers'}:
+                        <strong class="pans">{answerShown(past.answer)}</strong>
+                    {/if}
+                </span>
+                {#if past.example !== null}
+                    <button type="button" class="btn btn-sm" onclick={() => openCommand(past!.example!.cmd, past!.example!.answer)}>
+                        Open worked example
+                    </button>
+                {/if}
+            </div>
+            {#if !past.same_numbers}
+                <p class="note">The numbers differ from that question, so its answer does not apply: solve this one.</p>
+            {/if}
+            {#if past.known_key !== null}
+                <div class="note note-bad pkey" role="alert">
+                    <Icon name="alert" size={16} />
+                    <p>
+                        <strong>
+                            {past.probable ? `If this is Q${past.id}, the official key is known to be wrong:` : 'The official key for this question is known to be wrong:'}
+                        </strong>
+                        {past.known_key}
+                        Pick by option elimination.
+                    </p>
+                </div>
+            {/if}
+        </section>
+    {/if}
+
     {#if session.script === null && !hasProblem}
         <Library />
     {:else}
@@ -151,6 +196,48 @@
     .problem textarea:focus {
         box-shadow: none;
         border-color: transparent;
+    }
+    .past {
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--r-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    .pline {
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        font-size: var(--text-sm);
+        color: var(--text-2);
+    }
+    .pline > :global(svg) {
+        color: var(--ink-accent);
+        flex: none;
+    }
+    .pline > span {
+        flex: 1 1 280px;
+    }
+    .pans {
+        font-family: var(--font-mono);
+        color: var(--text);
+    }
+    .pkey {
+        display: flex;
+        gap: var(--space-2);
+        align-items: flex-start;
+        border-left: 4px solid var(--bad);
+        font-size: var(--text-base);
+    }
+    .pkey > :global(svg) {
+        color: var(--bad);
+        flex: none;
+        margin-top: 2px;
+    }
+    .pkey p {
+        margin: 0;
     }
     .chips,
     .matches {

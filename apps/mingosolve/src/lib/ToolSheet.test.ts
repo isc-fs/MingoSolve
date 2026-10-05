@@ -37,8 +37,10 @@ const field = (name: string) => box(name).querySelector<HTMLInputElement>('input
 const select = (name: string) => box(name).querySelector<HTMLSelectElement>('select')!;
 const checkbox = (name: string) => box(name).querySelector<HTMLInputElement>('input[type="checkbox"]')!;
 const run = () => userEvent.click(screen.getByRole('button', { name: /^Run/ }));
-const toolArgs = (engine: { calls: { cmd: string; args: Record<string, unknown> }[] }) =>
-    Object.fromEntries(engine.calls.filter((c) => c.cmd === 'run_tool').at(-1)!.args.args as [string, string][]);
+type Engine = { calls: { cmd: string; args: Record<string, unknown> }[] };
+const runs = (engine: Engine) => engine.calls.filter((c) => c.cmd === 'run_tool').map((c) => Object.fromEntries(c.args.args as [string, string][]));
+/** The run for what the form holds (a run also asks the other rule years, with their own `rules`). */
+const toolArgs = (engine: Engine) => runs(engine).filter((a) => a.rules === select('rules').value).at(-1)!;
 
 beforeEach(() => {
     Object.assign(settings, defaultSettings());
@@ -101,6 +103,8 @@ describe('the tool form in plain words', () => {
         await userEvent.selectOptions(select('rules'), '2027');
         await run();
         await waitFor(() => expect(toolArgs(engine).rules).toBe('2027'));
+        // the other years are asked with the select's alternatives, for the comparison under the answer
+        await waitFor(() => expect(new Set(runs(engine).slice(-3).map((a) => a.rules))).toEqual(new Set(['legacy', '2026', '2027'])));
     });
 
     it('writes the help under the field (not only in a tooltip), and marks only the required fields', async () => {

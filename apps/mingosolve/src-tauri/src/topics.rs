@@ -1,5 +1,6 @@
 //! Topic library: topics with their scripts (formulas and procedural tools), and a script's worked examples.
 
+use fsq::cli::Example;
 use fsq::registry::registry;
 use fsq::tools::tool;
 use fsq::topics::{aliases, tool_title, topics, worked_examples};
@@ -68,9 +69,8 @@ pub struct WorkedExample {
     answer: f64,
 }
 
-#[tauri::command]
-pub fn script_examples(script: String) -> Vec<WorkedExample> {
-    worked_examples(&script)
+fn dto(examples: Vec<Example>) -> Vec<WorkedExample> {
+    examples
         .into_iter()
         .map(|e| WorkedExample {
             id: e.id,
@@ -79,4 +79,21 @@ pub fn script_examples(script: String) -> Vec<WorkedExample> {
             answer: e.answer,
         })
         .collect()
+}
+
+#[tauri::command]
+pub fn script_examples(script: String) -> Vec<WorkedExample> {
+    dto(worked_examples(&script))
+}
+
+/// Past questions solved by chaining formulas (`chain <target> <known values> [@var=unit]`).
+#[tauri::command]
+pub fn chain_examples() -> Vec<WorkedExample> {
+    dto(fsq::topics::chain_examples())
+}
+
+/// Past questions solved with the calculator (`calc <expression>`).
+#[tauri::command]
+pub fn calc_examples() -> Vec<WorkedExample> {
+    dto(fsq::topics::calc_examples())
 }

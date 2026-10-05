@@ -59,6 +59,8 @@ macro_rules! handler {
         finder::format_answer,
         topics::list_topics,
         topics::script_examples,
+        topics::chain_examples,
+        topics::calc_examples,
         $($extra),*
         ]
     };

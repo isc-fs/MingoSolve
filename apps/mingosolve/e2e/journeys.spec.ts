@@ -59,6 +59,25 @@ test('Q378: a tool script from Topics runs with the legacy rules', async ({ app 
     await choice(app, 'rules').selectOption('legacy');
     await app.getByRole('button', { name: /^Run/ }).click();
     await expect(answer(app)).toHaveText('41.117');
+    // the answer says which rule set it comes from and what the other years would give
+    await expect(app.locator('.answer .pill')).toHaveText('rules legacy');
+    await expect(app.locator('.a-years')).toHaveText(/^Other rules: 2027: [\d.]+ · 2026: [\d.]+$/);
+});
+
+test('a long formula keeps the answer on screen without scrolling', async ({ app }) => {
+    await app.setViewportSize({ width: 1280, height: 520 });
+    await openFromPalette(app, 'engine geometry', /Displacement/);
+    expect(await app.locator('label.field').count()).toBeGreaterThanOrEqual(8);
+    await field(app, 'n_cyl').fill('4');
+    await field(app, 'B_bore').fill('80 mm');
+    await field(app, 'S_k').fill('60 mm');
+    await field(app, 'omega_m').fill('6000 rpm');
+    await field(app, 'bmep').fill('12 bar');
+    // back at the top the last fields are below the fold, yet the answer stays fully on screen
+    await app.locator('.view').first().evaluate((el) => el.scrollTo(0, 0));
+    await expect(app.locator('label.field').last()).not.toBeInViewport({ ratio: 1 });
+    await expect(app.locator('.answer.sticky')).toBeInViewport({ ratio: 1 });
+    await expect(app.locator('.answer .pill')).toHaveCount(0);
 });
 
 test('a tool form speaks plainly: labels, a checkbox for each on/off setting, the answer follows the boxes', async ({ app }) => {

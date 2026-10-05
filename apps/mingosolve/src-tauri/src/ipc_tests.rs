@@ -377,6 +377,84 @@ fn every_worked_example_button_reproduces_its_official_answer() {
 }
 
 #[test]
+fn chain_and_calc_past_questions_reproduce_their_official_answers_as_the_app_runs_them() {
+    let w = webview();
+    let chain = invoke(&w, "chain_examples", json!({})).unwrap();
+    let calc = invoke(&w, "calc_examples", json!({})).unwrap();
+    let rows = |head: &str| {
+        fsq::cli::examples()
+            .into_iter()
+            .filter(|e| e.cmd.split_whitespace().next() == Some(head))
+            .map(|e| (e.id, e.cmd, e.answer))
+            .collect::<Vec<_>>()
+    };
+    for (name, got, want) in [
+        ("chain", &chain, rows("chain")),
+        ("calc", &calc, rows("calc")),
+    ] {
+        let got: Vec<(u64, String, f64)> = got
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| {
+                (
+                    e["id"].as_u64().unwrap(),
+                    e["cmd"].as_str().unwrap().to_string(),
+                    e["answer"].as_f64().unwrap(),
+                )
+            })
+            .collect();
+        assert!(!want.is_empty());
+        assert_eq!(
+            got,
+            want.into_iter()
+                .map(|(i, c, a)| (u64::from(i), c, a))
+                .collect::<Vec<_>>(),
+            "{name} examples"
+        );
+    }
+    let mut failures = Vec::new();
+    for ex in chain.as_array().unwrap() {
+        // what the Chain view does: first bare word is the target, k=v are known values, @target=unit is "show in"
+        let (head, values, display, positional) = parse(ex["cmd"].as_str().unwrap());
+        assert_eq!(head, "chain");
+        let target = &positional[0];
+        let display: std::collections::HashMap<String, String> =
+            display.into_iter().filter(|(k, _)| k == target).collect();
+        let only: Vec<String> = values
+            .iter()
+            .filter(|(k, _)| k == "only")
+            .flat_map(|(_, v)| v.split(',').map(String::from))
+            .collect();
+        let given: Vec<_> = values.into_iter().filter(|(k, _)| k != "only").collect();
+        let r = invoke(
+            &w,
+            "chain_formulas",
+            json!({"target": target, "given": given, "only": only, "display": display}),
+        )
+        .unwrap();
+        let answer = ex["answer"].as_f64().unwrap();
+        if r["reached"] != true || !close(num(&r["target"]), answer, 0.005) {
+            failures.push(format!(
+                "Q{} chain: official {answer}, got {}",
+                ex["id"], r["target"]
+            ));
+        }
+    }
+    for ex in calc.as_array().unwrap() {
+        let expr = ex["cmd"].as_str().unwrap().strip_prefix("calc ").unwrap();
+        let out = invoke(&w, "calc", json!({"expr": expr})).unwrap();
+        let answer = ex["answer"].as_f64().unwrap();
+        let first = out.as_str().unwrap().split(' ').next().unwrap();
+        match first.parse::<f64>() {
+            Ok(n) if close(n, answer, 0.005) => {}
+            _ => failures.push(format!("Q{} calc: official {answer}, got {out}", ex["id"])),
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+#[test]
 fn chain_restricted_to_tags_and_unreachable_targets() {
     let w = webview();
     let r = invoke(&w, "chain_formulas", json!({"target": "v", "given": [["h_cg", "0.205 m"], ["R_c", "14.5 m"], ["t_tr", "1.24 m"]], "only": [], "display": {"v": "km/h"}}))
@@ -475,4 +553,103 @@ fn hostile_input_through_the_async_commands_is_an_error_not_a_crash() {
     )
     .unwrap();
     assert!(r["found"].as_array().is_some_and(|f| !f.is_empty()), "{r}");
+}
+
+/// Written for this test (not bank text) and fingerprinted at test time into a small bank with real ids: 665 has a
+/// worked example in data/examples.toml, 125 is a known-wrong key in data/known_keys.toml.
+const SYNTHETIC: &str =
+    "A first-order RC filter with a corner frequency of 300 Hz is driven by a 200 Hz sine \
+                         wave. By how many degrees does the output lag the input?";
+const SYNTHETIC_KEYED: &str =
+    "How many degrees of freedom does a quadratic tetrahedral element model have in a \
+                               mesh of one cell?";
+
+fn synthetic_bank() -> Vec<fsq::past::PastQuestion> {
+    use fsq::past::PastQuestion;
+    vec![
+        PastQuestion::from_text(
+            665,
+            SYNTHETIC,
+            &["FSG 2023 EV", "FSA 2024 EV"],
+            Some("-33.7 °"),
+        ),
+        PastQuestion::from_text(125, SYNTHETIC_KEYED, &["FSS 2022 EV"], None),
+    ]
+}
+
+#[test]
+fn found_carries_the_past_question_as_the_frontend_reads_it() {
+    let changed = SYNTHETIC.replace("300 Hz", "250 Hz");
+    let found = crate::finder::find_question_in(&changed, &synthetic_bank());
+    let r = serde_json::to_value(&found).unwrap();
+    let p = &r["past"];
+    assert_eq!(p["id"], 665, "{r}");
+    assert_eq!(p["quizzes"], json!(["FSG 2023 EV", "FSA 2024 EV"]));
+    assert_eq!(p["answer"], "-33.7 °");
+    assert_eq!(
+        p["same_numbers"], false,
+        "250 Hz is not the 300 Hz question"
+    );
+    assert_eq!(p["probable"], false);
+    assert_eq!(p["example"]["cmd"], "rc_lowpass f=200Hz f_c=300Hz @phi=deg");
+    assert_eq!(p["example"]["answer"], -33.69);
+    assert!(p["known_key"].is_null());
+
+    let keyed = crate::finder::find_question_in(SYNTHETIC_KEYED, &synthetic_bank());
+    let k = serde_json::to_value(&keyed).unwrap();
+    assert!(
+        k["past"]["known_key"]
+            .as_str()
+            .unwrap()
+            .contains("tetrahedron"),
+        "{k}"
+    );
+    assert!(k["past"]["example"].is_null());
+}
+
+#[test]
+fn find_question_over_ipc_has_a_null_past_for_text_the_bank_does_not_know() {
+    let w = webview();
+    let r = invoke(&w, "find_question", json!({"text": SYNTHETIC})).unwrap();
+    assert!(r.as_object().unwrap().contains_key("past"), "{r}");
+    assert!(
+        r["past"].is_null(),
+        "invented text must not match the shipped bank: {r}"
+    );
+}
+
+/// With the real bank (not public, so skipped without it) the shipped fingerprints answer through the real IPC.
+#[test]
+fn find_question_over_ipc_recognises_a_real_bank_question() {
+    let path = std::env::var("FSQ_BANK").unwrap_or_else(|_| {
+        concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../../IFS-Tests/data/fsquiz/bank.json"
+        )
+        .to_string()
+    });
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+        eprintln!("ipc past test: skipped, no bank at {path}");
+        return;
+    };
+    let bank: Value = serde_json::from_str(&raw).unwrap();
+    let text_of = |id: u64| {
+        bank["questions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|q| q["question_id"] == id)
+            .unwrap()["text"]
+            .clone()
+    };
+    let w = webview();
+    let r = invoke(&w, "find_question", json!({"text": text_of(665)})).unwrap();
+    assert_eq!(r["past"]["id"], 665, "{r}");
+    assert_eq!(
+        r["past"]["example"]["cmd"],
+        "rc_lowpass f=200Hz f_c=300Hz @phi=deg"
+    );
+    let r = invoke(&w, "find_question", json!({"text": text_of(125)})).unwrap();
+    assert_eq!(r["past"]["id"], 125, "{r}");
+    assert!(r["past"]["known_key"].is_string(), "{r}");
 }
