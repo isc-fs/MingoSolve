@@ -72,7 +72,21 @@ Open **Settings → Updates** and untick **Check for updates automatically when 
 contacts the update server on its own. Do this the evening before a quiz, after you have the version you want to use,
 so nothing changes under you while you are answering. The manual button still works whenever you choose.
 
-## 4. If the app does not work
+## 4. Rulebook search: download the PDF, load it once
+
+The **Rules** view searches the official FS-Rules offline (by rule number such as `T 2.9.2`, or by words such as
+`tread depth`), and ⌘K / Ctrl K lists matching rules under the scripts. The rules are copyrighted by Formula Student
+Germany, so MingoSolve does not include them: you load the PDF yourself.
+
+1. Download the rules PDF for your year from <https://www.formulastudent.de/rules/> (2027 v1.0 is
+   <https://www.formulastudent.de/fileadmin/user_upload/all/2027/rules/FS_Rules_2027_v1.0.pdf>).
+2. Open **Rules**, press **Load PDF** on that year's row and pick the file. Reading takes a second or two.
+3. Search. The text is saved on your computer (in the app's data folder, one file per year), so you load it only once;
+   **Remove** deletes it. Nothing is uploaded and nothing is stored in the repository.
+
+If loading says it found too few rules, the PDF is not the official rulebook (or is a scan without text).
+
+## 5. If the app does not work
 
 On the day of a quiz, do not troubleshoot: use the fallback.
 
