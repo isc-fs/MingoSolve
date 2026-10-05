@@ -1,20 +1,65 @@
 <!--
     Calculator, docked on the right and collapsible: unit-aware expressions (0.5*280kg*(100km/h)**2 -> kJ). Enter
-    evaluates; results stack newest first; click one to copy its number.
+    evaluates; results stack newest first; click one to copy its number. Past questions load and evaluate in one click.
 -->
 <script lang="ts">
     import Icon from './Icon.svelte';
     import { calc } from './solve';
-    import { session } from './session.svelte';
+    import { openCommand, session } from './session.svelte';
     import { settings } from './settings.svelte';
+    import { calcExamples } from './topics';
+    import type { WorkedExample } from './types';
 
-    let history = $state<{ expr: string; out: string }[]>([]);
+    interface Entry {
+        id: number;
+        expr: string;
+        /** The result, or the engine's message when it failed. */
+        out: string;
+        failed: boolean;
+    }
+
+    let history = $state<Entry[]>([]);
+    let copied = $state<number | null>(null);
+    let examples = $state<WorkedExample[] | null>(null);
+    let entryId = 0;
+    let copiedTimer: ReturnType<typeof setTimeout> | undefined;
+    let seenRun = session.calcRun;
+
+    // a past question opened from anywhere (openCommand) fills the box and evaluates it
+    $effect(() => {
+        if (session.calcRun !== seenRun) {
+            seenRun = session.calcRun;
+            void evaluate();
+        }
+    });
 
     async function evaluate(): Promise<void> {
         const expr = session.calcInput.trim();
         if (expr.length === 0) return;
-        const out = await calc(expr).catch((e: unknown) => `error: ${String(e)}`);
-        history = [{ expr, out }, ...history].slice(0, 40);
+        let out: string;
+        try {
+            out = await calc(expr);
+        } catch (e) {
+            out = `error: ${String(e)}`;
+        }
+        const failed = out.startsWith('error:');
+        entryId += 1;
+        history = [{ id: entryId, expr, out: failed ? out.slice('error:'.length).trim() : out, failed }, ...history].slice(0, 40);
+    }
+
+    async function copy(h: Entry): Promise<void> {
+        try {
+            await navigator.clipboard.writeText(h.out.split(' ')[0]);
+        } catch {
+            return;
+        }
+        copied = h.id;
+        clearTimeout(copiedTimer);
+        copiedTimer = setTimeout(() => (copied = null), 1600);
+    }
+
+    async function toggleExamples(e: Event): Promise<void> {
+        if ((e.currentTarget as HTMLDetailsElement).open && examples === null) examples = await calcExamples();
     }
 </script>
 
@@ -34,16 +79,35 @@
             onkeydown={(e) => e.key === 'Enter' && evaluate()}
             aria-label="Expression"
         />
-        <ul>
-            {#each history as h, i (i)}
-                <li>
-                    <button type="button" class="entry" title="Copy the number" onclick={() => navigator.clipboard.writeText(h.out.split(' ')[0])}>
-                        <span class="mono muted small">{h.expr}</span>
-                        <span class="mono result" class:error={h.out.startsWith('error')}>{h.out}</span>
+        <details class="past" ontoggle={toggleExamples}>
+            <summary>Past questions</summary>
+            <div class="chips">
+                {#each examples ?? [] as ex (ex.id)}
+                    <button type="button" class="chip chip-quiet" title={ex.what || ex.cmd} onclick={() => openCommand(ex.cmd, ex.answer)}>
+                        Q{ex.id}{ex.what ? ` · ${ex.what.length > 24 ? ex.what.slice(0, 24) + '…' : ex.what}` : ''}
                     </button>
+                {/each}
+            </div>
+        </details>
+        <ul>
+            {#each history as h (h.id)}
+                <li>
+                    {#if h.failed}
+                        <div class="entry bad">
+                            <span class="mono muted small">{h.expr}</span>
+                            <span class="problem">{h.out}</span>
+                        </div>
+                    {:else}
+                        <button type="button" class="entry" title="Copy the number" onclick={() => copy(h)}>
+                            <span class="mono muted small">{h.expr}</span>
+                            <span class="mono result">{h.out}</span>
+                            {#if copied === h.id}<span class="copied small">Copied</span>{/if}
+                        </button>
+                    {/if}
                 </li>
             {/each}
         </ul>
+        <p class="sr-only" aria-live="polite">{copied === null ? '' : 'Copied'}</p>
         {#if history.length === 0}
             <p class="muted small">Units work everywhere: <span class="mono">km/h</span>, <span class="mono">rpm</span>, <span class="mono">bar</span>, <span class="mono">Ah</span>, <span class="mono">g0</span>. End with <span class="mono">-&gt; unit</span> to convert.</p>
         {/if}
@@ -106,9 +170,45 @@
         color: var(--ink-accent);
         font-size: var(--text-lg);
     }
-    .result.error {
-        color: var(--bad);
+    .entry.bad {
+        cursor: default;
+        border-color: var(--bad);
+        background: var(--bad-soft);
+    }
+    .problem {
+        color: var(--text);
         font-size: var(--text-sm);
+        line-height: 1.4;
+    }
+    .copied {
+        color: var(--ink-accent);
+        font-weight: 600;
+    }
+    .past summary {
+        cursor: pointer;
+        font-size: var(--text-sm);
+        color: var(--text-2);
+    }
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-top: var(--space-2);
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    .chips .chip {
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-sans);
+    }
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
     }
     .open {
         align-self: flex-start;
