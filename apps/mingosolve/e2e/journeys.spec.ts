@@ -27,6 +27,19 @@ test('Q90: paste a problem anywhere, open the top match pre-filled, copy the ans
     expect(await copied(app)).toEqual(['11.76']);
 });
 
+test('a question that asks for km/h and one decimal opens in that format, and Use my Settings instead undoes it', async ({ app }) => {
+    await pasteAnywhere(app, `${SKIDPAD} Give your answer in km/h to 1 decimal place.`);
+    await app.getByLabel('Scripts that fit').getByRole('button').first().click();
+    await expect(answer(app)).toHaveText(/^42\.33\d* km\/h$/);
+    await expect(app.locator('.a-unit input')).toHaveValue('km/h');
+    await expect(app.locator('.a-format')).toContainText('Rounded to 1 decimal and shown in km/h, as the question asks');
+    await app.getByRole('button', { name: /Copy 42\.3/ }).click();
+    expect(await copied(app)).toEqual(['42.3']);
+    await app.getByRole('button', { name: 'Use my Settings instead' }).click();
+    await expect(answer(app)).toHaveText(/^11\.759\d* m\/s$/);
+    await expect(app.getByRole('button', { name: /Copy 11\.76/ })).toBeVisible();
+});
+
 test('rehearsal: label the question, copy, and find the entry in the session log; the help key opens Help', async ({ app }) => {
     await pasteAnywhere(app, SKIDPAD);
     await app.getByLabel('Scripts that fit').getByRole('button').first().click();

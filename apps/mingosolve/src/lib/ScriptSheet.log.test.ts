@@ -20,7 +20,7 @@ const motion: FormulaInfo = {
     tex: [],
     tags: [],
     notes: '',
-    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '' })),
+    vars: ['s', 't', 'v'].map((name) => ({ name, unit: 'm', desc: name, signed: false, hint: null, default: null, tex: name, unit_shown: '', dims: 'm' })),
 };
 const solveMotion = (args: Record<string, unknown>): SolveResult => {
     const g = Object.fromEntries(args.given as [string, string][]);

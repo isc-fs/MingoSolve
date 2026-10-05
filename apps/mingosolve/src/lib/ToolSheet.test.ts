@@ -20,8 +20,8 @@ const hinted: FormulaInfo = {
     tags: [],
     notes: '',
     vars: [
-        { name: 'a_y', unit: 'm/s**2', desc: 'lateral acceleration', hint: 'Type 1.5g0 for 1.5 g.', signed: false, default: null, tex: 'a_y', unit_shown: 'm/s²' },
-        { name: 'R', unit: 'm', desc: 'a corner radius that is described at some length so the label wraps', hint: null, signed: false, default: null, tex: 'R', unit_shown: 'm' },
+        { name: 'a_y', unit: 'm/s**2', desc: 'lateral acceleration', hint: 'Type 1.5g0 for 1.5 g.', signed: false, default: null, tex: 'a_y', unit_shown: 'm/s²', dims: 'm·s^-2' },
+        { name: 'R', unit: 'm', desc: 'a corner radius that is described at some length so the label wraps', hint: null, signed: false, default: null, tex: 'R', unit_shown: 'm', dims: 'm' },
     ],
 };
 
@@ -206,5 +206,20 @@ describe('typing hints and engine errors in the sheet', () => {
         render(ScriptSheet);
         await run();
         await waitFor(() => expect(document.querySelector('.note-bad')?.textContent).toContain('Your corrected time is empty'));
+    });
+});
+
+describe('a tool opened from a pasted problem with a format hint', () => {
+    it('takes the rounding but never the unit, and says so', async () => {
+        const engine = fakeEngine({ ...common, run_tool: () => '41.117', format_answer: (a) => (a.value as number).toPrecision((a.precision as { sig: number }).sig) });
+        const hint = { rounding: { sig: 3 }, unit: 'kN', unit_label: 'kN', dims: 'm·kg·s^-2', quantity: null };
+        session.problemFills = { event_score: { values: [['t_team', '5.6']], target: null, format: hint } };
+        openScript('event_score');
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('41.117'));
+        await waitFor(() => expect(document.querySelector('.copy')?.textContent).toContain('Copy 41.1'));
+        expect(engine.calls.filter((c) => c.cmd === 'format_answer').at(-1)!.args.precision).toEqual({ sig: 3 });
+        expect(document.querySelector('.a-unit')).toBeNull();
+        expect(document.querySelector('.a-format')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Rounded to 3 significant figures, as the question asks. Use my Settings instead');
     });
 });

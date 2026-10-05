@@ -23,13 +23,17 @@
     import { RULE_YEARS, settings } from './settings.svelte';
     import { initialValue, placeholderFor } from './toolform';
     import { recordCopy, sessionLog, type LogEntry } from './sessionlog.svelte';
-    import type { Matching, ParamInfo, SolveResult, WorkedExample } from './types';
+    import type { Matching, ParamInfo, Precision, SolveResult, WorkedExample } from './types';
 
     const script = $derived(session.script !== null ? catalog.scripts.get(session.script.id) ?? null : null);
 
     let values = $state<Record<string, string>>({});
     let display = $state<Record<string, string>>({});
     let fromProblem = $state<Record<string, string>>({});
+    // The pasted question's own rounding and unit apply to this sheet until the user picks their Settings.
+    let useSettings = $state(false);
+    let unitTried = false;
+    const hint = $derived(session.script?.format ?? null);
     let result = $state<SolveResult | null>(null);
     let toolOut = $state<string | null>(null);
     let error = $state<string | null>(null);
@@ -57,6 +61,7 @@
         picked: { name: string; index: number } | null;
         options: string;
         showOptions: boolean;
+        useSettings: boolean;
     }
 
     // Reset and pre-fill whenever a script is opened (nonce changes even for the same script); coming back to the
@@ -77,7 +82,11 @@
                 picked = saved.picked;
                 options = saved.options;
                 showOptions = saved.options.length > 0;
+                useSettings = saved.useSettings;
+                unitTried = true;
             } else {
+                useSettings = false;
+                unitTried = false;
                 const given = Object.fromEntries(open.values);
                 fromProblem = { ...(open.fromProblem ?? {}) };
                 if (s.formula !== undefined) {
@@ -96,6 +105,7 @@
                 picked = null;
                 options = '';
                 showOptions = false;
+                if (open.target) applyHintUnit(open.target);
             }
             result = null;
             toolOut = null;
@@ -116,7 +126,7 @@
     $effect(() => {
         const open = session.script;
         if (open === null) return;
-        const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, fromProblem: { ...fromProblem }, picked, options };
+        const state = { nonce: open.nonce, values: { ...values }, display: { ...display }, fromProblem: { ...fromProblem }, picked, options, useSettings };
         untrack(() => {
             session.sheet = state;
         });
@@ -141,6 +151,7 @@
                 if (picked === null || !result.found.some((f) => f.name === picked!.name)) {
                     picked = preferred(result);
                 }
+                if (picked !== null) applyHintUnit(picked.name);
             } catch (e) {
                 if (seq !== latest) return;
                 result = null;
@@ -148,6 +159,51 @@
             }
         }, 110);
     });
+
+    /** The question's unit fits a variable when both measure the same thing (rad is not percent, Hz is not rad/s). */
+    function unitFits(name: string): boolean {
+        const v = script?.formula?.vars.find((x) => x.name === name);
+        return hint?.unit != null && hint.dims != null && v !== undefined && v.dims === hint.dims;
+    }
+
+    /** Once per opened sheet: show the answer variable in the unit the question asks for, if it fits and is blank. */
+    function applyHintUnit(name: string): void {
+        if (unitTried || useSettings || hint?.unit == null || !unitFits(name)) return;
+        unitTried = true;
+        if ((display[name] ?? '').trim() === '') display[name] = hint.unit;
+    }
+
+    const unitFromQuestion = $derived(!useSettings && hint?.unit != null && picked !== null && unitFits(picked.name) && display[picked.name] === hint.unit);
+    const roundingFromQuestion = $derived(!useSettings && hint?.rounding != null ? hint.rounding : null);
+
+    function describeRounding(p: Precision): string {
+        if ('sig' in p) return `${p.sig} significant figure${p.sig === 1 ? '' : 's'}`;
+        return p.decimals === 0 ? 'whole numbers' : `${p.decimals} decimal${p.decimals === 1 ? '' : 's'}`;
+    }
+
+    /** "Rounded to 1 decimal and shown in degrees, as the question asks" (either part alone when only one applies). */
+    const formatNote = $derived.by(() => {
+        if (hint === null || (!unitFromQuestion && roundingFromQuestion === null)) return null;
+        const parts: string[] = [];
+        if (roundingFromQuestion !== null) parts.push(`rounded to ${describeRounding(roundingFromQuestion)}`);
+        if (unitFromQuestion) parts.push(`shown in ${hint.unit === 'percent' ? 'percent' : (hint.unit_label ?? hint.unit)}`);
+        const sentence = parts.join(' and ');
+        return `${sentence[0].toUpperCase()}${sentence.slice(1)}, as the question asks`;
+    });
+    const canUseQuestion = $derived(useSettings && hint !== null && (hint.rounding != null || (hint.unit != null && picked !== null && unitFits(picked.name))));
+
+    function useMySettings(): void {
+        useSettings = true;
+        if (picked !== null && hint?.unit != null && display[picked.name] === hint.unit) display[picked.name] = '';
+        announceText('Using your Settings');
+    }
+
+    function useQuestionFormat(): void {
+        useSettings = false;
+        unitTried = false;
+        if (picked !== null) applyHintUnit(picked.name);
+        announceText("Using the question's format");
+    }
 
     /** What the answer slab shows first: the root matching a worked example's official answer, else the variable
      *  the question asks for, else the first solved variable. */
@@ -246,7 +302,7 @@
     let latestFormat = 0;
     $effect(() => {
         const a = answer;
-        const prec = settings.precision.kind === 'sig' ? { sig: settings.precision.n } : { decimals: settings.precision.n };
+        const prec: Precision = roundingFromQuestion ?? (settings.precision.kind === 'sig' ? { sig: settings.precision.n } : { decimals: settings.precision.n });
         const comma = settings.decimalComma;
         const opts = options;
         copied = false;
@@ -356,7 +412,7 @@
     onDestroy(dropUndo);
 
     function clear(): void {
-        undo = $state.snapshot({ values, display, fromProblem, picked, options, showOptions });
+        undo = $state.snapshot({ values, display, fromProblem, picked, options, showOptions, useSettings });
         if (undoTimer !== null) clearTimeout(undoTimer);
         undoTimer = setTimeout(dropUndo, 8000);
         const start = Object.fromEntries((script?.tool?.params ?? []).map((p) => [p.name, initialValue(p, settings.rules)]));
@@ -382,6 +438,7 @@
         picked = u.picked;
         options = u.options;
         showOptions = u.showOptions;
+        useSettings = u.useSettings;
         const t = script?.tool;
         if (t !== undefined && t.params.some((p) => (values[p.name] ?? '').trim().length > 0 && values[p.name] !== initialValue(p, settings.rules))) void run();
         announceText('Restored');
@@ -541,6 +598,17 @@
                 {/if}
                 {#if answer.others.length > 0}
                     <p class="a-note">Other root{answer.others.length > 1 ? 's' : ''}: {answer.others.join(' · ')}. Pick one below if the physics says so.</p>
+                {/if}
+                {#if formatNote !== null}
+                    <p class="a-note a-format">
+                        {formatNote}.
+                        <button type="button" class="linklike" onclick={useMySettings}>Use my Settings instead</button>
+                    </p>
+                {:else if canUseQuestion}
+                    <p class="a-note a-format">
+                        Using your Settings.
+                        <button type="button" class="linklike" onclick={useQuestionFormat}>Use the question's format</button>
+                    </p>
                 {/if}
                 {#if script.formula !== undefined && picked !== null}
                     <label class="a-unit">
@@ -862,6 +930,19 @@
     .a-note {
         color: var(--answer-note);
         font-size: var(--text-sm);
+    }
+    .linklike {
+        padding: 0;
+        margin-left: var(--space-2);
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .linklike:hover {
+        color: var(--answer-label);
     }
     .a-unit {
         display: flex;
