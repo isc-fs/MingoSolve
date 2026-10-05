@@ -2,7 +2,8 @@
 # January 2027 quizzes) reads the same data, so it has every formula, but tools are code and are not ported twice.
 # Both the Rust CLI comparison and the Python example test skip commands that use exactly these tools.
 rust_only_tools = ["charge_time", "packs_needed", "cable_fuse", "ts_breaker", "can_transfer", "wheel_slip", "truss",
-                   "endurance_energy"]
+                   "endurance_energy",
+                   "kin_profile", "document_penalty", "rule_value", "track_range", "skidpad_layout"]
 
 # Corpus cases where Rust is allowed to differ from the Python engine, each with a reviewed reason.
 # key = "<formula>:<hidden vars joined by +>"

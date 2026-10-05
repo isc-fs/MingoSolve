@@ -14,7 +14,7 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
-| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · 🔄 active `feat/3-coverage-gaps` | `v0.2.0` |
+| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.2.0` |
 | 3 | Quiz-day features | 🔄 active `feat/4-past-question-recognition` · 🔄 active `feat/5-question-formatting` · 🔄 active `fix/5-answer-path` · 🔄 active `feat/6-help-and-session-log` · 🔄 active `feat/7-plain-language-tools` · 🔄 active `fix/6-accessibility` · 🔄 active `feat/8-chain-and-calc-examples` · 🔄 active `feat/9-rules-search` | `v0.3.0` |
 | 4 | Quiz rehearsal | 🔜 planned `feat/10-mock-quiz-fixes` | `v1.0.0` |
 | 5 | After the quizzes | 🔜 planned `feat/11-drop-python-fallback` · 🔜 planned `feat/12-repl` · 🔜 planned `feat/13-contributor-guide` | `v1.1.0` |
@@ -57,7 +57,7 @@ gitGraph
     checkout dev
     merge feat/2-release-pipeline
     branch feat/3-coverage-gaps
-    commit id: "… New archetypes from the question bank with verified past questions"
+    commit id: "✔ New archetypes from the question bank with verified past questions"
     checkout dev
     merge feat/3-coverage-gaps
     checkout main
