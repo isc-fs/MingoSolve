@@ -7,13 +7,18 @@
 
 # Project roadmap
 
-Phased delivery plan for this repository. Each phase is a cluster of feat branches cut from `dev`; a milestone tag on `main` closes the phase once every branch in it has merged. Branch status badges (✅ / 🔄 / 🔜) are derived from each branch's tracking issue state in GitHub Issues.
+ISC MingoSolve has to be installed and rehearsed before the January 2027 registration quizzes. Feature freeze on 15 December 2026; only fixes after 1 January. Each phase is a cluster of branches cut from `dev`; a tag on `main` closes the phase once every branch in it has merged. Status badges (✅ / 🔄 / 🔜) come from each branch's tracking issue.
 
 ## Phase summary
 
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
-| 1 | TODO — first phase title | 🔜 planned `feat/1-todo-branch-name` | `v0.1.0` |
+| 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
+| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.5.0 (with phase 3)` |
+| 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · ✅ done `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` · ✅ done `feat/10-release-v0.5.0` | `v0.5.0` |
+| 4 | Quiz rehearsal | 🔜 planned `feat/11-mock-quiz-fixes` | `v1.0.0` |
+| 5 | After the quizzes | 🔜 planned `feat/12-drop-python-fallback` · 🔜 planned `feat/13-repl` · 🔜 planned `feat/14-contributor-guide` | `v1.1.0` |
+| — | Process fixes _(sidequest)_ | ✅ done `fix/7-roadmap-skip-ci` | — |
 
 ## Branch diagram
 
@@ -25,13 +30,105 @@ gitGraph
     branch dev
     checkout dev
 
-    %% Phase 1 — TODO — first phase title
-    branch feat/1-todo-branch-name
-    commit id: "○ One-line description of what this branch delivers"
+    %% Phase 1 — Rust engine and desktop app
+    branch feat/1-mingosolve-app
+    commit id: "✔ Rust engine, Tauri app, 145 past questions, tests at every layer"
     checkout dev
-    merge feat/1-todo-branch-name
+    merge feat/1-mingosolve-app
     checkout main
     merge dev tag: "v0.1.0"
+    checkout dev
+
+    %% Phase 2 — Quiz-day correctness and installers
+    branch fix/2-prefill-safety
+    commit id: "✔ Pre-fill only what the problem clearly says, and show where each value came from"
+    checkout dev
+    merge fix/2-prefill-safety
+    branch fix/3-option-matching
+    commit id: "✔ Match options with units, thousands separators and list labels"
+    checkout dev
+    merge fix/3-option-matching
+    branch fix/4-crash-proof
+    commit id: "✔ Bad input can't freeze or crash the app"
+    checkout dev
+    merge fix/4-crash-proof
+    branch feat/2-release-pipeline
+    commit id: "✔ Installers for macOS, Windows and Linux with updates"
+    checkout dev
+    merge feat/2-release-pipeline
+    branch feat/3-coverage-gaps
+    commit id: "✔ New archetypes from the question bank with verified past questions"
+    checkout dev
+    merge feat/3-coverage-gaps
+    checkout main
+    merge dev tag: "v0.5.0 (with phase 3)"
+    checkout dev
+
+    %% Phase 3 — Quiz-day features
+    branch feat/4-past-question-recognition
+    commit id: "✔ Recognise pasted past questions and warn about known-wrong keys"
+    checkout dev
+    merge feat/4-past-question-recognition
+    branch feat/5-question-formatting
+    commit id: "✔ Read rounding and units from the question"
+    checkout dev
+    merge feat/5-question-formatting
+    branch fix/5-answer-path
+    commit id: "✔ Answer always visible, copy shortcut, safe Esc, multi-line tool results, rule year shown"
+    checkout dev
+    merge fix/5-answer-path
+    branch feat/6-help-and-session-log
+    commit id: "✔ In-app help, cheat sheet and an exportable answer log"
+    checkout dev
+    merge feat/6-help-and-session-log
+    branch feat/7-plain-language-tools
+    commit id: "✔ Tool forms with labels, units and choices"
+    checkout dev
+    merge feat/7-plain-language-tools
+    branch fix/6-accessibility
+    commit id: "✔ Focus, contrast, live regions, zoom"
+    checkout dev
+    merge fix/6-accessibility
+    branch feat/8-chain-and-calc-examples
+    commit id: "✔ Chain and calculator past questions one click away"
+    checkout dev
+    merge feat/8-chain-and-calc-examples
+    branch feat/9-rules-search
+    commit id: "✔ Search the rulebook from a locally loaded PDF"
+    checkout dev
+    merge feat/9-rules-search
+    branch feat/10-release-v0.5.0
+    commit id: "✔ Release v0.5.0, the first installable version for the team"
+    checkout dev
+    merge feat/10-release-v0.5.0
+    checkout main
+    merge dev tag: "v0.5.0"
+    checkout dev
+
+    %% Phase 4 — Quiz rehearsal
+    branch feat/11-mock-quiz-fixes
+    commit id: "○ Fixes from two timed mock quizzes; version pinned for the quizzes"
+    checkout dev
+    merge feat/11-mock-quiz-fixes
+    checkout main
+    merge dev tag: "v1.0.0"
+    checkout dev
+
+    %% Phase 5 — After the quizzes
+    branch feat/12-drop-python-fallback
+    commit id: "○ Remove legacy/python after a handover"
+    checkout dev
+    merge feat/12-drop-python-fallback
+    branch feat/13-repl
+    commit id: "○ Full interactive command line"
+    checkout dev
+    merge feat/13-repl
+    branch feat/14-contributor-guide
+    commit id: "○ Contributor guide, issue templates and fsq validate"
+    checkout dev
+    merge feat/14-contributor-guide
+    checkout main
+    merge dev tag: "v1.1.0"
     checkout dev
 
 ```

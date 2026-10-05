@@ -1,0 +1,137 @@
+# pint values for unit strings (SI base magnitude). Generated; do not edit.
+
+[[case]]
+input = "100 km/h"
+si = 27.77777777777778
+
+[[case]]
+input = "8000 rpm"
+si = 837.7580409572781
+
+[[case]]
+input = "1.5 g0"
+si = 14.715
+
+[[case]]
+input = "20 Ah"
+si = 72000.0
+
+[[case]]
+input = "60 degC"
+si = 333.15
+
+[[case]]
+input = "2 bar"
+si = 200000.0
+
+[[case]]
+input = "10 mm**2"
+si = 9.999999999999999e-06
+
+[[case]]
+input = "0.017 uohm*m"
+si = 1.7e-08
+
+[[case]]
+input = "2 A/us"
+si = 2000000.0
+
+[[case]]
+input = "10 ppm/K"
+si = 9.999999999999999e-06
+
+[[case]]
+input = "42 N/mm"
+si = 42000.0
+
+[[case]]
+input = "80 GPa"
+si = 80000000000.0
+
+[[case]]
+input = "9 pF"
+si = 9e-12
+
+[[case]]
+input = "1800 uF"
+si = 0.0018
+
+[[case]]
+input = "1 uH"
+si = 1e-06
+
+[[case]]
+input = "3.5 kW"
+si = 3500.0
+
+[[case]]
+input = "4.2 V * 20 Ah"
+si = 302400.0
+
+[[case]]
+input = "5 %"
+si = 0.05
+
+[[case]]
+input = "12 in"
+si = 0.30479999999999996
+
+[[case]]
+input = "300 yd"
+si = 274.32
+
+[[case]]
+input = "40000 ft"
+si = 12191.999999999998
+
+[[case]]
+input = "760 mmHg"
+si = 101325.01443540001
+
+[[case]]
+input = "1 hp"
+si = 745.6998715822701
+
+[[case]]
+input = "1 kWh"
+si = 3600000.0
+
+[[case]]
+input = "56 km/h"
+si = 15.555555555555557
+
+[[case]]
+input = "0.5 kg/m**3"
+si = 0.5
+
+[[case]]
+input = "1 cal"
+si = 4.184
+
+[[case]]
+input = "1 revolution/s"
+si = 6.283185307179586
+
+[[case]]
+input = "90 deg"
+si = 1.5707963267948966
+
+[[case]]
+input = "50 Hz"
+si = 50.0
+
+[[case]]
+input = "1 MJ"
+si = 1000000.0
+
+[[case]]
+input = "3 kN*m"
+si = 3000.0
+
+[[case]]
+input = "15 psi"
+si = 103421.35939752545
+
+[[case]]
+input = "2 mi"
+si = 3218.688

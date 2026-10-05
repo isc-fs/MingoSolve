@@ -1,0 +1,276 @@
+# Topic library: every script (formula or procedural tool) belongs to exactly one topic.
+# Order here is the order shown in the app. `hue` picks the topic's accent from the app palette.
+
+[[topic]]
+id = "motion"
+name = "Motion and energy"
+blurb = "Speed, constant acceleration, kinetic and potential energy"
+hue = "green"
+formulas = ["speed", "uniform_accel", "kinetic_energy", "rolling_energy", "stopping_distance",
+            "rolling_coast", "coast_down"]
+tools = ["accel_then_cruise", "endurance_energy", "kin_profile"]
+
+[[topic]]
+id = "dynamics"
+name = "Vehicle dynamics"
+blurb = "Axle loads, load transfer, cornering, rollover, steering"
+hue = "green"
+formulas = ["static_axle_loads", "longitudinal_transfer", "lateral_transfer", "rollover", "inside_wheel_fraction",
+            "front_lift", "traction_limit", "cornering", "cornering_downforce", "skidpad_lap", "ackermann",
+            "wheel_loads_cornering", "wheel_slip_angle", "wheel_loads_total", "cg_shift", "brake_balance",
+            "resultant_g_angle", "sprung_cg_height"]
+tools = ["wheel_slip"]
+
+[[topic]]
+id = "suspension"
+name = "Suspension and springs"
+blurb = "Wheel and ride rates, natural frequency, damping, coil springs"
+hue = "green"
+formulas = ["wheel_rate", "coil_spring"]
+tools = ["two_dof"]
+
+[[topic]]
+id = "aero"
+name = "Aerodynamics"
+blurb = "Downforce, drag, balance, terminal velocity"
+hue = "teal"
+formulas = ["aero_forces", "aero_split", "terminal_velocity", "drag_fall", "reynolds_matching"]
+tools = []
+
+[[topic]]
+id = "powertrain"
+name = "Powertrain and brakes"
+blurb = "Gear ratios, torque and power, planetaries, engines, brake torque"
+hue = "gold"
+formulas = ["gear_drive", "power_torque", "planetary", "engine_geometry", "engine_order", "brake_torque",
+            "top_speed_power", "compound_planetary", "epicyclic_planet", "slider_crank", "cr_change",
+            "traction_torque", "regen_wheel_torque", "top_speed_losses", "brake_heat", "cr_from_force"]
+tools = ["gear_train"]
+
+[[topic]]
+id = "structures"
+name = "Structures"
+blurb = "Sections, bending, axial load, buckling, bolts, pressure, levers and trusses"
+hue = "gold"
+formulas = ["tube_section", "square_tube_section", "rect_section", "sandwich_section", "three_point_bend", "bend_yield_load", "cantilever",
+            "axial", "euler_buckling", "thin_wall_pressure", "bolt_shear", "edge_distance", "lever"]
+tools = ["truss"]
+
+[[topic]]
+id = "thermo"
+name = "Thermo and fluids"
+blurb = "Heat, gases, cycles, cooling, flow, acoustics"
+hue = "teal"
+formulas = ["heat_capacity", "heat_flow", "latent_heat", "thermal_expansion", "ideal_gas", "gas_states", "adiabatic",
+            "pneumatic_bottle", "stirling_cycle", "carnot", "heat_pump", "joule_refrigerator", "newton_cooling",
+            "lumped_cooling", "lmtd", "continuity_bernoulli", "pipe_continuity", "floating_body", "reynolds",
+            "closed_pipe"]
+tools = ["gauge", "db_sum"]
+
+[[topic]]
+id = "hv"
+name = "Accumulator and HV"
+blurb = "Pack under load, energy, discharge rule, segment limits, TS rules"
+hue = "gold"
+formulas = ["battery_load", "max_power_transfer", "pack_energy", "energy_power", "power_ramp", "drive_range",
+            "ts_discharge", "cap_energy", "peukert", "balancing_time"]
+tools = ["segment_max_cells", "ts_rules", "pcb_spacing", "charge_time", "packs_needed", "ts_breaker"]
+
+[[topic]]
+id = "circuits"
+name = "Circuits and electronics"
+blurb = "Ohm, wiring, transients, filters, sensors, op-amps, converters"
+hue = "teal"
+formulas = ["ohm", "wire_resistance", "cable_drop", "resistance_temperature", "resistor_self_heating",
+            "rc_transient", "inductor_step", "inductor_energy", "reactance", "rc_lowpass", "vswr", "divider",
+            "ntc", "howland", "buck", "busbar_match", "current_density"]
+tools = ["nodal", "e_series", "gamma", "cable_fuse"]
+
+[[topic]]
+id = "signals"
+name = "Signals and comms"
+blurb = "Sampling, ADCs, timers, CAN and UART timing, binary"
+hue = "teal"
+formulas = ["nyquist", "adc", "adc_temp_step", "timer_arr"]
+tools = ["alias", "twos", "uart_time", "can_frame_bits", "can_transfer"]
+
+[[topic]]
+id = "scoring"
+name = "Rules and scoring"
+blurb = "Event scores (2027, 2026, legacy), penalties, statics, rule constants, rounding"
+hue = "gold"
+formulas = []
+tools = ["corrected_time", "event_score", "cones_from_score", "dv_rank_score", "dc_autocross_score",
+         "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to",
+         "document_penalty", "rule_value", "track_range", "skidpad_layout"]
+
+[[topic]]
+id = "business"
+name = "Business and finance"
+blurb = "Exchange-rate exposure, ROI, earned value"
+hue = "gold"
+formulas = ["fx_exposure", "roi_fx", "earned_value"]
+tools = []
+
+# Short titles for procedural tools (formulas carry their own title in data/formulas).
+[tool_titles]
+accel_then_cruise = "Accelerate, then cruise at top speed"
+endurance_energy = "Endurance energy budget"
+wheel_slip = "Wheel velocities and slip angles, all four wheels"
+two_dof = "Quarter car: two natural frequencies"
+gear_train = "Gear train output speed"
+truss = "2D truss, method of joints"
+gauge = "Gauge and absolute pressure"
+db_sum = "Sum of sound levels (dB)"
+segment_max_cells = "Max cells per accumulator section"
+ts_rules = "TS rule values by voltage (TSAL, insulation, IMD)"
+pcb_spacing = "TS-LV PCB clearance and creepage"
+charge_time = "Charging time"
+packs_needed = "Whole packs needed"
+ts_breaker = "Main breaker for a TS cable"
+nodal = "DC circuit solver (nodal analysis)"
+e_series = "Nearest E-series resistor value"
+gamma = "Reflection coefficient and VSWR of a load"
+cable_fuse = "Cable ampacity and fuse"
+alias = "Aliased frequency after sampling"
+twos = "Two's complement"
+uart_time = "UART transfer time"
+can_frame_bits = "Bits per CAN frame"
+can_transfer = "CAN transfer time for a payload"
+corrected_time = "Corrected time (cones, off-course, flags)"
+event_score = "Dynamic event score (skidpad, accel, autocross, endurance)"
+cones_from_score = "Time or cones needed for a score"
+dv_rank_score = "Driverless skidpad / accel score by rank"
+dc_autocross_score = "Driverless cup autocross score"
+trackdrive_score = "Trackdrive score"
+efficiency_score = "Efficiency score"
+static_nonfinalist = "Static event score, non-finalist"
+max_points = "Maximum points of a set of events"
+weight_penalty = "Weight change penalty"
+round_to = "Round to a step (fuses, limits)"
+kin_profile = "Run in constant-acceleration phases (distance, time, speed)"
+document_penalty = "Late document penalty and de-registration deadlines"
+rule_value = "Rule constant lookup (tyres, LV voltage, wheelbase, clearance...)"
+track_range = "Allowed rear track range from the front track"
+skidpad_layout = "Skidpad geometry and cone count from the rules"
+
+# Words people use for a script that its title, tags and variables don't contain. Searched with the rest.
+[aliases]
+speed = "velocity average distance time"
+uniform_accel = "acceleration braking deceleration suvat 0-100"
+kinetic_energy = "potential height drop"
+stopping_distance = "reaction delay brake"
+coast_down = "rolling resistance drag coefficient"
+static_axle_loads = "weight distribution centre of gravity cg wheelbase"
+longitudinal_transfer = "weight transfer braking acceleration pitch"
+lateral_transfer = "weight transfer roll cornering"
+rollover = "tip over tilt lateral acceleration"
+front_lift = "wheelie"
+traction_limit = "grip friction tyre mu"
+cornering = "lateral acceleration centripetal radius yaw"
+cornering_downforce = "skidpad max speed grip aero"
+skidpad_lap = "skidpad figure eight lap time"
+ackermann = "steering angle turning radius"
+wheel_rate = "spring rate motion ratio ride frequency natural frequency damping critical damper"
+coil_spring = "spring rate wire diameter coils turns shear modulus"
+two_dof = "suspension tyre stiffness unsprung sprung frequency"
+aero_forces = "lift drag coefficient cl cd wing"
+aero_split = "aero balance centre of pressure front rear"
+terminal_velocity = "free fall drag"
+gear_drive = "gear ratio final drive sprocket chain top speed wheel speed rpm"
+power_torque = "kw nm rpm motor"
+top_speed_power = "max speed power drag gear"
+planetary = "epicyclic sun ring carrier hub reduction"
+engine_geometry = "bore stroke cc displacement compression ratio piston speed bmep"
+engine_order = "vibration firing frequency"
+brake_torque = "caliper piston pad disc rotor brake force"
+brake_heat = "brake disc temperature energy"
+regen_wheel_torque = "regenerative recuperation braking current"
+tube_section = "second moment of area inertia tube"
+square_tube_section = "second moment of area inertia box"
+rect_section = "second moment of area inertia beam"
+three_point_bend = "bending deflection beam stress"
+bend_yield_load = "bending yield beam failure"
+cantilever = "bending deflection beam"
+axial = "tension compression stress strain young modulus"
+euler_buckling = "column critical load"
+thin_wall_pressure = "hoop stress pipe tank"
+bolt_shear = "fastener rivet bearing"
+lever = "moment pivot torque balance"
+truss = "joints members forces structure frame"
+heat_capacity = "specific heat warm up temperature rise"
+heat_flow = "coolant water mass flow cooling"
+thermal_expansion = "expansion coefficient length"
+ideal_gas = "gas pressure volume temperature"
+gas_states = "tyre pressure temperature boyle charles"
+adiabatic = "isentropic compression expansion"
+pneumatic_bottle = "air tank pressure gas"
+heat_pump = "cop refrigerator air conditioning"
+newton_cooling = "cooling time temperature"
+lmtd = "radiator heat exchanger"
+continuity_bernoulli = "flow velocity pressure venturi"
+pipe_continuity = "flow rate pipe diameter velocity"
+floating_body = "buoyancy archimedes density"
+closed_pipe = "acoustic resonance organ pipe intake"
+gauge = "absolute pressure atmospheric bar"
+db_sum = "noise sound decibel"
+battery_load = "accumulator internal resistance current power voltage sag"
+pack_energy = "accumulator kwh capacity cells"
+energy_power = "kwh energy power current charge ah"
+drive_range = "range distance battery"
+ts_discharge = "discharge resistor 60 v 5 s precharge"
+cap_energy = "capacitor dc link energy"
+peukert = "battery capacity discharge rate"
+balancing_time = "bms balancing cells"
+segment_max_cells = "segment section 120 v 6 mj cells accumulator"
+ts_rules = "tsal insulation monitoring imd precharge isolation voltage rule red light"
+pcb_spacing = "clearance creepage spacing pcb"
+charge_time = "charger charging soc"
+packs_needed = "battery packs count"
+ts_breaker = "breaker fuse short circuit"
+ohm = "voltage current resistance power"
+wire_resistance = "cable copper resistivity"
+cable_drop = "voltage drop efficiency"
+rc_transient = "time constant capacitor charging discharging"
+inductor_energy = "coil inductance"
+reactance = "impedance capacitive inductive"
+rc_lowpass = "filter cutoff phase"
+divider = "potential divider"
+ntc = "thermistor temperature sensor beta"
+buck = "dc dc converter duty cycle ripple"
+nodal = "circuit network kirchhoff equivalent resistance"
+e_series = "resistor standard value e12 e24"
+cable_fuse = "cable current rating fuse ampacity"
+nyquist = "sampling frequency"
+adc = "resolution bits lsb converter"
+timer_arr = "microcontroller timer prescaler interrupt"
+alias = "aliasing sampling"
+twos = "binary signed negative"
+uart_time = "serial baud rate"
+can_frame_bits = "can bus frame bits stuffing"
+can_transfer = "can bus bitrate payload"
+corrected_time = "penalty cones doo off course oc"
+event_score = "points score skidpad acceleration autocross endurance"
+cones_from_score = "inverse score cones"
+dv_rank_score = "driverless autonomous skidpad acceleration"
+dc_autocross_score = "driverless cup autocross"
+trackdrive_score = "driverless trackdrive laps"
+efficiency_score = "efficiency energy points"
+static_nonfinalist = "business plan cost design static points finalist"
+max_points = "points total"
+weight_penalty = "mass inspection"
+document_penalty = "deadline late submission upload de-registration correction request days hours group a b ses crd"
+rule_value = "rulebook constant tread depth wet tyre low voltage lvs 60 v ground clearance wheelbase minimum"
+track_range = "track width front rear 75 % ratio t 2.9.2"
+skidpad_layout = "cones inner outer diameter circles figure of eight pylons track width centre"
+kin_profile = "acceleration phases cruise brake reaction time distance idle standstill run profile"
+wheel_loads_total = "tyre load corner outside inside weight distribution lateral g front left"
+cg_shift = "driver mass centre of gravity weight distribution ballast"
+brake_balance = "brake bias split front rear ideal full braking lock"
+resultant_g_angle = "liquid level fuel tank tilt bank banked turn lateral acceleration angle"
+sprung_cg_height = "ride height ground clearance cg unsprung"
+cr_from_force = "piston gas force pressure bore stroke clearance volume"
+current_density = "wire conductor a/mm2 conductivity electric field"
+fx_exposure = "exchange rate currency"
+roi_fx = "return on investment currency"
+earned_value = "spi cpi project schedule cost"

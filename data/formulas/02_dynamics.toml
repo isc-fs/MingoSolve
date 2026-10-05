@@ -1,0 +1,307 @@
+# dynamics: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "vx_car"
+unit = "m/s"
+desc = "vehicle longitudinal velocity at the CG (x forward)"
+
+[[var]]
+name = "vy_car"
+unit = "m/s"
+desc = "vehicle lateral velocity at the CG (y to the left)"
+signed = true
+
+[[var]]
+name = "x_w"
+unit = "m"
+desc = "wheel position ahead of the CG (rear wheels negative)"
+signed = true
+
+[[var]]
+name = "y_w"
+unit = "m"
+desc = "wheel position left of the CG (right wheels negative)"
+signed = true
+
+[[var]]
+name = "vx_wh"
+unit = "m/s"
+desc = "longitudinal velocity of the wheel centre"
+
+[[var]]
+name = "vy_wh"
+unit = "m/s"
+desc = "lateral velocity of the wheel centre (y to the left)"
+signed = true
+
+[[var]]
+name = "delta_w"
+unit = "rad"
+desc = "road-wheel angle incl. toe (positive = wheel points left)"
+signed = true
+
+[[var]]
+name = "alpha_w"
+unit = "rad"
+desc = "tyre slip angle (positive = wheel points left of its velocity)"
+signed = true
+
+[[formula]]
+key = "wheel_slip_angle"
+title = "Slip angle of one wheel from yaw rate (rigid body)"
+eqs = [
+    "vx_wh = vx_car - yaw*y_w",
+    "vy_wh = vy_car + yaw*x_w",
+    "alpha_w = delta_w - atan(vy_wh/vx_wh)",
+]
+tags = ["dynamics", "slip", "angle", "tyre", "yaw", "wheel", "velocity", "steering", "toe"]
+notes = "x forward, y left, yaw > 0 = left turn. Front-left: x_w = a_cg, y_w = +t/2; rear-right: x_w = -b_cg, y_w = -t/2. Toe-in turns a LEFT wheel right (delta_w = delta - toe) and a RIGHT wheel left (delta + toe). All four wheels, or the toe for equal slips: the Wheel velocities and slip angles tool."
+
+[[var]]
+name = "Fz_out"
+unit = "N"
+desc = "vertical load on the outside wheel of the axle"
+
+[[var]]
+name = "Fz_in"
+unit = "N"
+desc = "vertical load on the inside wheel of the axle"
+
+[[formula]]
+key = "wheel_loads_cornering"
+title = "Outside / inside wheel loads on one axle in a corner (rigid)"
+eqs = [
+    "Fz_out = m_ax*g/2 + m_ax*ay*h_cg/t_tr",
+    "Fz_in = m_ax*g/2 - m_ax*ay*h_cg/t_tr",
+]
+tags = ["dynamics", "wheel", "load", "corner", "lateral", "transfer", "tyre", "vertical", "outside", "inside"]
+notes = "m_ax = axle share of the mass (45 % front of 250 kg -> 112.5 kg), t_tr = that axle's track. Right turn: LEFT wheels are outside (first skidpad lap is a right turn). Add aero load per wheel separately."
+
+[[var]]
+name = "F_1"
+unit = "N"
+desc = "force (or weight) on lever arm 1"
+
+[[var]]
+name = "F_2"
+unit = "N"
+desc = "force (or weight) on lever arm 2"
+
+[[var]]
+name = "l_1"
+unit = "m"
+desc = "lever arm 1 (perpendicular distance to the pivot)"
+
+[[var]]
+name = "l_2"
+unit = "m"
+desc = "lever arm 2 (perpendicular distance to the pivot)"
+
+[[formula]]
+key = "lever"
+title = "Lever / moment balance about a pivot: F1 l1 = F2 l2"
+eqs = [
+    "F_1*l_1 = F_2*l_2",
+]
+tags = ["statics", "lever", "moment", "balance", "pivot", "bracket", "arm", "equilibrium"]
+notes = "Masses balance the same way: enter weights as a mass times g0, like 231.6kg*g0. Bracket reaction: take moments about the other support; the arm is the perpendicular distance."
+
+[[var]]
+name = "v_sc1"
+unit = "m/s"
+desc = "air speed of test 1 (model or CFD)"
+
+[[var]]
+name = "v_sc2"
+unit = "m/s"
+desc = "air speed of test 2 for the same Reynolds number"
+
+[[var]]
+name = "L_sc1"
+unit = "dimensionless"
+desc = "scale of model 1 (1 = full size)"
+
+[[var]]
+name = "L_sc2"
+unit = "dimensionless"
+desc = "scale of model 2 (1 = full size)"
+
+[[formula]]
+key = "reynolds_matching"
+title = "Scale model speed for the same Reynolds number (same fluid)"
+eqs = [
+    "v_sc1*L_sc1 = v_sc2*L_sc2",
+]
+tags = ["aero", "wind", "tunnel", "scale", "model", "reynolds", "cfd", "similarity"]
+notes = "Re = rho v L / mu with the same air: v L stays constant. A smaller model needs a higher speed. Different fluids: use the Reynolds number script."
+
+[[var]]
+name = "t_fall"
+unit = "s"
+desc = "fall time with quadratic drag"
+
+[[var]]
+name = "v_fall"
+unit = "m/s"
+desc = "speed after the fall"
+
+[[formula]]
+key = "drag_fall"
+title = "Fall from rest with quadratic drag: speed and time"
+eqs = [
+    "v_term = sqrt(2*m*g/(rho_air*CdA))",
+    "v_fall = v_term*sqrt(1 - exp(-2*g*dh/v_term**2))",
+    "t_fall = v_term/g*log(exp(g*dh/v_term**2) + sqrt(exp(2*g*dh/v_term**2) - 1))",
+]
+tags = ["aero", "fall", "drop", "terminal", "drag", "time", "height", "airplane"]
+notes = "dh = fall height (40000 ft = 12192 m). t = v_term/g acosh(exp(g h/v_term^2)). Constant air density."
+
+[[formula]]
+key = "coast_down"
+title = "Coast-down drag from a speed drop (mean-speed method)"
+eqs = [
+    "m*(v0 - v) = rho_air*CdA*((v0 + v)/2)**2/2*t",
+    "s = (v0 + v)/2*t",
+]
+tags = ["aero", "coast", "down", "drag", "deceleration", "scx", "distance"]
+notes = "Drag evaluated at the mean speed (official Q856 method), no rolling resistance. SCx = CdA."
+
+[[formula]]
+key = "rolling_coast"
+title = "Coasting with rotating inertia against a constant resistance"
+eqs = [
+    "(m + J_w/r_w**2)*(v0**2 - v**2)/2 = F*s",
+]
+tags = ["energy", "rolling", "wheel", "inertia", "resistance", "coast", "work"]
+notes = "F = constant resistance (rolling, friction) over the distance s. A loose wheel: m = wheel mass, J_w its own inertia. 16.2 inch outer diameter -> r_w = 8.1in."
+
+[[var]]
+name = "f_ax"
+unit = "dimensionless"
+desc = "share of the car mass on the axle considered (45 % front = 0.45)"
+
+[[formula]]
+key = "wheel_loads_total"
+title = "Wheel loads in a corner from total mass, weight split and lateral g"
+eqs = [
+    "m_ax = f_ax*m",
+    "Fz_out = m_ax*g/2 + m_ax*ay*h_cg/t_tr",
+    "Fz_in = m_ax*g/2 - m_ax*ay*h_cg/t_tr",
+]
+tags = ["dynamics", "wheel", "load", "corner", "lateral", "transfer", "tyre", "vertical", "weight", "distribution"]
+notes = "The same as Outside / inside wheel loads on one axle in a corner (rigid), in one step: m_ax = f_ax m, 50/50 left/right static, all mass unsprung (CG height h_cg, that axle's track t_tr). Right turn: the LEFT wheels are outside, so front-left = Fz_out of the front axle. For ay = 1.8 g enter 1.8g0. Q1065: 250 kg, 45 % front, 1.8 g, h 0.28 m, t_f 1.2 m -> 1015 N. Sprung-mass models with roll-centre height give less transfer."
+
+[[var]]
+name = "wr_0"
+unit = "dimensionless"
+desc = "rear weight fraction before the change (64 % rear = 0.64)"
+
+[[var]]
+name = "wr_1"
+unit = "dimensionless"
+desc = "rear weight fraction after the change"
+
+[[var]]
+name = "wf_1"
+unit = "dimensionless"
+desc = "front weight fraction after the change"
+
+[[var]]
+name = "m_add"
+unit = "kg"
+desc = "mass added to the car (driver, ballast)"
+
+[[var]]
+name = "x_add"
+unit = "m"
+desc = "position of the added mass behind the FRONT axle"
+
+[[var]]
+name = "a_cg2"
+unit = "m"
+desc = "CG to FRONT axle distance after the change"
+
+[[var]]
+name = "d_cg"
+unit = "m"
+desc = "CG shift towards the rear (negative = forward)"
+signed = true
+
+[[formula]]
+key = "cg_shift"
+title = "CG and weight distribution after adding a mass (driver, ballast)"
+eqs = [
+    "a_cg = wr_0*L_wb",
+    "(m + m_add)*a_cg2 = m*a_cg + m_add*x_add",
+    "d_cg = a_cg2 - a_cg",
+    "wr_1 = a_cg2/L_wb",
+    "wf_1 = 1 - wr_1",
+]
+tags = ["dynamics", "cg", "centre", "gravity", "shift", "driver", "ballast", "weight", "distribution", "static"]
+notes = "a_cg is the CG distance from the FRONT axle, so the rear fraction is a_cg/L_wb (64 % rear -> a_cg = 0.64 L). A CG shift of 144 mm FORWARD is d_cg = -144 mm (Q56: 1800 mm, 64 % rear -> 56 % rear = 44 % front). m = car mass without the added mass; the shift is m_add (x_add - a_cg)/(m + m_add)."
+
+[[var]]
+name = "phi_f"
+unit = "dimensionless"
+desc = "front share of the total braking force"
+
+[[var]]
+name = "phi_r"
+unit = "dimensionless"
+desc = "rear share of the total braking force"
+
+[[formula]]
+key = "brake_balance"
+title = "Optimum (ideal) brake balance at full braking"
+eqs = [
+    "L_wb = a_cg + b_cg",
+    "phi_f = (b_cg + mu*h_cg)/L_wb",
+    "phi_r = 1 - phi_f",
+]
+tags = ["dynamics", "brake", "balance", "bias", "split", "front", "rear", "weight", "transfer", "lock"]
+notes = "Both axles at the grip limit (deceleration mu g, no aero): the brake force splits like the dynamic axle loads, phi_f = (b_cg + mu h_cg)/L. b_cg = static front fraction x L (50/50, L = 1.6 m -> 0.8 m). Q147: mu 1.5, h 0.25 m -> 73.4 % front. Braking harder on the front than this locks the front first."
+
+[[var]]
+name = "theta_g"
+unit = "rad"
+desc = "angle of the resultant of gravity and a lateral acceleration from the vertical"
+
+[[formula]]
+key = "resultant_g_angle"
+title = "Tilt of the resultant g: fuel surface, banked turn, tilt angle"
+eqs = [
+    "theta_g = atan(ay/g)",
+]
+tags = ["dynamics", "angle", "tilt", "fuel", "liquid", "surface", "bank", "banked", "lateral", "resultant"]
+notes = "A liquid surface (or a plumb line) hangs normal to g_eff, so it leans theta_g = atan(ay/g) from the horizontal plane of the car: 1.5 g -> 56.3 deg (Q296), 1.41 g -> 54.7 deg (Q64; the other key, 35.3 deg, is the same angle from the horizontal). A banked road gives zero side force when its bank angle equals theta_g with ay = v^2/R (Q828: R 50 m, 20 deg -> 48.1 km/h: chain v theta_g=20deg R_c=50m)."
+
+[[var]]
+name = "m_s"
+unit = "kg"
+desc = "sprung mass"
+
+[[var]]
+name = "m_u"
+unit = "kg"
+desc = "unsprung mass"
+
+[[var]]
+name = "dh_cg"
+unit = "m"
+desc = "change of the total CG height"
+signed = true
+
+[[var]]
+name = "h_cg2"
+unit = "m"
+desc = "CG height after the ride height change"
+
+[[formula]]
+key = "sprung_cg_height"
+title = "CG height after changing the ride height (sprung mass moves, unsprung stays)"
+eqs = [
+    "dh_cg = m_s*dh/(m_s + m_u)",
+    "h_cg2 = h_cg + dh_cg",
+]
+tags = ["dynamics", "cg", "height", "ride", "ground", "clearance", "sprung", "unsprung", "mass"]
+notes = "Only the sprung mass rises by dh (the change of ground clearance; the minimum static clearance is 30 mm, T 2.2.1), the wheels and hubs stay on the ground. Q490: 258 mm CG, 187 + 35 kg, 30 -> 55 mm gives 279.06 mm; Q535 gives a 16.2 mm shift."

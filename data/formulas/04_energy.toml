@@ -1,0 +1,19 @@
+# energy: generated from the Python definitions, now the source of truth
+
+[[formula]]
+key = "drive_range"
+title = "Range from stored energy at a constant resistance force"
+eqs = [
+    "F*s = eta*E",
+]
+tags = ["energy", "range", "distance", "battery", "efficiency", "drag", "resistance"]
+notes = "E is the stored electrical energy (N x V x Ah), eta the drivetrain efficiency, F the total road resistance at constant speed (speed itself drops out). Q186: 10 x 12 V x 160 Ah x 0.8 / 1.2 kN = 46.1 km."
+
+[[formula]]
+key = "power_ramp"
+title = "Energy of a linearly rising power: E = P_max t / 2"
+eqs = [
+    "E = P*t/2",
+]
+tags = ["energy", "power", "ramp", "linear", "acceleration", "limit", "80", "kW"]
+notes = "P is the peak power reached at the end of the ramp (from 0). Q449: 80 kW over 3.95 s = 158 kJ. For a constant power use E = P t, Q = I t."

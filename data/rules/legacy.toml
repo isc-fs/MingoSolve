@@ -1,0 +1,124 @@
+# FS Rules <= 2025 as used by most FS-Quiz answer keys. Reconstructed from the keys (see docs/archetypes/rules-scoring.md).
+year = "legacy"
+source = "FS Rules 2017-2025 (as reproduced by FS-Quiz keys)"
+dynamic_formula = "legacy"
+
+[points]
+bpp = 75
+cost = 100
+design = 150
+skidpad = 75
+accel = 75
+autocross = 100
+endurance = 325
+efficiency = 100
+
+# score = scale * ((tmax/t)^exponent - 1) / divisor + floor, tmax = tmax_factor * tmin
+[legacy_scoring.skidpad]
+tmax_factor = 1.25
+scale = 71.5
+floor = 3.5
+exponent = 2
+divisor = 0.5625
+
+[legacy_scoring.accel]
+tmax_factor = 1.5
+scale = 71.5
+floor = 3.5
+exponent = 1
+divisor = 0.5
+
+[legacy_scoring.autocross]
+tmax_factor = 1.25
+scale = 95.5
+floor = 4.5
+exponent = 1
+divisor = 0.25
+
+[legacy_scoring.endurance]
+tmax_factor = 1.333
+scale = 300
+floor = 25
+exponent = 1
+divisor = 0.333
+
+[static_nonfinalist]
+bpp = 75
+bpp_minus_finalists = true
+cost = 95
+
+# columns: voltage max, over surface, through air (with cut), under coating [mm]
+[pcb_spacing]
+modes = ["surface", "air", "coated"]
+rows = [[50, 1.6, 1.6, 1.0], [150, 6.4, 3.2, 2.0], [300, 9.5, 6.4, 3.0], [600, 12.7, 9.5, 4.0]]
+
+[ts]
+insulation_tiers = [[250, 250], [1e9, 500]]
+tsal_uses = "max"
+
+# Rule constants (rule_value, track_range, skidpad_layout, document_penalty). Same numbers as 2026 where the old
+# FS-Quiz keys agree: Q122/Q346/Q409 tread, Q237/Q444 wheelbase, Q37/Q364 track ratio, Q213/Q521/Q545 clearance,
+# Q735 LV limits, Q290/Q964 baseline steel.
+[constants.wet_tread_depth]
+value = 2.4
+unit = "mm"
+rule = "T 2.6.1 (old numbering)"
+desc = "minimum tread depth of wet tires"
+
+[constants.wheelbase_min]
+value = 1525
+unit = "mm"
+rule = "key Q237, Q444"
+desc = "minimum wheelbase"
+
+[constants.track_ratio_min]
+value = 0.75
+unit = "1"
+rule = "T 2.8 (key Q37, Q364)"
+desc = "smaller track (front or rear) as a share of the larger one"
+
+[constants.ground_clearance_min]
+value = 30
+unit = "mm"
+rule = "key Q213, Q521, Q545"
+desc = "minimum static ground clearance with the driver"
+
+[constants.lv_dc_max]
+value = 60
+unit = "V DC"
+rule = "key Q735"
+desc = "maximum voltage between any two LVS connections (DC)"
+
+[constants.lv_ac_max]
+value = 50
+unit = "V AC RMS"
+rule = "key Q735"
+desc = "maximum voltage between any two LVS connections (AC, RMS)"
+
+[constants.baseline_yield]
+value = 305
+unit = "MPa"
+rule = "key Q290, Q964"
+desc = "baseline steel yield strength for SES calculations (non-welded)"
+
+[constants.baseline_modulus]
+value = 200
+unit = "GPa"
+rule = "key Q290"
+desc = "baseline steel Young's modulus for SES calculations"
+
+# 16 + 13 cones per circle pair reproduces the keys Q134 (58 cones) and Q50 (29 per pair).
+[skidpad]
+rule = "keys Q134, Q50, Q235, Q99"
+inner_d = 15.25
+outer_d = 21.25
+centre_distance = 18.25
+cones_inner = 16
+cones_outer = 13
+
+# Old rule as the keys apply it: 10 points per FULL 24 h late, per submission (initial and corrected), which is the
+# only reading that reproduces Q512 (50 points); low confidence. The correction window is 168 h (Q659).
+[documents]
+late_points = 10
+late_basis = "full_day"
+correction_hours = 168

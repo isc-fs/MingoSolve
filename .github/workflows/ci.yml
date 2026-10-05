@@ -1,0 +1,105 @@
+name: CI
+
+# Every layer on every pull request: the engine, the app's command contract, the frontend, the end-to-end
+# journeys in Chromium and WebKit, a launch of the packaged Linux binary, the Python fallback, and the app crate on
+# macOS and Windows.
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Engine and app commands (Linux)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/app-prereqs
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+
+  platforms:
+    name: Engine and app commands (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/app-prereqs
+      - run: cargo test --workspace
+
+  frontend:
+    name: Frontend and end to end
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: apps/mingosolve
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/app-prereqs
+      - run: npm run check
+      - run: npm test
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/mingosolve/test-results/
+          retention-days: 7
+
+  smoke:
+    name: Packaged app smoke test (Linux)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/app-prereqs
+      - run: sudo apt-get install -y xvfb
+      - name: Build the real app binary (same config and CSP as the installers)
+        working-directory: apps/mingosolve
+        run: npx tauri build --debug --no-bundle
+      - name: Start it headless and check it stays up
+        env:
+          WEBKIT_DISABLE_DMABUF_RENDERER: '1'
+        run: |
+          set +e
+          xvfb-run -a timeout 25 target/debug/mingosolve 2> app-stderr.log
+          code=$?
+          set -e
+          cat app-stderr.log
+          if [ "$code" -ne 124 ]; then
+            echo "::error::the app exited with code $code before the 25 s timeout (124 means still running)"
+            exit 1
+          fi
+          if grep -q panicked app-stderr.log; then
+            echo "::error::the app panicked"
+            exit 1
+          fi
+          echo "the app was still running after 25 s and did not panic"
+
+  python:
+    name: Python fallback
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: legacy/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q

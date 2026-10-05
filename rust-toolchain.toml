@@ -1,0 +1,14 @@
+# Pin the Rust toolchain channel for this project.
+#
+# Pinned to an exact release so CI, release builds and local builds use
+# the same compiler. Bump it deliberately in its own PR (clippy lints
+# change between releases). The `rust-version` field in Cargo.toml is the
+# MSRV we commit to; this channel is newer than that.
+#
+# Override locally with `rustup override set nightly` if you ever need
+# to experiment — the override is not checked into git.
+
+[toolchain]
+channel    = "1.96.0"
+components = ["rustfmt", "clippy"]
+profile    = "default"

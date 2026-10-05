@@ -1,0 +1,235 @@
+# powertrain: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "x_p"
+unit = "m"
+desc = "piston distance below TDC"
+
+[[var]]
+name = "r_cr"
+unit = "m"
+desc = "crank radius (half the stroke)"
+
+[[var]]
+name = "l_rod"
+unit = "m"
+desc = "connecting rod length (centre to centre)"
+
+[[var]]
+name = "c_th"
+unit = "dimensionless"
+desc = "cosine of the crank angle"
+signed = true
+
+[[var]]
+name = "th_cr"
+unit = "rad"
+desc = "crank angle from TDC"
+
+[[formula]]
+key = "slider_crank"
+title = "Slider-crank: piston position vs crank angle"
+eqs = [
+    "x_p = r_cr*(1 - c_th) + l_rod*(1 - sqrt(1 - (r_cr/l_rod)**2*(1 - c_th**2)))",
+    "c_th = cos(th_cr)",
+    "S_k = 2*r_cr",
+]
+tags = ["engine", "piston", "crank", "rod", "ignition", "timing", "tdc", "position", "stroke"]
+notes = "x = r(1 - cos th) + l(1 - sqrt(1 - (r/l sin th)^2)), written through c_th = cos th. Ignition '2.0 mm before TDC' -> x_p = 2mm, solve th_cr (show it in degrees). Q621's displacement is inconsistent: use stroke and rod only."
+
+[[var]]
+name = "i_cp"
+unit = "dimensionless"
+desc = "compound planetary ratio (sun in / carrier out, ring fixed)"
+
+[[var]]
+name = "z_p1"
+unit = "dimensionless"
+desc = "teeth of the planet stage meshing with the sun"
+
+[[var]]
+name = "z_p2"
+unit = "dimensionless"
+desc = "teeth of the planet stage meshing with the ring"
+
+[[var]]
+name = "mod_1"
+unit = "m"
+desc = "gear module of stage 1 (sun / planet 1)"
+
+[[var]]
+name = "mod_2"
+unit = "m"
+desc = "gear module of stage 2 (planet 2 / ring)"
+
+[[formula]]
+key = "compound_planetary"
+title = "Compound (stepped-planet) planetary ratio, ring fixed"
+eqs = [
+    "i_cp = 1 + z_r*z_p1/(z_s*z_p2)",
+    "mod_1*(z_s + z_p1) = mod_2*(z_r - z_p2)",
+]
+tags = ["gear", "planetary", "compound", "stepped", "planet", "ratio", "module", "centre", "distance"]
+notes = "Sun -> planet 1, planet 2 (same shaft) -> fixed ring, carrier out. Second line: equal centre distance gives z_p2 from the modules."
+
+[[var]]
+name = "n_p"
+unit = "rad/s"
+desc = "planet gear speed (absolute)"
+signed = true
+
+[[var]]
+name = "z_p"
+unit = "dimensionless"
+desc = "planet teeth"
+
+[[formula]]
+key = "epicyclic_planet"
+title = "Epicyclic: planet speed from arm and sun (Willis, external mesh)"
+eqs = [
+    "(n_p - n_c)/(n_s - n_c) = -z_s/z_p",
+]
+tags = ["gear", "epicyclic", "planet", "arm", "carrier", "willis", "sun", "speed"]
+notes = "Sun (gear A) fixed: n_s = 0 -> n_p = n_c (1 + z_s/z_p). Speeds are signed, same sense positive."
+
+[[var]]
+name = "CR_1"
+unit = "dimensionless"
+desc = "compression ratio before"
+
+[[var]]
+name = "CR_2"
+unit = "dimensionless"
+desc = "compression ratio after"
+
+[[var]]
+name = "dh_cr"
+unit = "m"
+desc = "total deck height reduction for the new compression ratio"
+
+[[var]]
+name = "dh_gskt"
+unit = "m"
+desc = "height already gained by a thinner head gasket"
+
+[[var]]
+name = "dh_mach"
+unit = "m"
+desc = "material to machine off"
+
+[[formula]]
+key = "cr_change"
+title = "Deck height change to raise the compression ratio"
+eqs = [
+    "dh_cr = S_k*(1/(CR_1 - 1) - 1/(CR_2 - 1))",
+    "dh_mach = dh_cr - dh_gskt",
+]
+tags = ["engine", "compression", "ratio", "gasket", "head", "deck", "machining", "clearance"]
+notes = "V_cc = V_cyl/(CR - 1) and V_cyl/(pi/4 B^2) = stroke, so the bore and cylinder count drop out."
+
+[[var]]
+name = "n_dw"
+unit = "dimensionless"
+desc = "number of driven wheels"
+
+[[var]]
+name = "Tq_wh"
+unit = "N*m"
+desc = "torque at ONE driven wheel"
+signed = true
+
+[[formula]]
+key = "traction_torque"
+title = "Traction-limited wheel torque with downforce"
+eqs = [
+    "n_dw*Tq_wh/r_w = mu*(m*g + rho_air*ClA*v**2/2)",
+]
+tags = ["traction", "torque", "wheel", "grip", "downforce", "launch", "acceleration", "hub", "motor"]
+notes = "All wheels driven with ideal split (no load transfer). ClA positive = downforce (cl = -1.25 in Q75 means downforce). Above v the motor torque limit rules; the power corner is v = P_wheel*r_w/Tq_wh (Power = torque x speed)."
+
+[[var]]
+name = "P_w"
+unit = "W"
+desc = "power at the wheels (ground)"
+
+[[formula]]
+key = "regen_wheel_torque"
+title = "Regenerative braking: battery current back to wheel torque"
+eqs = [
+    "V_t = V_oc + I*R_pack",
+    "P_w*eta_g = I*V_t",
+    "P_w = n_dw*Tq_wh*v/r_w",
+]
+tags = ["regen", "regenerative", "recuperation", "braking", "battery", "torque", "wheel", "efficiency", "recovery"]
+notes = "Charging: terminal voltage is ABOVE the OCV and the losses sit between wheels and battery (P_bat = eta P_wheels). eta_g = product of inverter, motor, chain, differential efficiencies."
+
+[[var]]
+name = "k_v2"
+unit = "N*s**2/m**2"
+desc = "speed-squared resistance coefficient (F = k v^2)"
+
+[[formula]]
+key = "top_speed_losses"
+title = "Power-limited top speed with drag plus a v^2 friction loss"
+eqs = [
+    "eta_g*P_m = (rho_air*CdA/2 + k_v2)*v**3",
+]
+tags = ["top", "speed", "power", "drag", "friction", "loss", "maximum", "velocity"]
+notes = "Also check the rpm limit v = omega_max*r_w/i_g (Gear ratio: speeds, torques, road speed): the top speed is the lower of the two."
+
+[[var]]
+name = "E_b"
+unit = "J"
+desc = "energy dissipated by the brakes"
+
+[[var]]
+name = "frac_d"
+unit = "dimensionless"
+desc = "share of the braking energy going into the discs considered"
+
+[[var]]
+name = "n_d"
+unit = "dimensionless"
+desc = "number of discs sharing that energy"
+
+[[var]]
+name = "m_d"
+unit = "kg"
+desc = "mass of one brake disc"
+
+[[formula]]
+key = "brake_heat"
+title = "Braking energy and brake disc temperature rise"
+eqs = [
+    "E_b = m*(v0**2 - v**2)/2",
+    "dT = E_b*frac_d/(n_d*m_d*c_p)",
+]
+tags = ["brake", "disc", "energy", "temperature", "heat", "braking", "kinetic"]
+notes = "Only front brakes working -> n_d = 2. Steel/iron c_p about 460 J/(kg K). Brake torque per disc: mu F r (Disc brake torque and ground force)."
+
+[[var]]
+name = "p_g"
+unit = "Pa"
+desc = "gauge gas pressure on the piston"
+hint = "Type it with its unit, like 80 bar."
+
+[[var]]
+name = "F_pist"
+unit = "N"
+desc = "gas force on the piston crown"
+
+[[var]]
+name = "V_tot"
+unit = "m**3"
+desc = "total cylinder volume, swept + clearance, one cylinder"
+
+[[formula]]
+key = "cr_from_force"
+title = "Compression ratio from the gas force on the piston and the total cylinder volume"
+eqs = [
+    "F_pist = p_g*pi/4*B_bore**2",
+    "V_tot = pi/4*B_bore**2*S_k + V_cc",
+    "CR = V_tot/V_cc",
+]
+tags = ["engine", "compression", "ratio", "piston", "force", "pressure", "bore", "clearance", "volume", "cylinder"]
+notes = "The force and gauge pressure fix the piston area (A = F/p), the stroke then gives the swept volume, the rest of the total volume is the clearance volume. Atmospheric pressure, friction, inertia and rod angle ignored (Q373, Q1087: 649 cm3, 150 mm, 80 bar, 31.728 kN -> CR 12). Several cylinders: use one cylinder's volume. Bore and stroke: Displacement, compression ratio, piston speed, bmep power."

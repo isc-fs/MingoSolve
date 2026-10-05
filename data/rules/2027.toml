@@ -1,0 +1,108 @@
+year = "2027"
+source = "FS-Rules 2027 v1.0 (released 2026-09-29)"
+dynamic_formula = "squared"   # D 9.1.1: (Pmax - Pmin) ((Tmax - Tteam)/(Tmax - Tmin))^2 + Pmin
+
+[points]
+bpp = 75
+cost = 100
+design = 150
+skidpad = 50
+accel = 50
+autocross = 100
+endurance = 250
+efficiency = 75
+dv_skidpad = 75
+dv_accel = 75
+dc_autocross = 100
+trackdrive = 200
+
+# Tmax = tmax * Tmin, Pmin = pmin * Pmax. DC events take Pmax from dv_*.
+[tmax_pmin]
+skidpad = { tmax = 1.35, pmin = 0.05 }
+accel = { tmax = 1.7, pmin = 0.05 }
+autocross = { tmax = 1.4, pmin = 0.1 }
+endurance = { tmax = 1.5, pmin = 0.1 }
+dc_skidpad = { tmax = 1.7, pmin = 0.05, points = "dv_skidpad" }
+dc_accel = { tmax = 2.25, pmin = 0.05, points = "dv_accel" }
+
+[static_nonfinalist]
+bpp = 65
+cost = 80
+
+# columns: voltage max, clearance, creepage, creepage under conformal coating [mm]
+[pcb_spacing]
+modes = ["clearance", "creepage", "coated"]
+rows = [[50, 1.0, 4, 1.0], [150, 1.0, 5, 1.0], [300, 1.5, 10, 2.0], [600, 3.0, 20, 4.0]]
+
+[ts]
+insulation_tiers = [[250, 250], [500, 500], [1e9, 1000]]
+tsal_uses = "nominal"
+section_v = 120
+section_j = 6e6
+section_kg = 12
+
+# Rule constants quizzes ask for (rule_value, track_range, skidpad_layout, document_penalty). `rule` cites the rule id.
+[constants.wet_tread_depth]
+value = 2.4
+unit = "mm"
+rule = "T 2.7.1"
+desc = "minimum tread depth of wet tires"
+
+[constants.wheelbase_min]
+value = 1525
+unit = "mm"
+rule = "T 2.9.1"
+desc = "minimum wheelbase"
+
+[constants.track_ratio_min]
+value = 0.75
+unit = "1"
+rule = "T 2.9.2"
+desc = "smaller track (front or rear) as a share of the larger one"
+
+[constants.ground_clearance_min]
+value = 30
+unit = "mm"
+rule = "T 2.2.1"
+desc = "minimum static ground clearance with the driver"
+
+[constants.lv_dc_max]
+value = 60
+unit = "V DC"
+rule = "T 11.1.2"
+desc = "maximum voltage between any two LVS connections (DC)"
+
+[constants.lv_ac_max]
+value = 50
+unit = "V AC RMS"
+rule = "T 11.1.2"
+desc = "maximum voltage between any two LVS connections (AC, RMS)"
+
+[constants.baseline_yield]
+value = 305
+unit = "MPa"
+rule = "T 3.2.4"
+desc = "baseline steel yield strength for SES calculations (non-welded)"
+
+[constants.baseline_modulus]
+value = 200
+unit = "GPa"
+rule = "T 3.2.4"
+desc = "baseline steel Young's modulus for SES calculations"
+
+# D 4.1: figure of eight, two pairs of concentric circles. Cones: 17 inside each inner circle, 13 outside each outer one.
+[skidpad]
+rule = "D 4.1"
+inner_d = 15.25
+outer_d = 21.25
+centre_distance = 18.25
+cones_inner = 17
+cones_outer = 13
+
+# A 5.3.1: correction within 168 h of the request. A 5.4.1: 10 points per late submission.
+# A 5.4.2: de-registered when a document is still missing 24 h after its deadline.
+[documents]
+late_points = 10
+late_basis = "submission"
+deregister_hours = 24
+correction_hours = 168

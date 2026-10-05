@@ -1,0 +1,298 @@
+name: Release
+
+# Builds the ISC MingoSolve installers and publishes them through the public iskapps repo, which is where the app's
+# updater looks (apps/mingosolve/src-tauri/tauri.conf.json -> plugins.updater.endpoints).
+#
+#   push tag `v*`       -> verify versions, build on three OSes, attach to a GitHub Release here, mirror the
+#                          installers to isc-fs/iskapps (tag mingosolve-vX.Y.Z), publish mingosolve/latest.json
+#                          there, then fast-forward `dev` to `main`.
+#   workflow_dispatch   -> dry run: the same builds, uploaded as workflow artefacts; nothing is published.
+#
+# Updater signing is switched on only here, by a --config override written in each build job, so a local
+# `tauri build` keeps working without keys. Needs (see docs/RELEASING.md):
+#   secrets   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD, ISKAPPS_TOKEN (tags only)
+#   variable  TAURI_UPDATER_PUBKEY (the public half of the signing key)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Fails in seconds, before any 20-minute build, when the one-time setup is missing.
+  preflight:
+    name: check secrets and variables
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the signing key and the public key
+        env:
+          SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+        run: |
+          missing=""
+          [ -n "$SIGNING_KEY" ] || missing+=" secret:TAURI_SIGNING_PRIVATE_KEY"
+          [ -n "$PUBKEY" ] || missing+=" variable:TAURI_UPDATER_PUBKEY"
+          if [ -n "$missing" ]; then
+            echo "::error::missing:$missing. See docs/RELEASING.md, one-time setup."
+            exit 1
+          fi
+      - name: Require the iskapps token (tags only)
+        if: github.ref_type == 'tag'
+        env:
+          ISKAPPS_TOKEN: ${{ secrets.ISKAPPS_TOKEN }}
+        run: |
+          if [ -z "$ISKAPPS_TOKEN" ]; then
+            echo "::error::secret ISKAPPS_TOKEN is not set: without it nothing reaches the updater or the download page. See docs/RELEASING.md."
+            exit 1
+          fi
+
+  # Every version in the repo must equal the tag before anything is built.
+  verify-version:
+    name: verify tag matches all versions
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare versions
+        run: |
+          set -eu
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          ROOT_CARGO=$(awk -F'"' '/^version/ {print $2; exit}' Cargo.toml)
+          APP_CARGO=$(awk -F'"' '/^version/ {print $2; exit}' apps/mingosolve/src-tauri/Cargo.toml)
+          APP_PKG=$(node -p "require('./apps/mingosolve/package.json').version")
+          APP_TAURI=$(node -p "require('./apps/mingosolve/src-tauri/tauri.conf.json').version")
+          LOCK_FSQ=$(awk '/^name = "fsq"$/ {getline; gsub(/[" ]/, ""); sub(/^version=/, ""); print; exit}' Cargo.lock)
+          LOCK_APP=$(awk '/^name = "mingosolve"$/ {getline; gsub(/[" ]/, ""); sub(/^version=/, ""); print; exit}' Cargo.lock)
+
+          mismatches=""
+          [ "$TAG_VERSION" = "$ROOT_CARGO" ] || mismatches+=" Cargo.toml=$ROOT_CARGO"
+          [ "$TAG_VERSION" = "$APP_CARGO" ] || mismatches+=" apps/mingosolve/src-tauri/Cargo.toml=$APP_CARGO"
+          [ "$TAG_VERSION" = "$APP_PKG" ] || mismatches+=" apps/mingosolve/package.json=$APP_PKG"
+          [ "$TAG_VERSION" = "$APP_TAURI" ] || mismatches+=" apps/mingosolve/src-tauri/tauri.conf.json=$APP_TAURI"
+          [ "$TAG_VERSION" = "$LOCK_FSQ" ] || mismatches+=" Cargo.lock(fsq)=$LOCK_FSQ"
+          [ "$TAG_VERSION" = "$LOCK_APP" ] || mismatches+=" Cargo.lock(mingosolve)=$LOCK_APP"
+
+          if [ -n "$mismatches" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $TAG_VERSION, but:$mismatches"
+            echo "::error::Bump every file to $TAG_VERSION (and refresh Cargo.lock), then re-cut the tag."
+            exit 1
+          fi
+          echo "all versions agree on $TAG_VERSION"
+
+  # Created before the builds so the three legs attach to one release instead of racing to create it.
+  create-release:
+    name: create GitHub Release
+    needs: [preflight, verify-version]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: ISC MingoSolve ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            ISC MingoSolve ${{ github.ref_name }}. Installers for macOS, Windows and Linux are attached, and mirrored
+            on https://github.com/isc-fs/iskapps/releases (the page the app updates from). Install instructions:
+            https://github.com/isc-fs/MingoSolve/blob/main/docs/INSTALL.md
+
+  build:
+    name: build (${{ matrix.os }})
+    needs: [preflight, verify-version, create-release]
+    # verify-version and create-release are skipped on a dry run; preflight must have passed either way
+    if: always() && needs.preflight.result == 'success' && (needs.verify-version.result == 'success' || needs.verify-version.result == 'skipped') && (needs.create-release.result == 'success' || needs.create-release.result == 'skipped')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            args: ''
+          - os: macos-latest
+            args: --target universal-apple-darwin
+          - os: windows-latest
+            args: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/app-prereqs
+
+      - name: Add both macOS targets for the universal build
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Switch on signed updater artefacts (release builds only)
+        working-directory: apps/mingosolve
+        shell: bash
+        env:
+          PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+        run: |
+          jq -n --arg pubkey "$PUBKEY" \
+            '{bundle: {createUpdaterArtifacts: true}, plugins: {updater: {pubkey: $pubkey}}}' \
+            > release-config.json
+
+      - name: Build installers
+        id: tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: apps/mingosolve
+          # on a tag the installers, the .sig files and latest.json are attached to the release made above;
+          # without a tag (dry run) nothing is uploaded and the files are kept as workflow artefacts instead
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }} --config release-config.json
+
+      - name: List the build outputs (dry run)
+        if: github.ref_type != 'tag'
+        id: outputs
+        shell: bash
+        env:
+          ARTIFACT_PATHS: ${{ steps.tauri.outputs.artifactPaths }}
+        run: |
+          {
+            echo 'paths<<EOF'
+            echo "$ARTIFACT_PATHS" | jq -r '.[]'
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Keep the build outputs (dry run)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: ${{ steps.outputs.outputs.paths }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-iskapps:
+    name: publish to iskapps
+    needs: build
+    if: github.ref_type == 'tag' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-host the installers and publish the update manifest
+        env:
+          TAG: ${{ github.ref_name }}
+          SOURCE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISKAPPS_TOKEN: ${{ secrets.ISKAPPS_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ISKAPPS_TOKEN}" ]; then
+            echo "::error::secret ISKAPPS_TOKEN is not set: the installers never reach the updater or the download page."
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          APP_TAG="mingosolve-${TAG}"
+
+          # 1. The installers, .sig files and manifest the build legs attached to the release in this repo.
+          mkdir dist
+          cd dist
+          GH_TOKEN="${SOURCE_TOKEN}" gh release download "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --pattern 'ISC*' --pattern 'latest.json'
+          ls -la
+
+          # The three legs each add their platforms to latest.json; refuse a manifest where a leg lost the race.
+          for key in linux-x86_64 windows-x86_64 darwin-aarch64 darwin-x86_64; do
+            jq -e --arg k "$key" '.platforms[$k].url and .platforms[$k].signature' latest.json >/dev/null \
+              || { echo "::error::latest.json has no signed entry for ${key}; re-run the failed build leg"; exit 1; }
+          done
+
+          # 2. Create (or update) the iskapps release with everything except the manifest, which lives in the repo.
+          uploads=()
+          for f in *; do
+            [ "$f" = latest.json ] || uploads+=("$f")
+          done
+          if GH_TOKEN="${ISKAPPS_TOKEN}" gh release view "${APP_TAG}" --repo isc-fs/iskapps >/dev/null 2>&1; then
+            GH_TOKEN="${ISKAPPS_TOKEN}" gh release upload "${APP_TAG}" "${uploads[@]}" --repo isc-fs/iskapps --clobber
+          else
+            GH_TOKEN="${ISKAPPS_TOKEN}" gh release create "${APP_TAG}" "${uploads[@]}" \
+              --repo isc-fs/iskapps \
+              --title "ISC MingoSolve ${TAG}" \
+              --notes "ISC MingoSolve ${VERSION}: Formula Student quiz solver. Download the installer for your platform below; install steps are in https://github.com/isc-fs/MingoSolve/blob/main/docs/INSTALL.md"
+          fi
+
+          # 3. Point the manifest's URLs at the iskapps release (signatures stay: same bytes, new host) and commit
+          #    it to iskapps `main` as mingosolve/latest.json.
+          BASE="https://github.com/isc-fs/iskapps/releases/download/${APP_TAG}/"
+          jq --arg base "$BASE" \
+            '.platforms |= map_values(.url = ($base + (.url | split("/") | last)))' \
+            latest.json > latest.rewritten.json
+          mv latest.rewritten.json latest.json
+          cat latest.json
+
+          cd ..
+          git clone --depth 1 "https://x-access-token:${ISKAPPS_TOKEN}@github.com/isc-fs/iskapps.git" isk
+          mkdir -p isk/mingosolve
+          cp dist/latest.json isk/mingosolve/latest.json
+          cd isk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Stage first: `git diff` ignores untracked files, so on the first publish it saw no change.
+          git add mingosolve/latest.json
+          if git diff --cached --quiet; then
+            echo "manifest unchanged, nothing to commit"
+          else
+            git commit -m "mingosolve: publish ${TAG}"
+            for _ in 1 2 3; do
+              git push origin HEAD:main && exit 0
+              git pull --rebase origin main
+            done
+            echo "::error::could not push mingosolve/latest.json to isc-fs/iskapps main"
+            exit 1
+          fi
+
+  # Fast-forwards `dev` onto `main` so the next branch cut from dev starts on the tagged commit.
+  sync-dev:
+    name: sync dev to main
+    needs: [build, publish-iskapps]
+    if: github.ref_type == 'tag' && needs.build.result == 'success' && needs.publish-iskapps.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Configure git as github-actions[bot]
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch main
+        run: git fetch origin main
+
+      - name: Sync dev with main
+        run: |
+          set -e
+          if git merge-base --is-ancestor HEAD origin/main; then
+            git merge --ff-only origin/main
+            echo "fast-forwarded dev to origin/main"
+          elif git merge-base --is-ancestor origin/main HEAD; then
+            echo "dev is already ahead of main, nothing to do"
+            exit 0
+          else
+            echo "dev and main have diverged, creating a merge commit"
+            git merge --no-edit origin/main
+          fi
+
+      - name: Push dev
+        run: git push origin dev

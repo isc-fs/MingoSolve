@@ -1,0 +1,33 @@
+# kinematics: generated from the Python definitions, now the source of truth
+
+[[var]]
+name = "D_sk"
+unit = "m"
+desc = "skidpad centreline diameter (15.25 + 3 = 18.25 m)"
+default = 18.25
+
+[[var]]
+name = "s_lap"
+unit = "m"
+desc = "lap length"
+
+[[var]]
+name = "t_left"
+unit = "s"
+desc = "timed left-circle lap"
+
+[[var]]
+name = "t_right"
+unit = "s"
+desc = "timed right-circle lap"
+
+[[formula]]
+key = "skidpad_lap"
+title = "Skidpad lap length and average speed from the two timed laps"
+eqs = [
+    "s_lap = pi*D_sk",
+    "t_lap = (t_left + t_right)/2",
+    "v_avg = s_lap/t_lap",
+]
+tags = ["kinematics", "skidpad", "lap", "centreline", "average", "speed", "circle"]
+notes = "Centreline diameter 18.25 m (inner 15.25 + 2 x 1.5), lap 57.33 m; the result is the mean of the right and left timed laps, so the timed distance is 2 x 57.33 = 114.67 m. Grip-limited speed: Max cornering speed with downforce, with ClA=0 and R_c = 9.125 m."

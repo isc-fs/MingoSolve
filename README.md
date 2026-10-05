@@ -1,153 +1,135 @@
 <img width="470.235" height="179.4" alt="isc-full-primary" src="https://github.com/user-attachments/assets/31365569-11bf-427e-ae3e-8d81ca87d765" />
 
-# IFSXX-[DPT]_[PCB/PURPOSE]
+# ISC MingoSolve
 
-Embedded firmware for the **[PCB/PURPOSE]** of the IFSXX, developed on XXXXXXXXX with XXXXXXXXX.
+A toolbox of engineering **scripts** for Formula Student problems, built for the registration quizzes. A formula
+script solves for whatever you leave blank, with units; a tool script runs a procedure (event scoring, nodal
+circuits, CAN timing...). Desktop app for macOS, Windows and Linux, plus a command-line interface.
+
+108 formulas and 34 tools, filed under 12 topics. 145 past FS-Quiz questions are reproduced to their official answer
+and run as tests. All of it is data in [data/](data).
 
 ---
 
-## Getting started
+## The app (apps/mingosolve)
 
-1. Create a GitHub account if you don't have one yet.
-2. Download and install [GitHub Desktop](https://desktop.github.com/) (beginner) or [Git CLI](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (advanced).
+- **Paste a problem** anywhere in the window. The scripts that fit appear with the problem's values already filled
+  in, and the one the question asks for is the answer.
+- Or browse **Topics**, or press **⌘K / Ctrl K** and type (`spring rate`, `discharge`, `skidpad score`).
+- Every root is listed. The answer copies in quiz format (significant figures or decimals, decimal comma), and can be
+  checked against pasted multiple-choice options. Each script lists the past questions it solves, one click each.
+- **Help** (**⌘/ / Ctrl /**) explains how to read an answer, lists the shortcuts and the fallbacks; the printable
+  version is [docs/cheat-sheet.md](docs/cheat-sheet.md). The **Session log** records every copied answer with its
+  question label and timing, for mock quizzes, and exports CSV.
+- **Chain** links several formulas to one target. The **calculator** is unit-aware (`0.5*280kg*(100km/h)**2 -> kJ`).
+- Look: **Night glass** (dark) and **Paper glass** (light), following the OS, on the ISC design system. The window is
+  translucent on macOS and Windows 11; solid surfaces are one setting away.
 
-   - If this is your first time using GitHub Desktop, make sure to read the [User Manual](https://help.github.com/desktop/guides/).
-   - If this is your first time using Git, start with a tutorial. There are many available online:
-     - [Git Tutorial](https://git-scm.com/docs/gittutorial)
-     - [Atlassian Git Tutorial](https://www.atlassian.com/git/tutorials/)
-   - Keep a copy of [GitHub's Git Cheat Sheet](https://services.github.com/kit/downloads/github-git-cheat-sheet.pdf) handy as a reference.
+```bash
+cd apps/mingosolve
+npm ci
+npx tauri icon src-tauri/icons/icon.png   # once: platform icons are generated, not committed
+npm run tauri:dev
+```
 
-3. Clone this repository to your machine (update these links!!):
-   - SSH: `git@github.com:isc-fs/IFSXX-[DPT]_[PCB/PURPOSE].git`
-   - HTTPS: `https://github.com/isc-fs/IFSXX-[DPT]_[PCB/PURPOSE].git`
+Teammates: installers for macOS, Windows and Linux are on [isc-fs/iskapps](https://github.com/isc-fs/iskapps/releases);
+see [docs/INSTALL.md](docs/INSTALL.md). Maintainers: [docs/RELEASING.md](docs/RELEASING.md).
+
+## The command line
+
+```bash
+cargo run --release                                   # interactive: load once, answer fast
+cargo run --release -- speed s=75m t=3.5s @v_avg=km/h
+cargo run --release -- chain v h_cg=0.205m R_c=14.5m t_tr=1.24m
+cargo run --release -- ex skidpad                     # past questions with the exact command
+```
+
+| Command | Does |
+|---|---|
+| `find <words>` | search formulas (`find spring`, `find discharge`) |
+| `show <formula>` | equations, variables, units, gotchas |
+| `<formula> k=v ...` | solve for every unknown the givens determine |
+| `chain <target> k=v ...` | chain formulas automatically to a target |
+| `calc <expr> -> unit` | unit-aware calculator: `calc 0.5*300kg*(100km/h)**2 -> kJ` |
+| `tools [words]` | procedural tools: scoring (legacy, 2026, 2027), rule tables, nodal circuits, E-series, CAN/UART... |
+| `ex <words>` | past questions solved with fsq |
+| `vars <words>` | variable names and units |
+
+Values take units (`100km/h`, `8000rpm`, `1.5g0`, `20Ah`, `60degC`, `2bar`; decimal commas are fine). Bare numbers
+are SI. `@var=unit` picks the display unit. Defaults (g = 9.81, rho_air = 1.225...) are printed when used.
+
+`legacy/python` is the original sympy engine reading the same data (`cd legacy/python && uv run fsq`). It is the
+quiz-day fallback and the parity oracle until after the January 2027 quizzes, then it goes.
+
+## How much to trust it
+
+- Every row in [data/examples.toml](data/examples.toml) is an official answer that both the engine and the app
+  reproduce.
+- Rules are year-keyed: `rules=2027` (default, FS-Rules 2027 v1.0), `2026`, and `legacy` (reproduces most old quiz
+  keys). What changed for quiz answers: [docs/rules-2027-changes.md](docs/rules-2027-changes.md).
+- When values contradict each other, the app and `chain` say so instead of answering. Read that before submitting.
+- Some quiz keys don't match the physics or the rules. They are listed, with what the key did, in
+  [data/known_keys.toml](data/known_keys.toml); pick by option elimination there.
+
+## Tests
+
+| Layer | What it proves | Run |
+|---|---|---|
+| Engine | past questions, Python parity per formula and unknown, every formula dimensionally homogeneous, property tests, units vs pint, 2027 rules | `cargo test` |
+| App commands | the Tauri IPC contract, every worked example through the commands | `cargo test -p mingosolve` |
+| Frontend | the sheet, finder, settings and session logic against a fake engine, incl. out-of-order replies | `cd apps/mingosolve && npm test` |
+| End to end | real UI on the real engine in Chromium and WebKit: quiz journeys, every worked example clicked, accessibility (axe) | `cd apps/mingosolve && npm run e2e` |
+| Fallback | the Python engine on the same data | `cd legacy/python && uv run pytest` |
+
+CI runs all of it on every pull request.
 
 ---
 
 ## How we work with this repository
 
-### Main branches
+### Branches
 
-The repository has two permanent branches:
-
-**`main`** is the production branch. It contains only validated code that can be flashed onto the car. Never work directly on it.
-
-**`dev`** is the development branch. It is the integration point where everyone's work comes together. Never work directly on it either — all changes arrive through a feature branch.
+**`main`** holds released versions only. **`dev`** is where work comes together. Never commit to either directly:
+all changes arrive through a feature branch and a Pull Request to `dev`.
 
 ```
-main  ──────────────────●──────────────────────●──▶  (validated releases only)
+main  ──────────────────●──────────────────────●──▶  (releases only)
                         ↑                      ↑
 dev   ──────●───●───●───●───●───●───●───●───●──●──▶  (continuous integration)
             ↑   ↑       ↑   ↑   ↑       ↑   ↑
           feat/1 fix/1 feat/2 fix/2   feat/3 fix/3
 ```
 
-### Feature branches
+Branches are `feat/<n>-short-title` (new functionality) or `fix/<n>-short-title` (bug fix), each type with its own
+counter. Every branch gets a tracking issue automatically when it is pushed (`[feat/3-...]`, labelled `feat` or `fix`),
+filled with the first commit message; it closes when the branch merges into `dev`. The next number of a type is the
+last issue of that type plus one; the issue warns if the number is wrong.
 
-All work — whether a new feature or a bug fix — is done on a **feature branch** created from `dev`. When the work is ready, a Pull Request is opened toward `dev`, reviewed, merged, and the branch is deleted.
+### Step by step
 
-There are two branch types, each with its own independent numeric counter:
-
+```bash
+git checkout dev && git pull origin dev
+git checkout -b feat/5-short-title     # next number for its type
+git push origin feat/5-short-title     # the tracking issue opens within seconds
+# work, commit with clear imperative messages, push
 ```
-feat/<n>   →  new functionality  (feat/1, feat/2, feat/3 ...)
-fix/<n>    →  bug fix            (fix/1,  fix/2,  fix/3  ...)
-```
 
-The `feat` and `fix` counters are independent: `feat/2` and `fix/2` can exist at the same time with no conflict.
+Open a Pull Request to `dev` with `Closes #<issue>` in the description. Before asking for review, the tests above
+pass locally and the PR targets `dev`, not `main`. When `dev` holds a set of changes ready to ship, a release PR
+goes from `dev` into `main`.
 
-### Tracking branch history
-
-Feature branches are deleted after merging to keep the repository clean. The history of each branch is preserved in **GitHub Issues**.
-
-Every branch has one associated issue. The issue carries a **label** (`feat` or `fix`) and its title includes the branch number, for example: `[feat/3] Add CAN broadcast for mission state`. When the branch is merged and deleted, the issue is closed — becoming a permanent record of all the work done.
-
-To see which branches are currently active: filter issues by label and status `open`.
-To browse the full history: filter by label and status `closed`.
-The number for the next branch of each type is the last closed issue of that type plus one.
-
-> Example: if the last closed issue with label `feat` is `[feat/4] ...`, the next feature branch will be `feat/5`.
+The [roadmap](ROADMAP.md) is generated from [.github/roadmap.yaml](.github/roadmap.yaml) and the tracking issues.
+Instructions for coding agents are in [AGENTS.md](AGENTS.md).
 
 ---
 
-## Automation
+## Data and licence
 
-The repository includes a GitHub Actions workflow that manages tracking issues automatically. No setup is required — it works for every developer as soon as they create a branch.
-
-### Automatic issue creation
-
-When a `feat/*` or `fix/*` branch is pushed to GitHub, the workflow automatically opens an issue with:
-
-- The corresponding `[feat/N]` or `[fix/N]` title
-- The correct label (`feat` or `fix`)
-- A template with sections for describing the work and adding notes
-- The name of the developer who created the branch
-
-### Wrong number warning
-
-If the branch number is not the next expected one (either too low or too high), the issue will display a warning indicating the correct number and asking the developer to delete and recreate the branch with the right name.
-
-### Auto-fill description from first commit
-
-When the developer makes their first commit and pushes it, the workflow automatically updates the *"What does this branch do?"* section of the issue with that commit message.
-
-- If the developer manually edits the issue before pushing their first commit, the workflow will not overwrite the description.
-- The description is only updated once — subsequent commits do not modify the issue.
+The questions, answers and archetype analysis come from the [FS-Quiz](https://fs-quiz.eu) question bank, available
+under the [Open Database License (ODbL) 1.0](https://opendatacommons.org/licenses/odbl/1-0/). Everything in this
+repository derived from it is published under the ODbL too, with this attribution; see [DATA_LICENSE.md](DATA_LICENSE.md).
+Rule constants follow the published [FS-Rules](https://www.formulastudent.de/fs/rules/).
 
 ---
 
-## Step-by-step workflow
-
-### 1. Create the branch
-
-```bash
-# Make sure you are on an up-to-date dev
-git checkout dev
-git pull origin dev
-
-# Create your branch using the next available number for its type
-# (last closed issue of that type + 1)
-git checkout -b feat/5    # or fix/3, depending on that type's counter
-```
-
-> To find the right number: go to **Issues → filter by label `feat` or `fix` → sort by newest** and read the last number.
-
-### 2. Push the branch
-
-```bash
-git push origin feat/5
-```
-
-The tracking issue will be opened automatically on GitHub within seconds.
-
-### 3. Work and commit
-
-```bash
-# Make your changes and commit with a clear, descriptive message
-git add .
-git commit -m "short description of what this commit does"
-
-# Push the changes
-git push origin feat/5
-```
-
-The message of your **first commit** will be used to automatically fill in the issue description.
-
-### 4. Open a Pull Request
-
-When the work is ready, open a Pull Request on GitHub from your branch toward `dev`. In the PR description write `Closes #<issue-number>` so the issue closes automatically when the PR is merged.
-
-Before requesting a review, check that:
-- The code compiles with no errors or warnings
-- You have tested the change on the bench if applicable
-- The PR targets `dev`, not `main`
-
-### 5. Review and merge
-
-Another team member will review the PR. Once approved, it is merged into `dev` and the branch is deleted. The issue will be closed as a permanent record.
-
-### 6. Merging into main
-
-When `dev` holds a set of validated changes that are ready for the car, a responsible team member opens a Pull Request from `dev` into `main`. This only happens after full firmware validation (HIL/bench).
-
----
-
-*ISC Racing Team — IFS08 Driverless*
+*ISC Racing Team*

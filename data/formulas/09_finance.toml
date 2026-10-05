@@ -1,0 +1,113 @@
+# finance: FX exposure, ROI with currency conversion, earned value. Money amounts are dimensionless numbers.
+
+[[var]]
+name = "X_fc"
+unit = "dimensionless"
+desc = "amount in foreign currency"
+
+[[var]]
+name = "r_sign"
+unit = "dimensionless"
+desc = "FX rate at signing (foreign units per home unit, e.g. 1.43 USD/EUR)"
+
+[[var]]
+name = "r_now"
+unit = "dimensionless"
+desc = "FX rate today (foreign units per home unit)"
+
+[[var]]
+name = "dX_home"
+unit = "dimensionless"
+desc = "change of the amount in home currency (+ = you pay more)"
+signed = true
+
+[[var]]
+name = "C_inv"
+unit = "dimensionless"
+desc = "investment (home currency)"
+
+[[var]]
+name = "Ret_fc"
+unit = "dimensionless"
+desc = "return received in foreign currency"
+
+[[var]]
+name = "r_fx"
+unit = "dimensionless"
+desc = "FX rate (foreign units per home unit)"
+
+[[var]]
+name = "ROI"
+unit = "dimensionless"
+desc = "return on investment (1.72 = 172 %)"
+signed = true
+
+[[var]]
+name = "BAC"
+unit = "dimensionless"
+desc = "budget at completion"
+
+[[var]]
+name = "pct_done"
+unit = "dimensionless"
+desc = "fraction of the work completed (0..1)"
+
+[[var]]
+name = "f_plan"
+unit = "dimensionless"
+desc = "fraction of the work planned by today (0..1)"
+
+[[var]]
+name = "EV"
+unit = "dimensionless"
+desc = "earned value"
+
+[[var]]
+name = "PV"
+unit = "dimensionless"
+desc = "planned value"
+
+[[var]]
+name = "AC"
+unit = "dimensionless"
+desc = "actual cost"
+
+[[var]]
+name = "SPI"
+unit = "dimensionless"
+desc = "schedule performance index"
+
+[[var]]
+name = "CPI"
+unit = "dimensionless"
+desc = "cost performance index"
+
+[[formula]]
+key = "fx_exposure"
+title = "FX exposure of a foreign-currency payable"
+eqs = [
+    "dX_home = X_fc/r_now - X_fc/r_sign",
+]
+tags = ["finance", "fx", "exchange", "rate", "currency", "usd", "eur", "payment", "supplier"]
+notes = "Rates as foreign per home (USD/EUR for a German team). Positive = the payment got more expensive. Q952: 22420/1.21 - 22420/1.43 = +2851 EUR."
+
+[[formula]]
+key = "roi_fx"
+title = "ROI with the return paid in another currency"
+eqs = [
+    "ROI = (Ret_fc/r_fx - C_inv)/C_inv",
+]
+tags = ["finance", "roi", "return", "investment", "exchange", "rate", "currency"]
+notes = "Convert the return into the investment currency first. Q694 reads 'USD/EUR 0.9175' as EUR per USD: 250000/0.9175 = 272480 USD -> 172.48 %."
+
+[[formula]]
+key = "earned_value"
+title = "Earned value: SPI and CPI"
+eqs = [
+    "EV = pct_done*BAC",
+    "PV = f_plan*BAC",
+    "SPI = EV/PV",
+    "CPI = EV/AC",
+]
+tags = ["finance", "project", "earned", "value", "spi", "cpi", "schedule", "cost", "performance"]
+notes = "f_plan = planned work units to date / total units (weight weekend days if the plan does). Q584: 5 % done, 3 of 46 weighted days -> SPI 0.77, CPI 0.54; the official key 0.09 is not reproducible."
