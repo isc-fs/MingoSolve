@@ -1,7 +1,7 @@
 <!--
     ISC MingoSolve: root layout. A lit, grainy ground behind three glass columns: the rail, the active view, and the
     calculator. Loads settings and the script catalogue, applies the theme, checks for updates on launch unless the setting is off (best effort).
-    Global keys: Cmd/Ctrl+K opens the palette; pasting text outside any field starts a problem in Solve.
+    Global keys: Cmd/Ctrl+K opens the palette; Cmd/Ctrl+/ toggles Help; pasting text outside any field starts a problem in Solve.
 -->
 <script lang="ts">
     import { onMount } from 'svelte';
@@ -9,7 +9,8 @@
     import { loadSettings, registerAutosaveEffect, settings } from './lib/settings.svelte';
     import { platform, registerThemeEffect } from './lib/theme.svelte';
     import { loadCatalog } from './lib/catalog.svelte';
-    import { session } from './lib/session.svelte';
+    import { session, toggleHelp } from './lib/session.svelte';
+    import { loadSessionLog } from './lib/sessionlog.svelte';
     import { refreshRulebooks } from './lib/rulebook.svelte';
     import { checkForUpdate, type AvailableUpdate } from './lib/updater';
 
@@ -22,13 +23,15 @@
     import ChainView from './lib/ChainView.svelte';
     import RulesView from './lib/RulesView.svelte';
     import SettingsView from './lib/SettingsView.svelte';
+    import HelpView from './lib/HelpView.svelte';
+    import SessionLogView from './lib/SessionLogView.svelte';
 
     let ready = $state(false);
     let failed = $state<string | null>(null);
     let update = $state<AvailableUpdate | null>(null);
 
     onMount(async () => {
-        await loadSettings();
+        await Promise.all([loadSettings(), loadSessionLog()]);
         try {
             await loadCatalog();
         } catch (e) {
@@ -46,6 +49,10 @@
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
             session.paletteOpen = !session.paletteOpen;
+        } else if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+            e.preventDefault();
+            session.paletteOpen = false;
+            toggleHelp();
         }
     }
 
@@ -82,6 +89,10 @@
                 <ChainView />
             {:else if session.activeView === 'rules'}
                 <RulesView />
+            {:else if session.activeView === 'log'}
+                <SessionLogView />
+            {:else if session.activeView === 'help'}
+                <HelpView />
             {:else if session.activeView === 'settings'}
                 <SettingsView bind:update />
             {/if}
