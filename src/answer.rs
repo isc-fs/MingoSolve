@@ -187,6 +187,9 @@ fn scan_number(c: &[char], start: usize) -> Option<(f64, usize)> {
         value *= 10f64.powi(e);
         end = j;
     }
+    if !value.is_finite() {
+        return None;
+    }
     Some((if neg { -value } else { value }, end))
 }
 
@@ -379,29 +382,41 @@ pub enum Precision {
     Decimals(u32),
 }
 
+/// Most significant figures or decimals the formatter accepts (an f64 carries 17).
+pub const MAX_PRECISION: u32 = 50;
+
 /// Value as the quiz wants it typed.
-pub fn format_answer(value: f64, precision: Precision, decimal_comma: bool) -> String {
+pub fn format_answer(
+    value: f64,
+    precision: Precision,
+    decimal_comma: bool,
+) -> Result<String, String> {
+    if !value.is_finite() {
+        return Err(crate::units::NOT_FINITE.into());
+    }
     let s = match precision {
-        Precision::Decimals(d) => format!("{value:.*}", d as usize),
-        Precision::Sig(sig) => {
+        Precision::Decimals(d) if d <= MAX_PRECISION => format!("{value:.*}", d as usize),
+        Precision::Sig(sig) if (1..=MAX_PRECISION).contains(&sig) => {
             if value == 0.0 {
                 "0".into()
             } else {
                 let exp = value.abs().log10().floor() as i32;
                 let decimals = (sig as i32 - 1 - exp).max(0) as usize;
-                let rounded = {
-                    let k = 10f64.powi(sig as i32 - 1 - exp);
-                    (value * k).round() / k
-                };
-                format!("{rounded:.decimals$}")
+                let k = 10f64.powi(sig as i32 - 1 - exp);
+                let rounded = (value * k).round() / k;
+                format!(
+                    "{:.decimals$}",
+                    if rounded.is_finite() { rounded } else { value }
+                )
             }
         }
+        _ => return Err(format!("precision must be 1 to {MAX_PRECISION}")),
     };
-    if decimal_comma {
+    Ok(if decimal_comma {
         s.replace('.', ",")
     } else {
         s
-    }
+    })
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -643,14 +658,20 @@ mod tests {
     #[test]
     fn formats_like_the_quiz() {
         assert_eq!(
-            format_answer(77.887_89, Precision::Decimals(1), true),
+            format_answer(77.887_89, Precision::Decimals(1), true).unwrap(),
             "77,9"
         );
         assert_eq!(
-            format_answer(0.002_041_666_7, Precision::Sig(5), false),
+            format_answer(0.002_041_666_7, Precision::Sig(5), false).unwrap(),
             "0.0020417"
         );
-        assert_eq!(format_answer(14_567.8, Precision::Sig(3), false), "14600");
-        assert_eq!(format_answer(-33.690_07, Precision::Sig(3), true), "-33,7");
+        assert_eq!(
+            format_answer(14_567.8, Precision::Sig(3), false).unwrap(),
+            "14600"
+        );
+        assert_eq!(
+            format_answer(-33.690_07, Precision::Sig(3), true).unwrap(),
+            "-33,7"
+        );
     }
 }

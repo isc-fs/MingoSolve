@@ -106,6 +106,7 @@ pub fn solve_step(f: &Formula, known: &Values) -> Found {
             }
             let raw: Vec<Vec<f64>> = solve1(e, &u[0], positive(&u[0]))
                 .into_iter()
+                .filter(|r| r.is_finite())
                 .map(|r| vec![r])
                 .collect();
             if raw.is_empty() {
@@ -142,7 +143,9 @@ pub fn solve_step(f: &Formula, known: &Values) -> Found {
                     continue;
                 }
                 xs.sort();
-                let (sols, _) = consistent(f, &work, &xs, solve_system(&group, &xs, &positive));
+                let mut cands = solve_system(&group, &xs, &positive);
+                cands.retain(|t| t.iter().all(|v| v.is_finite()));
+                let (sols, _) = consistent(f, &work, &xs, cands);
                 if let Some(first) = sols.first() {
                     for (i, x) in xs.iter().enumerate() {
                         work.insert(x.clone(), first[i]);
@@ -324,6 +327,9 @@ pub fn conflicts_in(f: &Formula, known: &Values, tol: f64) -> Vec<String> {
                 Expr::Bin(_, a, b) => (a.eval_map(known)?, b.eval_map(known)?),
                 _ => return None,
             };
+            if !lhs.is_finite() || !rhs.is_finite() {
+                return None;
+            }
             (lhs - rhs)
                 .abs()
                 .gt(&(tol * lhs.abs().max(rhs.abs()).max(1e-12)))

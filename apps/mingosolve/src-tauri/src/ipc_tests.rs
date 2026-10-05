@@ -370,3 +370,55 @@ fn answer_helpers_follow_the_frontend_argument_names() {
     assert_eq!(m["options"][1]["best"], true);
     assert_eq!(m["warning"], Value::Null);
 }
+
+#[test]
+fn a_panic_in_a_command_is_an_error_and_the_app_keeps_answering() {
+    let w = webview();
+    let err = invoke(&w, "panic_probe", json!({"message": "boom"})).unwrap_err();
+    assert_eq!(err, json!("internal error: boom"));
+    assert_eq!(
+        invoke(&w, "calc", json!({"expr": "2+2"})).unwrap(),
+        json!("4")
+    );
+}
+
+#[test]
+fn hostile_input_through_the_async_commands_is_an_error_not_a_crash() {
+    let w = webview();
+    let deep = format!("{}1{}", "(".repeat(100_000), ")".repeat(100_000));
+    let out = invoke(&w, "calc", json!({"expr": deep})).unwrap();
+    assert_eq!(out, json!("error: expression nested too deeply"));
+    let out = invoke(&w, "calc", json!({"expr": "10**400/10**400"})).unwrap();
+    assert!(out.as_str().unwrap().contains("no finite answer"), "{out}");
+    let err = invoke(
+        &w,
+        "solve_formula",
+        json!({"key": "speed", "given": [["s", format!("{deep} m")]], "display": {}}),
+    )
+    .unwrap_err();
+    assert!(err.as_str().unwrap().contains("nested too deeply"), "{err}");
+    let err = invoke(
+        &w,
+        "format_answer",
+        json!({"value": 1.5, "precision": {"decimals": 4_000_000_000u64}, "decimalComma": false}),
+    )
+    .unwrap_err();
+    assert!(err.as_str().unwrap().contains("precision"), "{err}");
+    let err = invoke(
+        &w,
+        "run_tool",
+        json!({"name": "twos", "args": [["x", "5"], ["bits", "4e9"]]}),
+    )
+    .unwrap_err();
+    assert!(err.as_str().unwrap().contains("bits"), "{err}");
+    let found = invoke(&w, "find_question", json!({"text": deep})).unwrap();
+    assert!(found["hits"].is_array());
+    // still alive, and still right
+    let r = invoke(
+        &w,
+        "solve_formula",
+        json!({"key": "speed", "given": [["s", "75 m"], ["t", "3 s"]], "display": {}}),
+    )
+    .unwrap();
+    assert!(r["found"].as_array().is_some_and(|f| !f.is_empty()), "{r}");
+}

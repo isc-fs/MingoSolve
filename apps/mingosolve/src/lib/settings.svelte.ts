@@ -19,6 +19,8 @@ export interface Settings {
     precision: { kind: 'sig' | 'decimals'; n: number };
     /** Copy answers with a decimal comma (most FS-Quiz input fields accept both; some quizzes ask for commas). */
     decimalComma: boolean;
+    /** Look for a newer version when the app starts. The manual button in Settings works either way. */
+    autoUpdateCheck: boolean;
 }
 
 export function defaultSettings(): Settings {
@@ -31,6 +33,7 @@ export function defaultSettings(): Settings {
         rules: '2027',
         precision: { kind: 'sig', n: 4 },
         decimalComma: false,
+        autoUpdateCheck: true,
     };
 }
 

@@ -103,7 +103,14 @@ impl Tool {
                 map.insert(prm.name, d.to_string());
             }
         }
-        (self.run)(&Args(map))
+        let out = (self.run)(&Args(map))?;
+        if out
+            .split(|c: char| !c.is_alphanumeric() && c != '-')
+            .any(|w| matches!(w, "NaN" | "inf" | "-inf"))
+        {
+            return Err(units::NOT_FINITE.into());
+        }
+        Ok(out)
     }
 
     pub fn signature(&self) -> String {
@@ -406,7 +413,7 @@ fn ts_rules(a: &Args) -> Result<String, String> {
         .map(|r| r.as_array().unwrap())
         .find(|r| v_max <= num(&r[0]))
         .map(|r| num(&r[1]))
-        .unwrap();
+        .ok_or("above 600 V: TS max is 600 V (EV 4.1.1)")?;
     let nominal = ts["tsal_uses"].as_str() == Some("nominal");
     let v_nom = a.num("v_nom")?;
     let tsal_v = if v_nom > 0.0 { v_nom } else { v_max };
@@ -445,7 +452,14 @@ const E24: [f64; 24] = [
 ];
 
 fn e_series(a: &Args) -> Result<String, String> {
-    let (value, series) = (a.num("value")?, a.num("series")? as usize);
+    let (value, series) = (a.num("value")?, a.num("series")?);
+    if value <= 0.0 {
+        return Err("value must be positive".into());
+    }
+    if series.fract() != 0.0 || !(1.0..=1000.0).contains(&series) {
+        return Err("series must be a whole number from 1 to 1000".into());
+    }
+    let series = series as usize;
     let base: Vec<f64> = match series {
         6 => E6.to_vec(),
         12 => E12.to_vec(),
@@ -502,7 +516,11 @@ fn alias(a: &Args) -> Result<String, String> {
 }
 
 fn twos(a: &Args) -> Result<String, String> {
-    let (x, bits) = (a.num("x")? as i64, a.num("bits")? as u32);
+    let (x, bits) = (a.num("x")?, a.num("bits")?);
+    if bits.fract() != 0.0 || !(1.0..=64.0).contains(&bits) {
+        return Err("bits must be a whole number from 1 to 64".into());
+    }
+    let (x, bits) = (x as i64, bits as u32);
     let v = if x < 0 {
         (1i128 << bits) + x as i128
     } else {
@@ -616,6 +634,9 @@ fn db_sum(a: &Args) -> Result<String, String> {
 
 fn exact(s: &str) -> Result<BigRational, String> {
     let s = s.trim();
+    if s.len() > 200 {
+        return Err("number too long".into());
+    }
     let (mant, exp) = match s.split_once(['e', 'E']) {
         Some((m, e)) => (m, e.parse::<i32>().map_err(|_| format!("bad number {s}"))?),
         None => (s, 0),
@@ -624,6 +645,9 @@ fn exact(s: &str) -> Result<BigRational, String> {
     let digits: BigInt = format!("{int}{frac}")
         .parse()
         .map_err(|_| format!("bad number {s}"))?;
+    if exp.abs() > 300 {
+        return Err(format!("exponent of {s} is out of range"));
+    }
     let scale = exp - frac.len() as i32;
     let ten = BigInt::from(10);
     Ok(if scale >= 0 {
@@ -641,6 +665,9 @@ fn show_exact(r: &BigRational) -> String {
         format!("{}/{} = {}", r.numer(), r.denom(), g6(f))
     }
 }
+
+/// Exact rational elimination is cubic in this; quiz circuits have a handful.
+const MAX_NODAL_UNKNOWNS: usize = 60;
 
 fn nodal(a: &Args) -> Result<String, String> {
     let ask = a.str("ask");
@@ -674,6 +701,11 @@ fn nodal(a: &Args) -> Result<String, String> {
         .collect();
     let nn = nodes.len();
     let size = nn + vsrc.len();
+    if size > MAX_NODAL_UNKNOWNS {
+        return Err(format!(
+            "netlist too large (more than {MAX_NODAL_UNKNOWNS} unknowns)"
+        ));
+    }
     let zero = BigRational::zero();
     let mut m = vec![vec![zero.clone(); size + 1]; size];
     let idx = |n: &str| nodes.iter().position(|x| x == n);
@@ -682,6 +714,12 @@ fn nodal(a: &Args) -> Result<String, String> {
         let (na, nb) = (idx(&e[1]), idx(&e[2]));
         match e[0].to_uppercase().chars().next().unwrap() {
             'R' => {
+                if val.is_zero() {
+                    return Err(format!(
+                        "{} has zero resistance: use a 0 V source for a short",
+                        e[0]
+                    ));
+                }
                 let gval = BigRational::from_integer(1.into()) / val;
                 for (x, y, s) in [(na, na, 1), (nb, nb, 1), (na, nb, -1), (nb, na, -1)] {
                     if let (Some(x), Some(y)) = (x, y) {

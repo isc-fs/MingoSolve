@@ -175,14 +175,22 @@
             return;
         }
         formatted = '';
-        void formatAnswer(a.n, prec, comma).then((f) => {
-            if (seq === latestFormat) formatted = f;
-        });
+        void formatAnswer(a.n, prec, comma)
+            .then((f) => {
+                if (seq === latestFormat) formatted = f;
+            })
+            .catch((e: unknown) => {
+                if (seq === latestFormat) formatted = String(e);
+            });
         matching = null;
         if (opts.trim().length > 0) {
-            void matchOptions(a.shown, opts).then((m) => {
-                if (seq === latestFormat) matching = m;
-            });
+            void matchOptions(a.shown, opts)
+                .then((m) => {
+                    if (seq === latestFormat) matching = m;
+                })
+                .catch(() => {
+                    if (seq === latestFormat) matching = null;
+                });
         }
     });
 

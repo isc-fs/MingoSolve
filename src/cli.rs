@@ -59,6 +59,9 @@ pub fn pretty_unit(u: &str) -> String {
 /// A variable's value (in its own unit) as text, optionally converted to `display`.
 pub fn fmt_var(name: &str, value: f64, display: Option<&str>) -> Result<String, String> {
     let v = registry().var(name);
+    if !value.is_finite() {
+        return Err(units::NOT_FINITE.into());
+    }
     let Some(target) = display else {
         return Ok(format!("{} {}", g6(value), pretty_unit(&v.unit))
             .trim_end()
@@ -69,13 +72,13 @@ pub fn fmt_var(name: &str, value: f64, display: Option<&str>) -> Result<String, 
     if from.dims != to.dims {
         return Err(format!("cannot show {name} ({}) in {target}", v.unit));
     }
-    Ok(format!(
-        "{} {}",
-        g6(value * from.value / to.value),
-        pretty_unit(target)
-    )
-    .trim_end()
-    .to_string())
+    let shown = value * from.value / to.value;
+    if !shown.is_finite() {
+        return Err(units::NOT_FINITE.into());
+    }
+    Ok(format!("{} {}", g6(shown), pretty_unit(target))
+        .trim_end()
+        .to_string())
 }
 
 const NAMED: &[(&str, Dims)] = &[
@@ -257,7 +260,11 @@ fn calc(expr: &str) -> Result<String, String> {
             if to.dims != q.dims {
                 return Err(format!("result is {}, not {u}", units::dims_str(q.dims)));
             }
-            Ok(format!("  {} {}", g6(q.value / to.value), pretty_unit(u)))
+            let shown = q.value / to.value;
+            if !shown.is_finite() {
+                return Err(units::NOT_FINITE.into());
+            }
+            Ok(format!("  {} {}", g6(shown), pretty_unit(u)))
         }
         None => Ok(format!("  {}", show_quantity(q))),
     }

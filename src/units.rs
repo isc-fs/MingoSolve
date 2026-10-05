@@ -10,6 +10,9 @@ use serde::Deserialize;
 
 use crate::expr::{self, Expr, Op};
 
+/// Shown instead of a NaN or infinite value (0**-1, 10**400/10**400, a unit factor of zero).
+pub const NOT_FINITE: &str = "no finite answer (division by zero or overflow)";
+
 pub type Dims = [i32; 7];
 pub const DIMENSIONLESS: Dims = [0; 7];
 const DIM_NAMES: [&str; 7] = ["m", "kg", "s", "A", "K", "mol", "cd"];
@@ -93,7 +96,7 @@ fn lookup(name: &str) -> Option<(f64, Dims, f64)> {
 }
 
 fn combine(a: Dims, b: Dims, sign: i32) -> Dims {
-    std::array::from_fn(|i| a[i] + sign * b[i])
+    std::array::from_fn(|i| a[i].saturating_add(b[i].saturating_mul(sign)))
 }
 
 fn eval(e: &Expr) -> Result<Quantity, UnitError> {
@@ -194,7 +197,15 @@ pub fn parse_quantity(src: &str) -> Result<Quantity, UnitError> {
             }
         }
     }
-    eval(&expr::parse(s)?)
+    finite(eval(&expr::parse(s)?)?)
+}
+
+fn finite(q: Quantity) -> Result<Quantity, UnitError> {
+    if q.value.is_finite() {
+        Ok(q)
+    } else {
+        Err(UnitError(NOT_FINITE.into()))
+    }
 }
 
 /// Factor and dims of a variable's unit string (`m/s**2`, `J/(kg*K)`, `dimensionless`).
@@ -205,7 +216,7 @@ pub fn unit_of(unit: &str) -> Result<Quantity, UnitError> {
             dims: DIMENSIONLESS,
         });
     }
-    eval(&expr::parse(unit)?)
+    finite(eval(&expr::parse(unit)?)?)
 }
 
 /// Convert a typed value to the magnitude in `unit`. Bare dimensionless input is taken as already in `unit`
@@ -223,7 +234,12 @@ pub fn convert(input: &str, unit: &str) -> Result<f64, UnitError> {
             dims_str(target.dims)
         )));
     }
-    Ok(q.value / target.value)
+    let v = q.value / target.value;
+    if v.is_finite() {
+        Ok(v)
+    } else {
+        Err(UnitError(NOT_FINITE.into()))
+    }
 }
 
 pub fn dims_str(d: Dims) -> String {

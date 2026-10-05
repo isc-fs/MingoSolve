@@ -93,6 +93,10 @@
 
     <section class="glass panel">
         <h2>Updates</h2>
+        <label class="toggle">
+            <input type="checkbox" bind:checked={settings.autoUpdateCheck} />
+            <span>Check for updates automatically when the app starts</span>
+        </label>
         <div class="row">
             <button type="button" class="btn" onclick={check} disabled={checking}>{checking ? 'Checking…' : 'Check for updates'}</button>
             {#if checked !== null}<span class="muted small">{checked}</span>{/if}

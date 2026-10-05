@@ -106,6 +106,19 @@ enum Tok {
     RParen,
 }
 
+impl fmt::Display for Tok {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Num(n) => write!(f, "number {n}"),
+            Self::Ident(s) => f.write_str(s),
+            Self::Op(c) => write!(f, "{c}"),
+            Self::Pow => f.write_str("**"),
+            Self::LParen => f.write_str("("),
+            Self::RParen => f.write_str(")"),
+        }
+    }
+}
+
 fn ident_char(c: char, first: bool) -> bool {
     c.is_alphabetic()
         || c == '_'
@@ -143,9 +156,12 @@ fn tokenize(src: &str) -> Result<Vec<Tok>, ParseError> {
                 }
             }
             let text: String = chars[start..i].iter().collect();
-            let n = text
+            let n: f64 = text
                 .parse()
                 .map_err(|_| ParseError(format!("bad number {text:?}")))?;
+            if !n.is_finite() {
+                return Err(ParseError(format!("number {text} is too large")));
+            }
             out.push(Tok::Num(n));
         } else if ident_char(c, true) {
             let start = i;
@@ -182,9 +198,31 @@ fn tokenize(src: &str) -> Result<Vec<Tok>, ParseError> {
     Ok(with_implicit)
 }
 
+/// Deepest tree (and deepest nesting of brackets or unary signs) the parser accepts. Evaluation, display and drop
+/// recurse over the tree, so this keeps every user-reachable walk far inside a 2 MiB thread stack.
+pub const MAX_DEPTH: usize = 256;
+
+const TOO_DEEP: &str = "expression nested too deeply";
+
+/// A subtree and its height, so depth is known without walking it again.
+type Node = (Expr, usize);
+
 struct Parser {
     toks: Vec<Tok>,
     pos: usize,
+    nest: usize,
+}
+
+fn node(e: Expr, height: usize) -> Result<Node, ParseError> {
+    if height > MAX_DEPTH {
+        return Err(ParseError(TOO_DEEP.into()));
+    }
+    Ok((e, height))
+}
+
+fn bin(op: Op, a: Node, b: Node) -> Result<Node, ParseError> {
+    let h = a.1.max(b.1) + 1;
+    node(Expr::Bin(op, Box::new(a.0), Box::new(b.0)), h)
 }
 
 impl Parser {
@@ -198,67 +236,73 @@ impl Parser {
         t
     }
 
-    fn sum(&mut self) -> Result<Expr, ParseError> {
+    fn sum(&mut self) -> Result<Node, ParseError> {
         let mut lhs = self.product()?;
         while let Some(Tok::Op(c @ ('+' | '-'))) = self.peek().cloned() {
             self.pos += 1;
             let rhs = self.product()?;
-            let op = if c == '+' { Op::Add } else { Op::Sub };
-            lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs));
+            lhs = bin(if c == '+' { Op::Add } else { Op::Sub }, lhs, rhs)?;
         }
         Ok(lhs)
     }
 
-    fn product(&mut self) -> Result<Expr, ParseError> {
+    fn product(&mut self) -> Result<Node, ParseError> {
         let mut lhs = self.unary()?;
         while let Some(Tok::Op(c @ ('*' | '/'))) = self.peek().cloned() {
             self.pos += 1;
             let rhs = self.unary()?;
-            let op = if c == '*' { Op::Mul } else { Op::Div };
-            lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs));
+            lhs = bin(if c == '*' { Op::Mul } else { Op::Div }, lhs, rhs)?;
         }
         Ok(lhs)
     }
 
-    fn unary(&mut self) -> Result<Expr, ParseError> {
-        match self.peek() {
+    /// Every recursive cycle of the grammar (brackets, calls, signs, `**` chains) passes through here.
+    fn unary(&mut self) -> Result<Node, ParseError> {
+        self.nest += 1;
+        if self.nest > MAX_DEPTH {
+            return Err(ParseError(TOO_DEEP.into()));
+        }
+        let r = match self.peek() {
             Some(Tok::Op('-')) => {
                 self.pos += 1;
-                Ok(Expr::Neg(Box::new(self.unary()?)))
+                self.unary()
+                    .and_then(|(e, h)| node(Expr::Neg(Box::new(e)), h + 1))
             }
             Some(Tok::Op('+')) => {
                 self.pos += 1;
                 self.unary()
             }
             _ => self.power(),
-        }
+        };
+        self.nest -= 1;
+        r
     }
 
-    fn power(&mut self) -> Result<Expr, ParseError> {
+    fn power(&mut self) -> Result<Node, ParseError> {
         let base = self.atom()?;
         if self.peek() == Some(&Tok::Pow) {
             self.pos += 1;
             let exp = self.unary()?; // right associative, and 2**-1 works
-            return Ok(Expr::Bin(Op::Pow, Box::new(base), Box::new(exp)));
+            return bin(Op::Pow, base, exp);
         }
         Ok(base)
     }
 
-    fn atom(&mut self) -> Result<Expr, ParseError> {
+    fn atom(&mut self) -> Result<Node, ParseError> {
         match self.next() {
-            Some(Tok::Num(n)) => Ok(Expr::Num(n)),
+            Some(Tok::Num(n)) => Ok((Expr::Num(n), 0)),
             Some(Tok::Ident(name)) => {
                 if self.peek() == Some(&Tok::LParen) {
                     let f = Func::from_name(&name)
                         .ok_or_else(|| ParseError(format!("unknown function {name}()")))?;
                     self.pos += 1;
-                    let arg = self.sum()?;
+                    let (arg, h) = self.sum()?;
                     self.expect_rparen()?;
-                    Ok(Expr::Call(f, Box::new(arg)))
+                    node(Expr::Call(f, Box::new(arg)), h + 1)
                 } else if name == "pi" {
-                    Ok(Expr::Num(std::f64::consts::PI))
+                    Ok((Expr::Num(std::f64::consts::PI), 0))
                 } else {
-                    Ok(Expr::Var(name))
+                    Ok((Expr::Var(name), 0))
                 }
             }
             Some(Tok::LParen) => {
@@ -266,7 +310,7 @@ impl Parser {
                 self.expect_rparen()?;
                 Ok(e)
             }
-            Some(t) => Err(ParseError(format!("unexpected {t:?}"))),
+            Some(t) => Err(ParseError(format!("unexpected {t}"))),
             None => Err(ParseError("unexpected end of expression".into())),
         }
     }
@@ -283,10 +327,11 @@ pub fn parse(src: &str) -> Result<Expr, ParseError> {
     let mut p = Parser {
         toks: tokenize(src)?,
         pos: 0,
+        nest: 0,
     };
-    let e = p.sum()?;
+    let (e, _) = p.sum()?;
     if p.pos < p.toks.len() {
-        return Err(ParseError(format!("unexpected {:?}", p.toks[p.pos])));
+        return Err(ParseError(format!("unexpected {}", p.toks[p.pos])));
     }
     Ok(e)
 }

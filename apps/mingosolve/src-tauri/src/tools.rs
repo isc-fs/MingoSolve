@@ -39,8 +39,12 @@ pub fn list_tools() -> Vec<ToolInfo> {
 
 /// Run with `name=value` pairs; blank values fall back to the tool's defaults.
 #[tauri::command]
-pub fn run_tool(name: String, args: Vec<(String, String)>) -> Result<String, String> {
-    let t = tool(&name).ok_or_else(|| format!("no tool {name}"))?;
+pub async fn run_tool(name: String, args: Vec<(String, String)>) -> Result<String, String> {
+    crate::blocking(move || run_tool_impl(&name, &args)).await
+}
+
+pub fn run_tool_impl(name: &str, args: &[(String, String)]) -> Result<String, String> {
+    let t = tool(name).ok_or_else(|| format!("no tool {name}"))?;
     let pairs: Vec<String> = args
         .iter()
         .filter(|(_, v)| !v.trim().is_empty())
