@@ -207,7 +207,7 @@ test('Chain offers the likely names for a mistyped one, and clicking one fixes t
 
 test('the Past questions list in Chain is folded until opened, and stays the way it was left after a reload', async ({ app }) => {
     await app.getByRole('button', { name: 'Chain' }).click();
-    const head = app.getByRole('button', { name: 'Past questions' });
+    const head = app.locator('main').getByRole('button', { name: 'Past questions' });
     await expect(head).toHaveAttribute('aria-expanded', 'false');
     await expect(app.getByRole('button', { name: /^Q515 ·/ })).toBeHidden();
     await head.focus();
@@ -217,9 +217,9 @@ test('the Past questions list in Chain is folded until opened, and stays the way
     await app.waitForTimeout(400);
     await app.reload();
     await app.getByRole('button', { name: 'Chain' }).click();
-    await expect(app.getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'true');
-    await app.getByRole('button', { name: 'Past questions' }).click();
-    await expect(app.getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'false');
+    await expect(app.locator('main').getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'true');
+    await app.locator('main').getByRole('button', { name: 'Past questions' }).click();
+    await expect(app.locator('main').getByRole('button', { name: 'Past questions' })).toHaveAttribute('aria-expanded', 'false');
 });
 
 test('contradicting inputs are flagged instead of silently answered', async ({ app }) => {
