@@ -201,6 +201,14 @@ describe('tool scripts', () => {
         });
     });
 
+    it('a worked example whose answer comes from the defaults alone still runs (e.g. skidpad layout, Q99)', async () => {
+        const engine = fakeEngine({ ...common, run_tool: () => '18.25' });
+        openCommand('event_score', 18.25);
+        render(ScriptSheet);
+        await waitFor(() => expect(slab()).toBe('18.25'));
+        expect(engine.calls.filter((c) => c.cmd === 'run_tool')).toHaveLength(1);
+    });
+
     it('opening a bare tool waits for Run instead of erroring on the empty required fields, and uses the rule year from Settings', async () => {
         settings.rules = '2026';
         const engine = fakeEngine({ ...common, run_tool: () => '1' });
