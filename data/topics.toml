@@ -8,7 +8,7 @@ blurb = "Speed, constant acceleration, kinetic and potential energy"
 hue = "green"
 formulas = ["speed", "uniform_accel", "kinetic_energy", "rolling_energy", "stopping_distance",
             "rolling_coast", "coast_down"]
-tools = ["accel_then_cruise", "endurance_energy"]
+tools = ["accel_then_cruise", "endurance_energy", "kin_profile"]
 
 [[topic]]
 id = "dynamics"
@@ -17,7 +17,8 @@ blurb = "Axle loads, load transfer, cornering, rollover, steering"
 hue = "green"
 formulas = ["static_axle_loads", "longitudinal_transfer", "lateral_transfer", "rollover", "inside_wheel_fraction",
             "front_lift", "traction_limit", "cornering", "cornering_downforce", "skidpad_lap", "ackermann",
-            "wheel_loads_cornering", "wheel_slip_angle"]
+            "wheel_loads_cornering", "wheel_slip_angle", "wheel_loads_total", "cg_shift", "brake_balance",
+            "resultant_g_angle", "sprung_cg_height"]
 tools = ["wheel_slip"]
 
 [[topic]]
@@ -43,7 +44,7 @@ blurb = "Gear ratios, torque and power, planetaries, engines, brake torque"
 hue = "gold"
 formulas = ["gear_drive", "power_torque", "planetary", "engine_geometry", "engine_order", "brake_torque",
             "top_speed_power", "compound_planetary", "epicyclic_planet", "slider_crank", "cr_change",
-            "traction_torque", "regen_wheel_torque", "top_speed_losses", "brake_heat"]
+            "traction_torque", "regen_wheel_torque", "top_speed_losses", "brake_heat", "cr_from_force"]
 tools = ["gear_train"]
 
 [[topic]]
@@ -82,7 +83,7 @@ blurb = "Ohm, wiring, transients, filters, sensors, op-amps, converters"
 hue = "teal"
 formulas = ["ohm", "wire_resistance", "cable_drop", "resistance_temperature", "resistor_self_heating",
             "rc_transient", "inductor_step", "inductor_energy", "reactance", "rc_lowpass", "vswr", "divider",
-            "ntc", "howland", "buck", "busbar_match"]
+            "ntc", "howland", "buck", "busbar_match", "current_density"]
 tools = ["nodal", "e_series", "gamma", "cable_fuse"]
 
 [[topic]]
@@ -96,11 +97,12 @@ tools = ["alias", "twos", "uart_time", "can_frame_bits", "can_transfer"]
 [[topic]]
 id = "scoring"
 name = "Rules and scoring"
-blurb = "Event scores (2027, 2026, legacy), penalties, statics, rounding"
+blurb = "Event scores (2027, 2026, legacy), penalties, statics, rule constants, rounding"
 hue = "gold"
 formulas = []
 tools = ["corrected_time", "event_score", "cones_from_score", "dv_rank_score", "dc_autocross_score",
-         "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to"]
+         "trackdrive_score", "efficiency_score", "static_nonfinalist", "max_points", "weight_penalty", "round_to",
+         "document_penalty", "rule_value", "track_range", "skidpad_layout"]
 
 [[topic]]
 id = "business"
@@ -146,6 +148,11 @@ static_nonfinalist = "Static event score, non-finalist"
 max_points = "Maximum points of a set of events"
 weight_penalty = "Weight change penalty"
 round_to = "Round to a step (fuses, limits)"
+kin_profile = "Run in constant-acceleration phases (distance, time, speed)"
+document_penalty = "Late document penalty and de-registration deadlines"
+rule_value = "Rule constant lookup (tyres, LV voltage, wheelbase, clearance...)"
+track_range = "Allowed rear track range from the front track"
+skidpad_layout = "Skidpad geometry and cone count from the rules"
 
 # Words people use for a script that its title, tags and variables don't contain. Searched with the rest.
 [aliases]
@@ -252,6 +259,18 @@ efficiency_score = "efficiency energy points"
 static_nonfinalist = "business plan cost design static points finalist"
 max_points = "points total"
 weight_penalty = "mass inspection"
+document_penalty = "deadline late submission upload de-registration correction request days hours group a b ses crd"
+rule_value = "rulebook constant tread depth wet tyre low voltage lvs 60 v ground clearance wheelbase minimum"
+track_range = "track width front rear 75 % ratio t 2.9.2"
+skidpad_layout = "cones inner outer diameter circles figure of eight pylons track width centre"
+kin_profile = "acceleration phases cruise brake reaction time distance idle standstill run profile"
+wheel_loads_total = "tyre load corner outside inside weight distribution lateral g front left"
+cg_shift = "driver mass centre of gravity weight distribution ballast"
+brake_balance = "brake bias split front rear ideal full braking lock"
+resultant_g_angle = "liquid level fuel tank tilt bank banked turn lateral acceleration angle"
+sprung_cg_height = "ride height ground clearance cg unsprung"
+cr_from_force = "piston gas force pressure bore stroke clearance volume"
+current_density = "wire conductor a/mm2 conductivity electric field"
 fx_exposure = "exchange rate currency"
 roi_fx = "return on investment currency"
 earned_value = "spi cpi project schedule cost"

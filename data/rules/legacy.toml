@@ -55,3 +55,70 @@ rows = [[50, 1.6, 1.6, 1.0], [150, 6.4, 3.2, 2.0], [300, 9.5, 6.4, 3.0], [600, 1
 [ts]
 insulation_tiers = [[250, 250], [1e9, 500]]
 tsal_uses = "max"
+
+# Rule constants (rule_value, track_range, skidpad_layout, document_penalty). Same numbers as 2026 where the old
+# FS-Quiz keys agree: Q122/Q346/Q409 tread, Q237/Q444 wheelbase, Q37/Q364 track ratio, Q213/Q521/Q545 clearance,
+# Q735 LV limits, Q290/Q964 baseline steel.
+[constants.wet_tread_depth]
+value = 2.4
+unit = "mm"
+rule = "T 2.6.1 (old numbering)"
+desc = "minimum tread depth of wet tires"
+
+[constants.wheelbase_min]
+value = 1525
+unit = "mm"
+rule = "key Q237, Q444"
+desc = "minimum wheelbase"
+
+[constants.track_ratio_min]
+value = 0.75
+unit = "1"
+rule = "T 2.8 (key Q37, Q364)"
+desc = "smaller track (front or rear) as a share of the larger one"
+
+[constants.ground_clearance_min]
+value = 30
+unit = "mm"
+rule = "key Q213, Q521, Q545"
+desc = "minimum static ground clearance with the driver"
+
+[constants.lv_dc_max]
+value = 60
+unit = "V DC"
+rule = "key Q735"
+desc = "maximum voltage between any two LVS connections (DC)"
+
+[constants.lv_ac_max]
+value = 50
+unit = "V AC RMS"
+rule = "key Q735"
+desc = "maximum voltage between any two LVS connections (AC, RMS)"
+
+[constants.baseline_yield]
+value = 305
+unit = "MPa"
+rule = "key Q290, Q964"
+desc = "baseline steel yield strength for SES calculations (non-welded)"
+
+[constants.baseline_modulus]
+value = 200
+unit = "GPa"
+rule = "key Q290"
+desc = "baseline steel Young's modulus for SES calculations"
+
+# 16 + 13 cones per circle pair reproduces the keys Q134 (58 cones) and Q50 (29 per pair).
+[skidpad]
+rule = "keys Q134, Q50, Q235, Q99"
+inner_d = 15.25
+outer_d = 21.25
+centre_distance = 18.25
+cones_inner = 16
+cones_outer = 13
+
+# Old rule as the keys apply it: 10 points per FULL 24 h late, per submission (initial and corrected), which is the
+# only reading that reproduces Q512 (50 points); low confidence. The correction window is 168 h (Q659).
+[documents]
+late_points = 10
+late_basis = "full_day"
+correction_hours = 168

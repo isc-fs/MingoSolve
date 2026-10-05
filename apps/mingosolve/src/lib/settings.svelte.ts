@@ -3,6 +3,7 @@
 import { load, type Store } from '@tauri-apps/plugin-store';
 
 export type RuleYear = '2027' | '2026' | 'legacy';
+export const RULE_YEARS: RuleYear[] = ['2027', '2026', 'legacy'];
 export type Theme = 'system' | 'dark' | 'light';
 
 export interface Settings {

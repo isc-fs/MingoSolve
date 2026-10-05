@@ -14,10 +14,11 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 | Phase | Title | Branches | Milestone tag |
 |:---:|---|---|---|
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
-| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · 🔄 active `feat/3-coverage-gaps` | `v0.2.0` |
-| 3 | Quiz-day features | 🔜 planned `feat/4-past-question-recognition` · 🔜 planned `feat/5-question-formatting` · 🔜 planned `fix/5-answer-path` · 🔜 planned `feat/6-help-and-session-log` · 🔜 planned `feat/7-plain-language-tools` · 🔜 planned `fix/6-accessibility` · 🔜 planned `feat/8-chain-and-calc-examples` · 🔜 planned `feat/9-rules-search` | `v0.3.0` |
+| 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.2.0` |
+| 3 | Quiz-day features | 🔄 active `feat/4-past-question-recognition` · 🔄 active `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · 🔄 active `feat/6-help-and-session-log` · 🔄 active `feat/7-plain-language-tools` · 🔄 active `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · 🔄 active `feat/9-rules-search` | `v0.3.0` |
 | 4 | Quiz rehearsal | 🔜 planned `feat/10-mock-quiz-fixes` | `v1.0.0` |
 | 5 | After the quizzes | 🔜 planned `feat/11-drop-python-fallback` · 🔜 planned `feat/12-repl` · 🔜 planned `feat/13-contributor-guide` | `v1.1.0` |
+| — | Process fixes _(sidequest)_ | ✅ done `fix/7-roadmap-skip-ci` | — |
 
 ## Branch diagram
 
@@ -56,7 +57,7 @@ gitGraph
     checkout dev
     merge feat/2-release-pipeline
     branch feat/3-coverage-gaps
-    commit id: "… New archetypes from the question bank with verified past questions"
+    commit id: "✔ New archetypes from the question bank with verified past questions"
     checkout dev
     merge feat/3-coverage-gaps
     checkout main
@@ -65,35 +66,35 @@ gitGraph
 
     %% Phase 3 — Quiz-day features
     branch feat/4-past-question-recognition
-    commit id: "○ Recognise pasted past questions and warn about known-wrong keys"
+    commit id: "… Recognise pasted past questions and warn about known-wrong keys"
     checkout dev
     merge feat/4-past-question-recognition
     branch feat/5-question-formatting
-    commit id: "○ Read rounding and units from the question"
+    commit id: "… Read rounding and units from the question"
     checkout dev
     merge feat/5-question-formatting
     branch fix/5-answer-path
-    commit id: "○ Answer always visible, copy shortcut, safe Esc, multi-line tool results, rule year shown"
+    commit id: "✔ Answer always visible, copy shortcut, safe Esc, multi-line tool results, rule year shown"
     checkout dev
     merge fix/5-answer-path
     branch feat/6-help-and-session-log
-    commit id: "○ In-app help, cheat sheet and an exportable answer log"
+    commit id: "… In-app help, cheat sheet and an exportable answer log"
     checkout dev
     merge feat/6-help-and-session-log
     branch feat/7-plain-language-tools
-    commit id: "○ Tool forms with labels, units and choices"
+    commit id: "… Tool forms with labels, units and choices"
     checkout dev
     merge feat/7-plain-language-tools
     branch fix/6-accessibility
-    commit id: "○ Focus, contrast, live regions, zoom"
+    commit id: "… Focus, contrast, live regions, zoom"
     checkout dev
     merge fix/6-accessibility
     branch feat/8-chain-and-calc-examples
-    commit id: "○ Chain and calculator past questions one click away"
+    commit id: "✔ Chain and calculator past questions one click away"
     checkout dev
     merge feat/8-chain-and-calc-examples
     branch feat/9-rules-search
-    commit id: "○ Search the rulebook from a locally loaded PDF"
+    commit id: "… Search the rulebook from a locally loaded PDF"
     checkout dev
     merge feat/9-rules-search
     checkout main

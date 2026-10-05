@@ -48,3 +48,50 @@ test('every worked example shows its official answer', async ({ app, request }, 
     expect(checked).toBeGreaterThan(100);
     expect(failures, failures.join('\n')).toEqual([]);
 });
+
+// The past questions solved with `chain` and `calc` belong to no single script: they live in the Chain view and the
+// calculator, one click each, and must show the official answer too.
+const numbersIn = (texts: string[]): number[] =>
+    texts.flatMap((t) => (t.match(/-?\d+(\.\d+)?(e[-+]?\d+)?/gi) ?? []).map(Number));
+const near = (ns: number[], answer: number): boolean =>
+    ns.some((n) => Math.abs(n - answer) <= 0.005 * Math.abs(answer) + 1e-9);
+
+test('every chain past question shows its official answer in the Chain view', async ({ app, request }, info) => {
+    test.skip(info.project.name !== 'chromium', 'one browser is enough for the data sweep');
+    const res = await request.post(`${BRIDGE}/invoke/chain_examples`, { data: {} });
+    const examples = (await res.json()) as Example[];
+    expect(examples.length).toBeGreaterThan(5);
+    await app.getByRole('button', { name: 'Chain' }).click();
+    const section = app.getByRole('region', { name: 'Past questions' });
+    const failures: string[] = [];
+    for (const ex of examples) {
+        await section.getByRole('button', { name: new RegExp(`^Q${ex.id}\\b`) }).click();
+        const shown = async () => numbersIn(await app.locator('.answer .a-value').allTextContents());
+        try {
+            await expect.poll(async () => near(await shown(), ex.answer), { timeout: 4000 }).toBe(true);
+        } catch {
+            failures.push(`Q${ex.id} chain: official ${ex.answer}, screen shows ${JSON.stringify(await shown())}`);
+        }
+    }
+    expect(failures, failures.join('\n')).toEqual([]);
+});
+
+test('every calculator past question shows its official answer in the calculator', async ({ app, request }, info) => {
+    test.skip(info.project.name !== 'chromium', 'one browser is enough for the data sweep');
+    const res = await request.post(`${BRIDGE}/invoke/calc_examples`, { data: {} });
+    const examples = (await res.json()) as Example[];
+    expect(examples.length).toBeGreaterThan(5);
+    const panel = app.getByRole('complementary', { name: 'Calculator' });
+    await panel.getByText('Past questions').click();
+    const failures: string[] = [];
+    for (const ex of examples) {
+        await panel.getByRole('button', { name: new RegExp(`^Q${ex.id}\\b`) }).click();
+        const shown = async () => numbersIn(await panel.locator('ul li').first().locator('.result').allTextContents());
+        try {
+            await expect.poll(async () => near(await shown(), ex.answer), { timeout: 4000 }).toBe(true);
+        } catch {
+            failures.push(`Q${ex.id} calc: official ${ex.answer}, screen shows ${JSON.stringify(await shown())}`);
+        }
+    }
+    expect(failures, failures.join('\n')).toEqual([]);
+});

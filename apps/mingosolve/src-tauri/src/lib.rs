@@ -65,6 +65,8 @@ macro_rules! handler {
         rulebook::rulebook_status,
         rulebook::search_rules,
         rulebook::remove_rulebook,
+        topics::chain_examples,
+        topics::calc_examples,
         $($extra),*
         ]
     };

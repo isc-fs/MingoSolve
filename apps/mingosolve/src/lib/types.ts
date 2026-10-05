@@ -94,9 +94,33 @@ export interface Matching {
 
 export type Precision = { sig: number } | { decimals: number };
 
+export interface PastExample {
+    cmd: string;
+    answer: number;
+}
+
+/** A pasted question recognised as one of the FS-Quiz bank (fingerprint match, no question text shipped). */
+export interface PastMatch {
+    id: number;
+    /** Quizzes it appeared in, oldest first ("FSG 2023 EV"). */
+    quizzes: string[];
+    /** Official answer when it is a number with a unit. */
+    answer: string | null;
+    similarity: number;
+    runner_up: number;
+    /** Weak match or another question fits as well: say "probably". */
+    probable: boolean;
+    /** The numbers match the bank question, so the official answer applies as is. */
+    same_numbers: boolean;
+    example: PastExample | null;
+    /** Why the official key is known to be wrong, when it is. */
+    known_key: string | null;
+}
+
 export interface Found {
     hits: Hit[];
     quantities: string[];
+    past: PastMatch | null;
 }
 
 export interface ScriptRef {

@@ -108,7 +108,7 @@
         <p>ISC MingoSolve {version !== '' ? `v${version}` : ''} · ISC Racing Team</p>
         <p class="muted small">
             Scripts are checked against past FS-Quiz questions (fs-quiz.eu, Open Database License). Shortcuts:
-            <kbd>⌘K</kbd> find a script, paste anywhere to start from a problem, <kbd>Esc</kbd> clears a script.
+            <kbd>⌘K</kbd> find a script, paste anywhere to start from a problem, <kbd>⌘↵</kbd> copy the answer (Ctrl+Enter on Windows and Linux).
         </p>
     </section>
 </div>

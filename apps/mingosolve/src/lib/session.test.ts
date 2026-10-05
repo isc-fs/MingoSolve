@@ -45,6 +45,28 @@ describe('worked examples', () => {
         expect(session.script).toBe(before);
     });
 
+    it('a chain example fills the Chain form (target, one known per line, show-in unit, tag filter) and switches to it', () => {
+        session.activeView = 'solve';
+        const before = session.chain.run;
+        openCommand('chain v h_cg=0.205m R_c=14.5m @v=km/h @h_cg=mm only=dynamics,cg');
+        expect(session.chain).toEqual({
+            target: 'v',
+            given: 'h_cg = 0.205m\nR_c = 14.5m',
+            only: 'dynamics, cg',
+            shownIn: 'km/h',
+            run: before + 1,
+        });
+        expect(session.activeView).toBe('chain');
+    });
+
+    it('a calculator example opens the panel and asks it to evaluate', () => {
+        settings.calcOpen = false;
+        const before = session.calcRun;
+        openCommand('calc 3600/(6000/0.0005)**0.25');
+        expect(settings.calcOpen).toBe(true);
+        expect(session.calcRun).toBe(before + 1);
+    });
+
     it('quotes group a multi-word argument such as a netlist', () => {
         expect(splitCommand('nodal "R1 1 0 2; R2 1 2 3" @V=mV')).toEqual(['nodal', 'R1 1 0 2; R2 1 2 3', '@V=mV']);
         expect(splitCommand('tool ""  x')).toEqual(['tool', '', 'x']);
