@@ -23,18 +23,20 @@
     --isc-paper: #f7f5f1;
     --isc-sand: #dfdbd2;
     --isc-graphite: #404040;
+    /* text on a gold fill, in both themes (--on-accent is white on the light theme's green accent) */
+    --on-gold: #1a1406;
 
     --font-display: 'Jost', 'Futura', 'Century Gothic', sans-serif;
     --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    --text-xs: 12px;
-    --text-sm: 13px;
-    --text-base: 14.5px;
-    --text-lg: 16px;
-    --text-xl: 20px;
-    --text-2xl: 26px;
-    --text-answer: 32px;
+    --text-xs: 0.75rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.90625rem;
+    --text-lg: 1rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.625rem;
+    --text-answer: 2rem;
 
     --space-1: 4px;
     --space-2: 8px;
@@ -98,10 +100,11 @@
     --answer-label: var(--isc-gold-400);
     --answer-text: #ffffff;
     --answer-note: rgba(255, 255, 255, 0.72);
+    --answer-focus: #ffffff;
 
-    --good: #5ee0a0;
+    --good: #8cf0bf;
     --warn: #ffcf66;
-    --bad: #ff8a80;
+    --bad: #ffb4ab;
     --good-soft: rgba(94, 224, 160, 0.12);
     --warn-soft: rgba(255, 207, 102, 0.12);
     --bad-soft: rgba(255, 138, 128, 0.12);
@@ -151,9 +154,10 @@
     --answer-label: var(--isc-gold-400);
     --answer-text: #ffffff;
     --answer-note: rgba(255, 255, 255, 0.8);
+    --answer-focus: #ffffff;
 
     --good: #0d6b43;
-    --warn: #8c6510;
+    --warn: #7a5700;
     --bad: #b3261e;
     --good-soft: rgba(13, 107, 67, 0.1);
     --warn-soft: rgba(140, 101, 16, 0.1);
@@ -161,13 +165,18 @@
 
     --hue-green: #0d6b43;
     --hue-teal: #0b6e74;
-    --hue-gold: #8c6510;
+    --hue-gold: #7a5700;
 }
 
 /* ---- Ground ---- */
 
 * {
     box-sizing: border-box;
+}
+
+html {
+    /* Settings > Text size sets --text-scale; every size below is in rem, so it all follows */
+    font-size: calc(100% * var(--text-scale, 1));
 }
 
 html,
@@ -288,7 +297,7 @@ p {
 }
 .label {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
@@ -311,7 +320,7 @@ button {
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    height: 34px;
+    min-height: 34px;
     padding: 0 var(--space-4);
     border-radius: var(--r-pill);
     border: 1px solid var(--glass-edge);
@@ -350,7 +359,7 @@ button {
     border-color: transparent;
 }
 .btn-sm {
-    height: 28px;
+    min-height: 28px;
     padding: 0 var(--space-3);
     font-size: var(--text-xs);
 }
@@ -381,7 +390,6 @@ select.input {
     opacity: 0.85;
 }
 .input:focus {
-    outline: none;
     border-color: var(--field-focus);
     box-shadow: 0 0 0 3px var(--accent-soft);
 }
@@ -442,11 +450,25 @@ textarea.input {
 
 kbd {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.6875rem;
     padding: 1px 6px;
     border-radius: 6px;
     border: 1px solid var(--glass-edge);
     color: var(--muted);
+}
+/* a key hint on a filled button takes the button's own text colour (muted on the accent fill was ~1.5:1) */
+.btn-primary kbd {
+    color: inherit;
+    border-color: currentColor;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 ::selection {

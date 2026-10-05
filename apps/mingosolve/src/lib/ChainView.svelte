@@ -29,6 +29,13 @@
     const picked = $derived(catalog.ready ? variableInfo(session.chain.target.trim()) : undefined);
     const resultInfo = $derived(catalog.ready ? variableInfo(resultTarget) : undefined);
 
+    /** Read out when a chain finishes (polite: the visible result is not itself a live region). */
+    const chainSays = $derived.by(() => {
+        if (result === null) return '';
+        const conflict = result.conflicts.length > 0 ? ' The formulas disagree: check the red note.' : '';
+        return result.reached ? `${resultTarget} = ${result.target}.${conflict}` : `No path to ${resultTarget}.${conflict}`;
+    });
+
     onMount(() => {
         void chainExamples().then((ex) => (examples = ex));
     });
@@ -186,7 +193,8 @@
         <div><button type="button" class="btn btn-primary" onclick={run}>Chain</button></div>
     </section>
 
-    {#if error !== null}<p class="note note-bad"><strong>Can't chain that.</strong> {error}</p>{/if}
+    <p class="sr-only" role="status" aria-live="polite">{chainSays}</p>
+    {#if error !== null}<p class="note note-bad" role="alert"><strong>Can't chain that.</strong> {error}</p>{/if}
 
     {#if result !== null}
         <section class="glass panel">
@@ -218,11 +226,10 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: var(--space-5) var(--space-5) var(--space-6);
+        padding: var(--space-5) max(var(--space-5), calc((100% - 980px) / 2)) var(--space-6);
         display: flex;
         flex-direction: column;
         gap: var(--space-3);
-        max-width: 980px;
     }
     header {
         padding: 0 var(--space-2);

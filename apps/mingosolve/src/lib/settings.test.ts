@@ -53,6 +53,32 @@ it('a file from an older version keeps its choices and takes defaults for everyt
     expect(m.settings.pinned).toEqual(m.defaultSettings().pinned);
 });
 
+it('a file from before the text size setting loads at 100 %, and a chosen size is saved and read back', async () => {
+    disk.all = { theme: 'dark' };
+    fakeStore();
+    let m = await fresh();
+    const stop = m.startAutosave();
+    await m.loadSettings();
+    expect(m.settings.textSize).toBe(100);
+    m.settings.textSize = 130;
+    m.flushSync();
+    await sleep(350);
+    expect(writes.at(-1)).toMatchObject({ theme: 'dark', textSize: 130 });
+    stop();
+
+    m = await fresh();
+    await m.loadSettings();
+    expect(m.settings.textSize).toBe(130);
+});
+
+it('a hand-edited text size that is not one of the offered sizes falls back to 100 %', async () => {
+    disk.all = { textSize: 250 };
+    fakeStore();
+    const m = await fresh();
+    await m.loadSettings();
+    expect(m.settings.textSize).toBe(100);
+});
+
 it('an emptied rail stays empty after a restart instead of getting the default pins back', async () => {
     disk.all = { pinned: [], recent: ['ntc'] };
     fakeStore();

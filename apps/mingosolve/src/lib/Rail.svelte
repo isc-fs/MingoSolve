@@ -11,6 +11,7 @@
     import Icon from './Icon.svelte';
     import { VIEWS, type ViewId } from './stores';
     import { catalog, shortName } from './catalog.svelte';
+    import { layout } from './layout.svelte';
     import { platform, searchShortcut } from './platform';
     import { openScript, session } from './session.svelte';
     import { settings } from './settings.svelte';
@@ -42,21 +43,21 @@
     const title = (id: string): string => catalog.scripts.get(id)?.title ?? shortName(id);
 </script>
 
-<aside class="rail glass" class:mac={isMac}>
+<div class="rail glass" class:mac={isMac} class:compact={layout.narrow}>
     {#if isMac}<div class="drag" data-tauri-drag-region></div>{/if}
 
     <div class="brand" data-tauri-drag-region>
         <span class="mark" aria-hidden="true"></span>
-        <div>
+        <div class="txt">
             <strong>MingoSolve</strong>
             <span class="mono small muted">{version !== '' ? `v${version}` : 'ISC'} · rules {settings.rules}</span>
         </div>
     </div>
 
-    <button type="button" class="search" onclick={() => (session.paletteOpen = true)}>
+    <button type="button" class="search" title="Find a script ({searchShortcut()})" onclick={() => (session.paletteOpen = true)}>
         <Icon name="search" size={16} />
-        <span>Find a script</span>
-        <kbd>{searchShortcut()}</kbd>
+        <span class="txt">Find a script</span>
+        <kbd class="txt">{searchShortcut()}</kbd>
     </button>
 
     <nav aria-label="Views">
@@ -66,22 +67,22 @@
                 class="item"
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
-                title={v.description}
+                title={layout.narrow ? `${v.label}: ${v.description}` : v.description}
                 onclick={() => (session.activeView = v.id)}
             >
                 <Icon name={icons[v.id]} />
-                <span>{v.label}</span>
+                <span class="txt">{v.label}</span>
             </button>
         {/each}
     </nav>
 
     {#if settings.pinned.length > 0}
         <p class="label section">Pinned</p>
-        <div class="list">
+        <div class="list" role="group" aria-label="Pinned scripts">
             {#each settings.pinned as id (id)}
                 <button type="button" class="script" class:on={session.script?.id === id} title={title(id)} onclick={() => openScript(id)}>
                     <Icon name="pin" size={14} />
-                    <span>{title(id)}</span>
+                    <span class="txt">{title(id)}</span>
                 </button>
             {/each}
         </div>
@@ -89,11 +90,11 @@
 
     {#if recent.length > 0}
         <p class="label section">Recent</p>
-        <div class="list">
+        <div class="list" role="group" aria-label="Recent scripts">
             {#each recent as id (id)}
                 <button type="button" class="script" class:on={session.script?.id === id} title={title(id)} onclick={() => openScript(id)}>
                     <Icon name="clock" size={14} />
-                    <span>{title(id)}</span>
+                    <span class="txt">{title(id)}</span>
                 </button>
             {/each}
         </div>
@@ -108,15 +109,15 @@
                 class="item"
                 class:on={session.activeView === v.id}
                 aria-current={session.activeView === v.id ? 'page' : undefined}
-                title={v.id === 'help' ? `${v.description} (${isMac ? '⌘/' : 'Ctrl+/'})` : v.description}
+                title={(layout.narrow ? `${v.label}: ` : '') + (v.id === 'help' ? `${v.description} (${isMac ? '⌘/' : 'Ctrl+/'})` : v.description)}
                 onclick={() => (session.activeView = v.id)}
             >
                 <Icon name={icons[v.id]} />
-                <span>{v.label}</span>
+                <span class="txt">{v.label}</span>
             </button>
         {/each}
     </nav>
-</aside>
+</div>
 
 <style>
     /* full height and flush with the window edge, so the window's own corners are the rail's */
@@ -161,7 +162,7 @@
         display: block;
         font-family: var(--font-display);
         font-weight: 600;
-        font-size: 17px;
+        font-size: 1.0625rem;
         letter-spacing: 0.01em;
     }
     .search {
@@ -180,7 +181,7 @@
         font-size: var(--text-sm);
         text-align: left;
     }
-    .search span {
+    .search .txt:not(kbd) {
         flex: 1;
     }
     .search:hover {
@@ -214,7 +215,7 @@
         padding: 7px var(--space-3);
         font-size: var(--text-sm);
     }
-    .script span {
+    .script .txt {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -235,6 +236,38 @@
     }
     .section {
         margin: var(--space-4) var(--space-3) var(--space-1);
+    }
+    /* narrow windows: icons only; the labels stay in the DOM as the buttons' accessible names */
+    .rail.compact {
+        width: 64px;
+        flex-basis: 64px;
+        padding-inline: var(--space-2);
+        align-items: stretch;
+    }
+    .compact .txt {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+    .compact .item,
+    .compact .script,
+    .compact .search {
+        justify-content: center;
+        padding-inline: 0;
+    }
+    .compact .brand {
+        justify-content: center;
+        padding-inline: 0;
+    }
+    .compact .section {
+        height: 1px;
+        margin: var(--space-2) var(--space-2);
+        overflow: hidden;
+        background: var(--glass-edge);
+        color: transparent;
     }
     .spacer {
         flex: 1;

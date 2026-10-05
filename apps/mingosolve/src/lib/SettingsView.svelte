@@ -6,8 +6,9 @@
     import { onMount } from 'svelte';
     import { getVersion } from '@tauri-apps/api/app';
 
-    import { searchShortcut } from './platform';
-    import { settings, type Theme } from './settings.svelte';
+    import { platform, searchShortcut } from './platform';
+    import { radioArrows } from './radio';
+    import { settings, TEXT_SIZES, type TextSize, type Theme } from './settings.svelte';
     import { checkForUpdate, type AvailableUpdate } from './updater';
 
     let { update = $bindable() }: { update: AvailableUpdate | null } = $props();
@@ -31,6 +32,8 @@
         checked = update === null ? 'You have the latest version, or the update server is unreachable.' : null;
     }
 
+    const zoomKeys = platform === 'mac' ? '⌘+ and ⌘−' : 'Ctrl+ and Ctrl−';
+
     const themes: { id: Theme; label: string; hint: string }[] = [
         { id: 'system', label: 'Follow the OS', hint: 'Dark at night, light by day' },
         { id: 'dark', label: 'Night glass', hint: 'Dark' },
@@ -46,13 +49,22 @@
 
     <section class="glass panel">
         <h2>Look</h2>
-        <div class="seg" role="radiogroup" aria-label="Theme">
+        <div class="seg" role="radiogroup" aria-label="Theme" use:radioArrows>
             {#each themes as t (t.id)}
-                <button type="button" role="radio" aria-checked={settings.theme === t.id} class:on={settings.theme === t.id} onclick={() => (settings.theme = t.id)}>
+                <button type="button" role="radio" tabindex={settings.theme === t.id ? 0 : -1} aria-checked={settings.theme === t.id} class:on={settings.theme === t.id} onclick={() => (settings.theme = t.id)}>
                     <strong>{t.label}</strong><span class="muted small">{t.hint}</span>
                 </button>
             {/each}
         </div>
+        <p class="label" id="text-size-label">Text size</p>
+        <div class="seg four" role="radiogroup" aria-labelledby="text-size-label" use:radioArrows>
+            {#each TEXT_SIZES as n (n)}
+                <button type="button" role="radio" tabindex={settings.textSize === n ? 0 : -1} aria-checked={settings.textSize === n} class:on={settings.textSize === n} onclick={() => (settings.textSize = n as TextSize)}>
+                    <strong>{n} %</strong>
+                </button>
+            {/each}
+        </div>
+        <p class="muted small">{zoomKeys} also zoom the whole window.</p>
         <label class="toggle">
             <input type="checkbox" bind:checked={settings.solid} />
             <span>Solid surfaces instead of glass <span class="muted">(easier to read on busy desktops; also follows the OS "reduce transparency" setting)</span></span>
@@ -142,6 +154,9 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: var(--space-2);
+    }
+    .seg.four {
+        grid-template-columns: repeat(4, 1fr);
     }
     .seg button {
         appearance: none;

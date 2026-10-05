@@ -171,7 +171,8 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: 0 var(--space-5) var(--space-6);
+        /* content stays centred and at most 1280 px wide, so fields and the Copy button stay together */
+        padding: 0 max(var(--space-5), calc((100% - 1280px) / 2)) var(--space-6);
         display: flex;
         flex-direction: column;
         gap: var(--space-4);
@@ -196,9 +197,15 @@
         font-size: var(--text-lg);
         min-height: 48px;
     }
-    .problem textarea:focus {
+    /* the textarea has no box of its own, so the whole problem panel shows the focus */
+    .problem textarea:focus,
+    .problem textarea:focus-visible {
+        outline: none;
         box-shadow: none;
-        border-color: transparent;
+    }
+    .problem:focus-within {
+        border-color: var(--field-focus);
+        box-shadow: 0 0 0 2px var(--field-focus);
     }
     .past {
         padding: var(--space-3) var(--space-4);
@@ -315,7 +322,7 @@
         background: var(--accent-soft);
         color: var(--ink-accent);
         font-family: var(--font-mono);
-        font-size: 11px;
+        font-size: 0.6875rem;
         font-weight: 600;
     }
 </style>
