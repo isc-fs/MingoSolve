@@ -2,6 +2,7 @@
 // the calculator input. Pinned and recent scripts live in settings (persisted).
 import type { ViewId } from './stores';
 import { settings } from './settings.svelte';
+import { clockRunning, startClock } from './sessionlog.svelte';
 
 export interface OpenScript {
     id: string;
@@ -51,10 +52,23 @@ export function openScript(id: string, values: [string, string][] = [], extra: P
         values = fromProblem.values;
         extra = { target: fromProblem.target, fromProblem: Object.fromEntries(fromProblem.values), ...extra };
     }
+    if (!clockRunning()) startClock();
     nonce += 1;
     session.script = { id, values, ...extra, nonce };
     session.activeView = 'solve';
     settings.recent = [id, ...settings.recent.filter((r) => r !== id)].slice(0, 8);
+}
+
+let viewBeforeHelp: ViewId = 'solve';
+
+/** Help opens over whatever view is showing, and the same key goes back to it. */
+export function toggleHelp(): void {
+    if (session.activeView === 'help') {
+        session.activeView = viewBeforeHelp;
+    } else {
+        viewBeforeHelp = session.activeView;
+        session.activeView = 'help';
+    }
 }
 
 export function togglePin(id: string): void {

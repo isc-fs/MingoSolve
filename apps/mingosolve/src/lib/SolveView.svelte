@@ -11,10 +11,13 @@
     import { catalog, shortName } from './catalog.svelte';
     import { findQuestion } from './finder';
     import { openScript, prettyQuantity, session } from './session.svelte';
+    import { problemChanged } from './sessionlog.svelte';
     import type { Hit } from './types';
 
     let hits = $state<Hit[]>([]);
     let quantities = $state<string[]>([]);
+
+    $effect(() => problemChanged(session.problem));
 
     // Only the reply for the text on screen counts; a slower search for earlier text is dropped.
     let timer: ReturnType<typeof setTimeout> | null = null;

@@ -3,7 +3,8 @@
     root is listed and the picked one fills the answer slab, which copies it in quiz format and can be checked
     against pasted multiple-choice options. Tool scripts: parameters with their defaults, Enter runs; a tool that
     takes a rule year also shows what the other years would answer. The answer slab sticks to the bottom of the
-    scrolling view so it stays on screen with long forms. Copy: ⌘/Ctrl+Enter anywhere in the sheet.
+    scrolling view so it stays on screen with long forms. Copy: ⌘/Ctrl+Enter anywhere in the sheet. Every copy is
+    appended to the session log.
     Worked examples (past FS-Quiz questions that use this script) load their inputs in one click.
 -->
 <script lang="ts">
@@ -19,6 +20,7 @@
     import { openCommand, session, togglePin } from './session.svelte';
     import { RULE_YEARS, settings } from './settings.svelte';
     import { platform } from './theme.svelte';
+    import { recordCopy, sessionLog, type LogEntry } from './sessionlog.svelte';
     import type { Matching, SolveResult, WorkedExample } from './types';
 
     const script = $derived(session.script !== null ? catalog.scripts.get(session.script.id) ?? null : null);
@@ -291,29 +293,39 @@
         announce = text + (announceFlip ? '\u200b' : '');
     }
 
-    function copyText(text: string, said: string): void {
-        if (text.length === 0) return;
+    /** What the sheet holds as typed: variable (or parameter) names in the script's order, blanks left out. */
+    function typedInputs(s: NonNullable<typeof script>): [string, string][] {
+        const names = s.formula?.vars.map((v) => v.name) ?? s.tool?.params.map((p) => p.name) ?? [];
+        return names.filter((n) => (values[n] ?? '').trim().length > 0).map((n) => [n, values[n]]);
+    }
+
+    function copyText(text: string, said: string, via: LogEntry['via']): void {
+        if (text.length === 0 || script === null) return;
+        const s = script;
+        const inputs = typedInputs(s);
+        const rules = toolYear;
         navigator.clipboard.writeText(text).then(
             () => {
                 copied = true;
                 announceText(said);
+                recordCopy({ scriptId: s.id, title: s.title, inputs, answer: text, rules, via });
             },
             () => announceText('Copy failed'),
         );
     }
 
-    function copy(): void {
-        copyText(formatted, `Copied ${formatted}`);
+    function copy(via: LogEntry['via'] = 'button'): void {
+        copyText(formatted, `Copied ${formatted}`, via);
     }
 
     function copyAll(): void {
-        if (answer !== null) copyText(answer.full, `Copied all ${answer.full.split('\n').length} lines`);
+        if (answer !== null) copyText(answer.full, `Copied all ${answer.full.split('\n').length} lines`, 'copy-all');
     }
 
     function onKeydown(e: KeyboardEvent): void {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && answer !== null) {
             e.preventDefault();
-            copy();
+            copy('shortcut');
         }
     }
 
@@ -377,6 +389,10 @@
                 <span class="label">{script.topic?.name ?? 'Script'} · {script.kind === 'formula' ? 'solve for the blank' : 'tool'}</span>
                 <h2>{script.title}</h2>
             </div>
+            <label class="qlabel" title="Label for the session log, e.g. Q7">
+                <span class="label">Question #</span>
+                <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="input mono" bind:value={sessionLog.label} placeholder="Q7" maxlength="20" />
+            </label>
             <button type="button" class="btn btn-ghost btn-sm" class:pinned onclick={() => togglePin(script.id)} aria-pressed={pinned} title={pinned ? 'Unpin from the rail' : 'Pin to the rail'}>
                 <Icon name="pin" size={15} />{pinned ? 'Pinned' : 'Pin'}
             </button>
@@ -457,7 +473,7 @@
                         {#if answer.extra.length > 0}
                             <button type="button" class="btn btn-sm copy-all" onclick={copyAll} title="Copy every line of the output">Copy all</button>
                         {/if}
-                        <button type="button" class="btn copy" onclick={copy} title="Copy as {formatted.length > 40 ? 'the text' : formatted} ({shortcut})">
+                        <button type="button" class="btn copy" onclick={() => copy()} title="Copy as {formatted.length > 40 ? 'the text' : formatted} ({shortcut})">
                             <Icon name={copied ? 'check' : 'copy'} size={15} />{copied ? 'Copied' : answer.block ? 'Copy' : `Copy ${formatted}`}<kbd>{shortcut}</kbd>
                         </button>
                     </span>
@@ -575,6 +591,17 @@
     }
     .pinned {
         color: var(--ink-accent);
+    }
+    .qlabel {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 92px;
+    }
+    .qlabel .input {
+        min-height: 30px;
+        height: 30px;
+        padding: 0 var(--space-2);
     }
     .eqs {
         padding: var(--space-2) var(--space-4);
