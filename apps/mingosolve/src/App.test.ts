@@ -8,6 +8,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 let disk: Record<string, unknown>;
 let calls: string[];
 let unmountApps: () => void = () => {};
+let updateOffered: boolean;
 
 function fakeApp(): void {
     mockIPC(async (cmd, payload) => {
@@ -21,6 +22,10 @@ function fakeApp(): void {
             case 'plugin:store|set':
                 disk[String(args.key)] = args.value;
                 return null;
+            case 'plugin:updater|check':
+                return updateOffered
+                    ? { rid: 7, available: true, currentVersion: '0.5.0', version: '0.5.1', date: null, body: '', rawJson: {} }
+                    : null;
             case 'list_formulas':
             case 'list_tools':
             case 'list_topics':
@@ -51,6 +56,7 @@ beforeEach(() => {
     vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {} }));
     disk = {};
     calls = [];
+    updateOffered = false;
 });
 
 it('does not contact the update server on startup when automatic checks are off', async () => {
@@ -135,4 +141,19 @@ it('Take the tour in Settings starts it too', async () => {
     session.activeView = 'settings';
     await userEvent.click(await screen.findByRole('button', { name: 'Take the tour' }));
     await waitFor(() => expect(tourDialog()).not.toBeNull());
+});
+
+it('shows an offered update inside the main column, below the title-bar zone, and Later dismisses it', async () => {
+    updateOffered = true;
+    fakeApp();
+    await startApp();
+    const { screen, waitFor } = await import('@testing-library/svelte');
+    const userEvent = (await import('@testing-library/user-event')).default;
+    const banner = await waitFor(() => screen.getByText(/Update available/).closest('[role="status"]') as HTMLElement);
+    expect(banner.textContent).toContain('v0.5.1');
+    // not above the shell (where it was drawn under the macOS window buttons): a child of <main>
+    expect(banner.closest('main')).not.toBeNull();
+    expect(banner.closest('.shell')).not.toBeNull();
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Later' }));
+    expect(screen.queryByText(/Update available/)).toBeNull();
 });

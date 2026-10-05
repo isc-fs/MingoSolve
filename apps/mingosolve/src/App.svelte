@@ -79,10 +79,10 @@
 {#if platform === 'mac'}<div class="titlebar" data-tauri-drag-region></div>{/if}
 
 <div class="app">
-    <UpdateBanner {update} />
     <div class="shell">
         <Rail />
         <main tabindex="-1">
+            <UpdateBanner {update} />
             {#if !ready}
                 <p class="loading muted">Loading…</p>
             {:else if failed !== null}
