@@ -13,12 +13,12 @@ const STEPS = [
     { title: 'Check against options', targets: ['[data-tour="check"]'] },
     { title: 'Finding scripts', targets: ['[data-tour="search"]'] },
     { title: 'Chain several formulas', targets: ['[data-tour="nav-chain"]'] },
-    { title: 'Help, rehearsals and this tour', targets: ['[data-tour="nav-help"]'] },
+    { title: 'Help, rehearsals and this tour', targets: ['[data-tour="nav-log"]', '[data-tour="nav-help"]'] },
 ];
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: /./ });
 
-/** Every target is visible, inside the spotlight rectangle, and the card does not touch it. */
+/** Every target is visible, 16 px clear of the window edge, inside the spotlight rectangle, and the card does not touch it. */
 async function expectSpotlightOn(page: Page, targets: string[]): Promise<void> {
     for (const t of targets) await expect(page.locator(t).first()).toBeVisible();
     await expect
@@ -32,6 +32,10 @@ async function expectSpotlightOn(page: Page, targets: string[]): Promise<void> {
                         const r = document.querySelector(sel)!.getBoundingClientRect();
                         const inside = r.left >= hole.left - 1 && r.top >= hole.top - 1 && r.right <= hole.right + 1 && r.bottom <= hole.bottom + 1;
                         if (!inside) return `${sel} outside the spotlight`;
+                        const m = 16;
+                        if (r.left < m || r.top < m || r.right > window.innerWidth - m || r.bottom > window.innerHeight - m) {
+                            return `${sel} within ${m}px of the window edge (${Math.round(r.top)}-${Math.round(r.bottom)} of ${window.innerHeight})`;
+                        }
                         const apart = card.right <= r.left || card.left >= r.right || card.bottom <= r.top || card.top >= r.bottom;
                         if (!apart) return `card covers ${sel}`;
                     }
