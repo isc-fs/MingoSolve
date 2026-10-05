@@ -28,6 +28,8 @@ export const session = $state({
     /** Topic to expand when the Topics view opens. */
     topic: null as string | null,
     calcInput: '',
+    /** What the Rules view searches (the palette hands its query over). */
+    rulesQuery: '',
     /** The open sheet's working state, kept here so switching views doesn't lose typed values. */
     sheet: null as null | {
         nonce: number;

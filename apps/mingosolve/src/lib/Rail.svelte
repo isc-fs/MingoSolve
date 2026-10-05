@@ -23,10 +23,11 @@
         }
     });
 
-    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'settings'> = {
+    const icons: Record<ViewId, 'solve' | 'topics' | 'chain' | 'rules' | 'settings'> = {
         solve: 'solve',
         topics: 'topics',
         chain: 'chain',
+        rules: 'rules',
         settings: 'settings',
     };
     const main = VIEWS.filter((v) => v.id !== 'settings');

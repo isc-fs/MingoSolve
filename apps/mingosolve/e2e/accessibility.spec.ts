@@ -13,7 +13,7 @@ async function audit(page: Page, label: string): Promise<void> {
 }
 
 for (const theme of ['Night glass', 'Paper glass'] as const) {
-    test(`${theme}: home, a solved script, Topics, Chain and Settings pass axe`, async ({ app }) => {
+    test(`${theme}: home, a solved script, Topics, Chain, Rules and Settings pass axe`, async ({ app }) => {
         await app.getByRole('button', { name: 'Settings' }).click();
         await app.getByRole('radio', { name: new RegExp(theme) }).click();
         await audit(app, `${theme} settings`);
@@ -32,6 +32,9 @@ for (const theme of ['Night glass', 'Paper glass'] as const) {
         await app.keyboard.press('Escape');
         await app.getByRole('button', { name: 'Chain' }).click();
         await audit(app, `${theme} chain`);
+        await app.getByRole('button', { name: 'Rules' }).click();
+        await expect(app.getByText('Load the rulebook once')).toBeVisible();
+        await audit(app, `${theme} rules, no rulebook loaded`);
     });
 }
 
