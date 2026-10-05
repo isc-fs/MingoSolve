@@ -1,7 +1,7 @@
 {
   "name": "isc-mingosolve",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "ISC MingoSolve: desktop solver for Formula Student registration-quiz calculations.",
   "type": "module",
   "scripts": {
