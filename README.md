@@ -23,8 +23,10 @@ and run as tests. All of it is data in [data/](data).
   version is [docs/cheat-sheet.md](docs/cheat-sheet.md). The **Session log** records every copied answer with its
   question label and timing, for mock quizzes, and exports CSV.
 - **Chain** links several formulas to one target. The **calculator** is unit-aware (`0.5*280kg*(100km/h)**2 -> kJ`).
-- Look: **Night glass** (dark) and **Paper glass** (light), following the OS, on the ISC design system. The window is
-  translucent on macOS and Windows 11; solid surfaces are one setting away.
+- Look: seven styles in Settings, each with a light and a dark mode that follow the OS. **ISC** (Night glass /
+  Paper glass, the default) is on the ISC design system; **Prontuario**, **Plano**, **Salidas**, **Datasheet**,
+  **Grafito** and **Rosa** are alternatives. The ISC window is translucent on macOS and Windows 11; solid surfaces
+  are one setting away.
 
 ```bash
 cd apps/mingosolve

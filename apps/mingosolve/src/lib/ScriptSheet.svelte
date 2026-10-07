@@ -879,10 +879,10 @@
         bottom: 0;
         z-index: 2;
         padding: var(--space-4) var(--space-5);
-        border-radius: var(--r-lg);
-        background: var(--answer-bg), var(--glass-solid);
-        box-shadow: 0 -10px 18px -10px rgba(0, 0, 0, 0.35), var(--shadow);
-        border: 1px solid var(--answer-edge);
+        border-radius: var(--slab-radius);
+        background: var(--slab-ornament), var(--answer-bg), var(--glass-solid);
+        box-shadow: var(--slab-ring), var(--slab-shadow), var(--shadow);
+        border: var(--slab-border);
         display: flex;
         flex-direction: column;
         gap: var(--space-2);
@@ -897,16 +897,21 @@
         font-family: var(--font-mono);
         font-weight: 600;
         color: var(--answer-label);
+        background: var(--slab-cell);
     }
     .a-value {
-        font-family: var(--font-display);
-        font-weight: 600;
+        font-family: var(--answer-font);
+        font-weight: var(--answer-weight);
         font-size: var(--text-answer);
-        letter-spacing: 0.01em;
-        color: var(--answer-text);
+        letter-spacing: var(--answer-tracking);
+        font-variant-numeric: var(--answer-numeric);
+        color: var(--value-text);
+        background: var(--value-bg);
         overflow-wrap: anywhere;
     }
     .a-value.block {
+        color: var(--answer-text);
+        background: none;
         font-family: var(--font-mono);
         font-size: var(--text-lg);
         white-space: pre-wrap;
@@ -954,8 +959,8 @@
         color: var(--ink-accent);
     }
     .copy {
-        background: var(--isc-gold);
-        color: var(--on-gold);
+        background: var(--copy-bg);
+        color: var(--copy-text);
         border-color: transparent;
         font-weight: 600;
     }
@@ -987,10 +992,17 @@
         color: var(--answer-note);
         font-size: var(--text-sm);
     }
+    /* the slab may be a reversed plate, so its one field has its own colours */
     .a-unit .input {
+        background: var(--slab-field);
+        border-color: var(--slab-field-edge);
+        color: var(--slab-field-text);
         width: 160px;
         min-height: 30px;
         padding: 4px 10px;
+    }
+    .a-unit .input::placeholder {
+        color: var(--slab-field-muted);
     }
     .results {
         display: flex;

@@ -1,0 +1,164 @@
+/* Plano: an ISO drawing sheet (light) and a cyanotype blueprint (dark). Square corners, line weights instead of
+ * shadows, DIN-style lettering; the answer is the title block, ruled twice; the ground carries the drawing frame. */
+
+[data-style='plano'] {
+    --font-display: 'Barlow Semi Condensed', 'Barlow', 'Arial Narrow', sans-serif;
+    --font-sans: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --r-sm: 0;
+    --r-md: 0;
+    --r-lg: 0;
+    --r-xl: 0;
+    --r-pill: 0;
+    --glass-filter: none;
+    --display-weight: 600;
+    --display-tracking: 0.06em;
+    --display-case: uppercase;
+    --answer-font: 'Barlow Semi Condensed', 'Barlow', sans-serif;
+    --answer-weight: 600;
+    --answer-tracking: 0.02em;
+    --answer-numeric: tabular-nums;
+    --slab-radius: 0;
+    --slab-border: 2px solid var(--answer-edge);
+    --slab-ring: inset 0 0 0 4px var(--slab-paper), inset 0 0 0 5px var(--slab-rule);
+}
+
+[data-style='plano'][data-theme='light'] {
+    --ground: #fbfbf9;
+    --ground-tint: #fbfbf9;
+    --glow: none;
+    --grain: 0;
+    --frame: rgba(22, 25, 28, 0.5);
+    --glass: #ffffff;
+    --glass-strong: #ffffff;
+    --glass-edge: rgba(30, 34, 38, 0.62);
+    --glass-hi: transparent;
+    --glass-solid: #ffffff;
+    --shadow: 0 0 #0000;
+    --slab-shadow: 0 -8px 12px -8px rgba(0, 0, 0, 0.15);
+    --scrim: rgba(22, 25, 28, 0.3);
+
+    --text: #16191c;
+    --heading: #16191c;
+    --text-2: #3a3f45;
+    --muted: #4f555c;
+    --well: #f3f4f2;
+    --well-edge: rgba(30, 34, 38, 0.35);
+    --field: #ffffff;
+    --field-edge: rgba(30, 34, 38, 0.55);
+    --field-focus: #1d4f91;
+    --hover: rgba(22, 25, 28, 0.05);
+    --selected: rgba(22, 25, 28, 0.09);
+    --code: #f3f4f2;
+
+    --accent: #1d4f91;
+    --accent-soft: rgba(29, 79, 145, 0.08);
+    --accent-edge: rgba(29, 79, 145, 0.5);
+    --ink-accent: #1d4f91;
+    --on-accent: #ffffff;
+    --var: #1d4f91;
+
+    --answer-bg: linear-gradient(#ffffff, #ffffff);
+    --slab-paper: #ffffff;
+    --answer-edge: #16191c;
+    --slab-rule: #16191c;
+    --answer-label: #1d4f91;
+    --answer-text: #16191c;
+    --answer-note: #3a3f45;
+    --answer-focus: #1d4f91;
+    --copy-bg: #16191c;
+    --copy-text: #ffffff;
+
+    --good: #1d6b3c;
+    --warn: #7a5300;
+    --bad: #b3261e;
+    --good-soft: rgba(29, 107, 60, 0.09);
+    --warn-soft: rgba(160, 110, 0, 0.1);
+    --bad-soft: rgba(179, 38, 30, 0.08);
+
+    --hue-green: #1d6b3c;
+    --hue-teal: #1d4f91;
+    --hue-gold: #8a5a00;
+}
+
+[data-style='plano'][data-theme='dark'] {
+    --ground: #123c69;
+    --ground-tint: #123c69;
+    --glow: radial-gradient(900px 640px at 50% 35%, rgba(46, 106, 176, 0.35), transparent 70%);
+    --grain: 0.16;
+    --frame: rgba(242, 247, 252, 0.55);
+    --glass: #123c69;
+    --glass-strong: #164577;
+    --glass-edge: rgba(235, 243, 252, 0.55);
+    --glass-hi: transparent;
+    --glass-solid: #123c69;
+    --shadow: 0 0 #0000;
+    --slab-shadow: 0 -8px 12px -8px rgba(0, 10, 25, 0.5);
+    --scrim: rgba(4, 18, 36, 0.5);
+
+    --text: #f2f7fc;
+    --heading: #ffffff;
+    --text-2: rgba(242, 247, 252, 0.88);
+    --muted: rgba(226, 237, 249, 0.86);
+    --well: rgba(0, 20, 45, 0.25);
+    --well-edge: rgba(235, 243, 252, 0.35);
+    --field: rgba(0, 18, 40, 0.3);
+    --field-edge: rgba(235, 243, 252, 0.55);
+    --field-focus: #ffe08a;
+    --hover: rgba(255, 255, 255, 0.07);
+    --selected: rgba(255, 255, 255, 0.13);
+    --code: rgba(0, 18, 40, 0.3);
+
+    --accent: #f2f7fc;
+    --accent-soft: rgba(255, 255, 255, 0.12);
+    --accent-edge: rgba(255, 255, 255, 0.55);
+    --ink-accent: #ffe08a;
+    --on-accent: #123c69;
+    --var: #ffe08a;
+
+    --answer-bg: linear-gradient(#f2f7fc, #f2f7fc);
+    --slab-paper: #f2f7fc;
+    --answer-edge: #0b2a4d;
+    --slab-rule: #123c69;
+    --answer-label: #1d4f91;
+    --answer-text: #0b2a4d;
+    --answer-note: #23476f;
+    --answer-focus: #123c69;
+    --copy-bg: #123c69;
+    --copy-text: #f2f7fc;
+    --slab-field: #ffffff;
+    --slab-field-edge: rgba(18, 60, 105, 0.6);
+    --slab-field-text: #0b2a4d;
+    --slab-field-muted: #3d5f85;
+
+    --good: #9ff0c4;
+    --warn: #ffe08a;
+    --bad: #ffc4ba;
+    --good-soft: rgba(159, 240, 196, 0.12);
+    --warn-soft: rgba(255, 224, 138, 0.12);
+    --bad-soft: rgba(255, 180, 168, 0.14);
+
+    --hue-green: #9ff0c4;
+    --hue-teal: #bfe0ff;
+    --hue-gold: #ffe08a;
+}
+
+/* the drawing frame: a border 8 px in from the window with zone ticks along every edge */
+[data-style='plano'] .ground::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid var(--frame);
+    background:
+        repeating-linear-gradient(to right, var(--frame) 0 1px, transparent 1px 12.5%) top / 100% 6px no-repeat,
+        repeating-linear-gradient(to right, var(--frame) 0 1px, transparent 1px 12.5%) bottom / 100% 6px no-repeat,
+        repeating-linear-gradient(to bottom, var(--frame) 0 1px, transparent 1px 16.666%) left / 6px 100% no-repeat,
+        repeating-linear-gradient(to bottom, var(--frame) 0 1px, transparent 1px 16.666%) right / 6px 100% no-repeat;
+}
+/* title-block cells: the actions sit in their own ruled cell */
+[data-style='plano'] .answer .a-actions {
+    align-self: stretch;
+    align-items: center;
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--slab-rule);
+}

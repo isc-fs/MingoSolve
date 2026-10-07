@@ -1,0 +1,131 @@
+/* Grafito: the category standard played straight. A fine neutral scale, one cobalt accent, hairlines, no texture;
+ * the answer is a graphite plate (paper-white at night). */
+
+[data-style='grafito'] {
+    --font-display: 'Geist Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-sans: 'Geist Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 10px;
+    --r-xl: 12px;
+    --r-pill: 8px;
+    --glass-filter: none;
+    --display-weight: 600;
+    --display-tracking: -0.015em;
+    --answer-font: 'Geist Sans', system-ui, sans-serif;
+    --answer-weight: 600;
+    --answer-tracking: -0.02em;
+    --answer-numeric: tabular-nums;
+    --slab-radius: 10px;
+}
+
+[data-style='grafito'][data-theme='light'] {
+    --ground: #f6f6f7;
+    --ground-tint: #f6f6f7;
+    --glow: none;
+    --grain: 0;
+    --glass: #ffffff;
+    --glass-strong: #ffffff;
+    --glass-edge: #e2e2e5;
+    --glass-hi: transparent;
+    --glass-solid: #ffffff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px -8px rgba(0, 0, 0, 0.08);
+    --slab-shadow: 0 -10px 24px -12px rgba(0, 0, 0, 0.22), 0 12px 32px -14px rgba(43, 89, 195, 0.35);
+    --scrim: rgba(24, 24, 27, 0.3);
+
+    --text: #18181b;
+    --heading: #18181b;
+    --text-2: #3f3f46;
+    --muted: #55555d;
+    --well: #fafafa;
+    --well-edge: #e4e4e7;
+    --field: #ffffff;
+    --field-edge: #d4d4d8;
+    --field-focus: #2b59c3;
+    --hover: rgba(24, 24, 27, 0.04);
+    --selected: rgba(24, 24, 27, 0.07);
+    --code: #f4f4f5;
+
+    --accent: #2b59c3;
+    --accent-soft: rgba(43, 89, 195, 0.08);
+    --accent-edge: rgba(43, 89, 195, 0.4);
+    --ink-accent: #2b59c3;
+    --on-accent: #ffffff;
+    --var: #2b59c3;
+
+    --answer-bg: linear-gradient(#ffffff, #ffffff);
+    --answer-edge: #d4d4d8;
+    --answer-label: #2b59c3;
+    --answer-text: #0c0c0e;
+    --answer-note: #3f3f46;
+    --answer-focus: #2b59c3;
+    --copy-bg: #2b59c3;
+    --copy-text: #ffffff;
+
+    --good: #15803d;
+    --warn: #8a5a00;
+    --bad: #b91c1c;
+    --good-soft: rgba(21, 128, 61, 0.08);
+    --warn-soft: rgba(160, 110, 0, 0.09);
+    --bad-soft: rgba(185, 28, 28, 0.07);
+
+    --hue-green: #15803d;
+    --hue-teal: #2b59c3;
+    --hue-gold: #8a5a00;
+}
+
+[data-style='grafito'][data-theme='dark'] {
+    --ground: #0c0c0e;
+    --ground-tint: #0c0c0e;
+    --glow: none;
+    --grain: 0;
+    --glass: #161618;
+    --glass-strong: #1c1c1f;
+    --glass-edge: #2a2a2e;
+    --glass-hi: rgba(255, 255, 255, 0.03);
+    --glass-solid: #161618;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --slab-shadow: 0 -10px 24px -12px rgba(0, 0, 0, 0.7), 0 12px 32px -14px rgba(138, 180, 255, 0.25);
+    --scrim: rgba(0, 0, 0, 0.5);
+
+    --text: #ededef;
+    --heading: #fafafa;
+    --text-2: #c4c4ca;
+    --muted: #9d9da5;
+    --well: #121214;
+    --well-edge: #26262a;
+    --field: #0f0f11;
+    --field-edge: #3a3a40;
+    --field-focus: #8ab4ff;
+    --hover: rgba(255, 255, 255, 0.04);
+    --selected: rgba(255, 255, 255, 0.08);
+    --code: #121214;
+
+    --accent: #8ab4ff;
+    --accent-soft: rgba(138, 180, 255, 0.1);
+    --accent-edge: rgba(138, 180, 255, 0.4);
+    --ink-accent: #8ab4ff;
+    --on-accent: #0c0c0e;
+    --var: #8ab4ff;
+
+    --answer-bg: linear-gradient(#1f1f23, #1f1f23);
+    --answer-edge: #3a3a40;
+    --answer-label: #8ab4ff;
+    --answer-text: #fafafa;
+    --answer-note: #c4c4ca;
+    --answer-focus: #ffffff;
+    --copy-bg: #8ab4ff;
+    --copy-text: #0c0c0e;
+
+    --good: #6ee7a0;
+    --warn: #f5c451;
+    --bad: #ff9a9a;
+    --good-soft: rgba(110, 231, 160, 0.09);
+    --warn-soft: rgba(245, 196, 81, 0.09);
+    --bad-soft: rgba(255, 154, 154, 0.1);
+
+    --hue-green: #6ee7a0;
+    --hue-teal: #8ab4ff;
+    --hue-gold: #f5c451;
+}

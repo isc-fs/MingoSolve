@@ -164,9 +164,10 @@
     .brand strong {
         display: block;
         font-family: var(--font-display);
-        font-weight: 600;
+        font-weight: var(--display-weight);
         font-size: 1.0625rem;
-        letter-spacing: 0.01em;
+        letter-spacing: var(--display-tracking);
+        text-transform: var(--display-case);
     }
     .search {
         appearance: none;

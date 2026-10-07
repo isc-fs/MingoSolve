@@ -385,18 +385,23 @@
         align-items: baseline;
         gap: var(--space-3);
         padding: var(--space-4) var(--space-5);
-        border-radius: var(--r-lg);
-        background: var(--answer-bg);
-        border: 1px solid var(--answer-edge);
+        border-radius: var(--slab-radius);
+        background: var(--slab-ornament), var(--answer-bg);
+        box-shadow: var(--slab-ring);
+        border: var(--slab-border);
     }
     .a-label {
         font-weight: 600;
         color: var(--answer-label);
+        background: var(--slab-cell);
     }
     .a-value {
-        font-family: var(--font-display);
-        font-weight: 600;
+        font-family: var(--answer-font);
+        font-weight: var(--answer-weight);
         font-size: var(--text-answer);
-        color: var(--answer-text);
+        letter-spacing: var(--answer-tracking);
+        font-variant-numeric: var(--answer-numeric);
+        color: var(--value-text);
+        background: var(--value-bg);
     }
 </style>
