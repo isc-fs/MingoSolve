@@ -64,7 +64,7 @@ phases:
         scope: Release v0.5.0, the first installable version for the team
   - number: 4
     title: Quiz rehearsal
-    tag: "v1.1.0, then the quiz-pinned v1.x"
+    tag: "v1.1.0, v1.2.0, then the quiz-pinned v1.x"
     branches:
       - name: feat/11-chain-names-and-folding
         scope: Common variable spellings (v_i, v_f) understood; past questions folded away
@@ -76,6 +76,8 @@ phases:
         scope: A short, skippable first-run tour of the app
       - name: feat/17-release-v1.1.0
         scope: Release v1.1.0 with the guided tour
+      - name: feat/18-app-styles
+        scope: Seven switchable app styles, each in light and dark; release v1.2.0
       - name: feat/13-mock-quiz-fixes
         scope: Fixes from two timed mock quizzes; version pinned for the quizzes
   - number: 5
