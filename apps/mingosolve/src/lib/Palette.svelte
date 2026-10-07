@@ -197,7 +197,7 @@
         position: fixed;
         inset: 0;
         z-index: 40;
-        background: rgba(0, 0, 0, 0.32);
+        background: var(--scrim);
     }
     .palette {
         position: fixed;

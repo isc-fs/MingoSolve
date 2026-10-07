@@ -1,8 +1,9 @@
-// Automated accessibility audit (axe-core) of the main screens in both themes, glass and solid: no serious or
+// Automated accessibility audit (axe-core) of the main screens in every style and both modes, glass and solid: no serious or
 // critical violations, colour contrast included. Readability is a hard requirement for this app.
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
 
+import { STYLES } from '../src/lib/styles';
 import { answer, choice, expect, field, openFromPalette, test } from './fixtures';
 
 async function audit(page: Page, label: string): Promise<void> {
@@ -15,7 +16,7 @@ async function audit(page: Page, label: string): Promise<void> {
 for (const theme of ['Night glass', 'Paper glass'] as const) {
     test(`${theme}: home, a solved script, Topics, Chain, Rules, Help, Session log and Settings pass axe`, async ({ app }) => {
         await app.getByRole('button', { name: 'Settings' }).click();
-        await app.getByRole('radio', { name: new RegExp(theme) }).click();
+        await app.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: new RegExp(theme) }).click();
         await audit(app, `${theme} settings`);
         await app.getByRole('button', { name: 'Solve' }).click();
         await audit(app, `${theme} home`);
@@ -52,6 +53,31 @@ for (const theme of ['Night glass', 'Paper glass'] as const) {
     });
 }
 
+// every other style in both modes: the screens where the style changes the most (ground, panes, slab, palette)
+for (const style of STYLES.filter((s) => s.id !== 'isc')) {
+    for (const mode of ['Dark', 'Light'] as const) {
+        test(`${style.name} ${mode.toLowerCase()}: settings, home, a solved script and the palette pass axe`, async ({ app }) => {
+            await app.getByRole('button', { name: 'Settings' }).click();
+            await app.getByRole('radiogroup', { name: 'Style' }).getByRole('radio', { name: new RegExp(`^${style.name}`) }).click();
+            await app.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: new RegExp(`^${mode}`) }).click();
+            await expect(app.locator('html')).toHaveAttribute('data-style', style.id);
+            const label = `${style.name} ${mode}`;
+            await audit(app, `${label} settings`);
+            await app.getByRole('button', { name: 'Solve' }).click();
+            await audit(app, `${label} home`);
+            await openFromPalette(app, 'battery load', /Battery/);
+            await app.getByRole('button', { name: /^Q34 ·/ }).click();
+            await expect(field(app, 'N_s')).toHaveValue('103');
+            await audit(app, `${label} solved sheet`);
+            await app.locator('.answer .copy').focus();
+            await audit(app, `${label} solved sheet, Copy focused`);
+            await app.keyboard.press('ControlOrMeta+k');
+            await app.getByRole('combobox', { name: 'Search scripts' }).fill('tsal');
+            await audit(app, `${label} palette open`);
+        });
+    }
+}
+
 test.describe('update banner', () => {
     test.use({ update: true });
     for (const theme of ['Night glass', 'Paper glass'] as const) {
@@ -59,7 +85,7 @@ test.describe('update banner', () => {
             const banner = page.getByRole('status').filter({ hasText: 'v9.9.9' });
             await expect(banner).toBeVisible();
             await page.getByRole('button', { name: 'Settings' }).click();
-            await page.getByRole('radio', { name: new RegExp(theme) }).click();
+            await page.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: new RegExp(theme) }).click();
             await page.getByRole('button', { name: 'Solve' }).click();
             await expect(banner).toBeVisible();
             await audit(page, `${theme} update banner`);
@@ -118,7 +144,7 @@ for (const look of looks) {
     test(`${look.name}: result, error, options check, chain, Rules and the palette's Rules group pass axe`, async ({ app }) => {
         await fakeRulebook(app);
         await app.getByRole('button', { name: 'Settings' }).click();
-        await app.getByRole('radio', { name: look.radio }).click();
+        await app.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: look.radio }).click();
         const solid = app.getByRole('checkbox', { name: /Solid surfaces/ });
         if (look.solid) await solid.check();
         else await solid.uncheck();
@@ -320,7 +346,7 @@ test.describe('guided tour', () => {
             // set the look, then replay the tour from Help (the first-launch tour is dismissed to reach Settings)
             await app.keyboard.press('Escape');
             await app.getByRole('button', { name: 'Settings' }).click();
-            await app.getByRole('radio', { name: look.radio }).click();
+            await app.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: look.radio }).click();
             const solid = app.getByRole('checkbox', { name: /Solid surfaces/ });
             if (look.solid) await solid.check();
             else await solid.uncheck();

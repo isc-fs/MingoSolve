@@ -1,0 +1,148 @@
+/* Datasheet: the IC datasheets read daily for the STM32s. White pages, steel-blue section heads, ruled tables;
+ * the answer is set like a characteristics row under a heavy header rule. Dark is an inverted reader mode. */
+
+[data-style='datasheet'] {
+    --font-display: 'Arimo', 'Arial', 'Helvetica', sans-serif;
+    --font-sans: 'Arimo', 'Arial', 'Helvetica', sans-serif;
+    --font-mono: 'Cousine', ui-monospace, 'Courier New', monospace;
+    --r-sm: 2px;
+    --r-md: 2px;
+    --r-lg: 3px;
+    --r-xl: 3px;
+    --r-pill: 3px;
+    --glass-filter: none;
+    --display-weight: 700;
+    --display-tracking: 0;
+    --answer-font: 'Arimo', 'Arial', sans-serif;
+    --answer-weight: 700;
+    --answer-tracking: 0;
+    --answer-numeric: tabular-nums;
+    --slab-radius: 2px;
+}
+
+[data-style='datasheet'][data-theme='light'] {
+    --ground: #eef1f5;
+    --ground-tint: #eef1f5;
+    --glow: none;
+    --grain: 0;
+    --glass: #ffffff;
+    --glass-strong: #ffffff;
+    --glass-edge: #c3ccd7;
+    --glass-hi: transparent;
+    --glass-solid: #ffffff;
+    --shadow: 0 1px 2px rgba(15, 35, 65, 0.08);
+    --slab-shadow: 0 -8px 14px -10px rgba(15, 35, 65, 0.3);
+    --scrim: rgba(13, 22, 34, 0.32);
+
+    --text: #111820;
+    --heading: #1a4f8a;
+    --text-2: #37414d;
+    --muted: #4c5560;
+    --well: #f4f7fa;
+    --well-edge: #d5dde6;
+    --field: #ffffff;
+    --field-edge: #a9b5c3;
+    --field-focus: #1a5b9e;
+    --hover: rgba(17, 24, 32, 0.045);
+    --selected: rgba(26, 91, 158, 0.1);
+    --code: #f4f7fa;
+
+    --accent: #1a5b9e;
+    --accent-soft: rgba(26, 91, 158, 0.08);
+    --accent-edge: rgba(26, 91, 158, 0.45);
+    --ink-accent: #1a5b9e;
+    --on-accent: #ffffff;
+    --var: #1a5b9e;
+
+    --answer-bg: linear-gradient(#f5f8fc, #f5f8fc);
+    --slab-cell: linear-gradient(#d9e6f4, #d9e6f4);
+    --answer-edge: #1a5b9e;
+    --answer-label: #1a4f8a;
+    --answer-text: #0d1622;
+    --answer-note: #37414d;
+    --answer-focus: #1a5b9e;
+    --copy-bg: #1a5b9e;
+    --copy-text: #ffffff;
+
+    --good: #17693d;
+    --warn: #7a5300;
+    --bad: #b3261e;
+    --good-soft: rgba(23, 105, 61, 0.09);
+    --warn-soft: rgba(160, 110, 0, 0.1);
+    --bad-soft: rgba(179, 38, 30, 0.08);
+
+    --hue-green: #17693d;
+    --hue-teal: #1a5b9e;
+    --hue-gold: #8a5a00;
+}
+
+[data-style='datasheet'][data-theme='dark'] {
+    --ground: #15181c;
+    --ground-tint: #15181c;
+    --glow: none;
+    --grain: 0;
+    --glass: #1e2227;
+    --glass-strong: #23282e;
+    --glass-edge: #3a424c;
+    --glass-hi: transparent;
+    --glass-solid: #1e2227;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --slab-shadow: 0 -8px 14px -10px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.45);
+
+    --text: #e8ecf1;
+    --heading: #8fbbec;
+    --text-2: #c3cbd5;
+    --muted: #a7b0bb;
+    --well: #191c20;
+    --well-edge: #333a43;
+    --field: #15181c;
+    --field-edge: #4a5360;
+    --field-focus: #8fbbec;
+    --hover: rgba(255, 255, 255, 0.05);
+    --selected: rgba(143, 187, 236, 0.12);
+    --code: #191c20;
+
+    --accent: #8fbbec;
+    --accent-soft: rgba(143, 187, 236, 0.1);
+    --accent-edge: rgba(143, 187, 236, 0.45);
+    --ink-accent: #8fbbec;
+    --on-accent: #0d1622;
+    --var: #8fbbec;
+
+    --answer-bg: linear-gradient(#1d3550, #1d3550);
+    --slab-cell: linear-gradient(#2b4c72, #2b4c72);
+    --answer-edge: #8fbbec;
+    --answer-label: #b8d6f7;
+    --answer-text: #ffffff;
+    --answer-note: #c8d6e6;
+    --answer-focus: #ffffff;
+    --copy-bg: #8fbbec;
+    --copy-text: #0d1622;
+
+    --good: #84d7a2;
+    --warn: #f0c25a;
+    --bad: #ff9f94;
+    --good-soft: rgba(132, 215, 162, 0.1);
+    --warn-soft: rgba(240, 194, 90, 0.1);
+    --bad-soft: rgba(255, 159, 148, 0.12);
+
+    --hue-green: #84d7a2;
+    --hue-teal: #8fbbec;
+    --hue-gold: #f0c25a;
+}
+
+/* the answer as a characteristics row: symbol cell, value, then the actions in their own ruled cell */
+[data-style='datasheet'] .answer .a-label {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--answer-edge);
+}
+[data-style='datasheet'] .answer .a-actions {
+    align-self: stretch;
+    align-items: center;
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--answer-edge);
+}

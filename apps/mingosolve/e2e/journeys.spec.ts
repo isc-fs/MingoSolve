@@ -260,13 +260,16 @@ test('typed values survive switching views', async ({ app }) => {
     await expect(answer(app)).toHaveText(/^19\.7368\d* m\/s$/);
 });
 
-test('settings survive a reload (theme and answer format)', async ({ app }) => {
+test('settings survive a reload (style, theme and solid surfaces)', async ({ app }) => {
     await app.getByRole('button', { name: 'Settings' }).click();
-    await app.getByRole('radio', { name: /Paper glass/ }).click();
+    await app.getByRole('radiogroup', { name: 'Style' }).getByRole('radio', { name: /^Plano/ }).click();
+    await app.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: /^Light/ }).click();
+    await expect(app.locator('html')).toHaveAttribute('data-style', 'plano');
     await expect(app.locator('html')).toHaveAttribute('data-theme', 'light');
     await app.getByRole('checkbox', { name: /Solid surfaces/ }).check();
     await app.waitForTimeout(400);
     await app.reload();
+    await expect(app.locator('html')).toHaveAttribute('data-style', 'plano');
     await expect(app.locator('html')).toHaveAttribute('data-theme', 'light');
     await expect(app.locator('html')).toHaveAttribute('data-solid', '');
 });
