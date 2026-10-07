@@ -9,8 +9,8 @@ export default defineConfig({
     server: { fs: { allow: ['../..'] } },
     test: {
         environment: 'jsdom',
-        // contrast.test.ts reads src/app.css as text; vitest otherwise stubs stylesheets out
-        css: { include: [/src\/app\.css/] },
+        // contrast.test.ts reads src/app.css and src/styles/*.css as text; vitest otherwise stubs stylesheets out
+        css: { include: [/src\/app\.css/, /src\/styles\/[\w-]+\.css/] },
         include: ['src/**/*.test.ts'],
         setupFiles: ['src/test/setup.ts'],
     },

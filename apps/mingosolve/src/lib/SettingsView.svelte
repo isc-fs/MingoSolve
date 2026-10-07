@@ -1,5 +1,5 @@
 <!--
-    Settings: look (theme, glass or solid), default rule year for scoring scripts, how answers are copied, updates
+    Settings: look (style, dark or light, glass or solid), default rule year for scoring scripts, how answers are copied, updates
     and about. Everything saves automatically.
 -->
 <script lang="ts">
@@ -10,6 +10,7 @@
     import { radioArrows } from './radio';
     import { settings, TEXT_SIZES, type TextSize, type Theme } from './settings.svelte';
     import { startTour } from './onboarding.svelte';
+    import { STYLES } from './styles';
     import { checkForUpdate, type AvailableUpdate } from './updater';
 
     let { update = $bindable() }: { update: AvailableUpdate | null } = $props();
@@ -35,11 +36,12 @@
 
     const zoomKeys = platform === 'mac' ? '⌘+ and ⌘−' : 'Ctrl+ and Ctrl−';
 
-    const themes: { id: Theme; label: string; hint: string }[] = [
+    const current = $derived(STYLES.find((s) => s.id === settings.style) ?? STYLES[0]);
+    const themes: { id: Theme; label: string; hint: string }[] = $derived([
         { id: 'system', label: 'Follow the OS', hint: 'Dark at night, light by day' },
-        { id: 'dark', label: 'Night glass', hint: 'Dark' },
-        { id: 'light', label: 'Paper glass', hint: 'Light' },
-    ];
+        { id: 'dark', label: 'Dark', hint: current.dark },
+        { id: 'light', label: 'Light', hint: current.light },
+    ]);
 </script>
 
 <div class="view">
@@ -48,8 +50,24 @@
         <p class="muted">Saved automatically.</p>
     </header>
 
-    <section class="glass panel">
+    <section class="glass panel look">
         <h2>Look</h2>
+        <div class="styles" role="radiogroup" aria-label="Style" use:radioArrows>
+            {#each STYLES as s (s.id)}
+                <button type="button" role="radio" class="style" tabindex={settings.style === s.id ? 0 : -1} aria-checked={settings.style === s.id} class:on={settings.style === s.id} onclick={() => (settings.style = s.id)}>
+                    <span class="pair" aria-hidden="true">
+                        {#each ['light', 'dark'] as mode (mode)}
+                            <span class="pv" data-style={s.id} data-theme={mode}>
+                                <span class="pv-pane"><span class="pv-h">Skidpad</span><span class="pv-line"></span><span class="pv-line short"></span></span>
+                                <span class="pv-slab"><span class="pv-val">4.92 s</span><span class="pv-copy">Copy</span></span>
+                            </span>
+                        {/each}
+                    </span>
+                    <span class="style-name"><strong>{s.name}</strong><span class="muted small">{s.light} · {s.dark}</span></span>
+                    <span class="small style-about">{s.about}</span>
+                </button>
+            {/each}
+        </div>
         <div class="seg" role="radiogroup" aria-label="Theme" use:radioArrows>
             {#each themes as t (t.id)}
                 <button type="button" role="radio" tabindex={settings.theme === t.id ? 0 : -1} aria-checked={settings.theme === t.id} class:on={settings.theme === t.id} onclick={() => (settings.theme = t.id)}>
@@ -154,6 +172,127 @@
         display: flex;
         flex-direction: column;
         gap: var(--space-3);
+    }
+    .look {
+        grid-column: 1 / -1;
+    }
+    .styles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+    }
+    .style {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-2) var(--space-3);
+        border-radius: var(--r-lg);
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        transition:
+            border-color var(--motion),
+            background var(--motion);
+    }
+    .style:hover {
+        background: var(--hover);
+    }
+    .style.on {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .style-name {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+        padding: 0 var(--space-1);
+    }
+    .style-about {
+        padding: 0 var(--space-1);
+        color: var(--text-2);
+        line-height: 1.4;
+    }
+    /* a live sample of the style in each mode: its own tokens apply under the nested data-style / data-theme */
+    .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-radius: calc(var(--r-lg) - 4px);
+        overflow: hidden;
+    }
+    .pv {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 6px;
+        height: 104px;
+        padding: 8px;
+        color: var(--text);
+        background: var(--glow), var(--ground);
+        font-family: var(--font-sans);
+    }
+    .pv-pane {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px 7px;
+        border: 1px solid var(--glass-edge);
+        border-radius: min(var(--r-lg), 8px);
+        background: var(--glass);
+    }
+    .pv-h {
+        font-family: var(--font-display);
+        font-weight: var(--display-weight);
+        letter-spacing: var(--display-tracking);
+        text-transform: var(--display-case);
+        color: var(--heading);
+        font-size: 0.6875rem;
+        line-height: 1.2;
+    }
+    .pv-line {
+        height: 3px;
+        border-radius: 2px;
+        background: var(--text-2);
+        opacity: 0.35;
+    }
+    .pv-line.short {
+        width: 55%;
+        background: var(--ink-accent);
+        opacity: 0.8;
+    }
+    .pv-slab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+        padding: 5px 6px;
+        border: var(--slab-border);
+        border-radius: min(var(--slab-radius), 8px);
+        background: var(--answer-bg), var(--glass-solid);
+    }
+    .pv-val {
+        font-family: var(--answer-font);
+        font-weight: var(--answer-weight);
+        font-variant-numeric: var(--answer-numeric);
+        color: var(--value-text);
+        background: var(--value-bg);
+        padding: 1px 3px;
+        border-radius: 2px;
+        font-size: 0.875rem;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    .pv-copy {
+        padding: 2px 6px;
+        border-radius: min(var(--r-pill), 999px);
+        background: var(--copy-bg);
+        color: var(--copy-text);
+        font-size: 0.625rem;
+        font-weight: 600;
     }
     .seg {
         display: grid;

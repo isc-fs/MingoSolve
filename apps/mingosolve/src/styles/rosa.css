@@ -1,0 +1,141 @@
+/* Rosa: the maglia rosa, the race leader's pink jersey. Rose newsprint and claret ink by day, wine-black by night;
+ * the answer wears the leader's pink, its figures printed on a white race-number bib. */
+
+[data-style='rosa'] {
+    --font-display: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-sans: 'Schibsted Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-xl: 14px;
+    --glass-filter: none;
+    --display-weight: 800;
+    --display-tracking: -0.015em;
+    --answer-font: 'Schibsted Grotesk', system-ui, sans-serif;
+    --answer-weight: 800;
+    --answer-tracking: -0.02em;
+    --answer-numeric: tabular-nums;
+    --slab-radius: 12px;
+}
+
+[data-style='rosa'][data-theme='light'] {
+    --ground: #f4d9dc;
+    --ground-tint: #f4d9dc;
+    --glow: none;
+    --grain: 0.3;
+    --glass: #fbeef0;
+    --glass-strong: #fdf4f5;
+    --glass-edge: rgba(110, 24, 52, 0.16);
+    --glass-hi: rgba(255, 255, 255, 0.6);
+    --glass-solid: #fbeef0;
+    --shadow: 0 1px 2px rgba(90, 20, 40, 0.08), 0 10px 24px -16px rgba(90, 20, 40, 0.3);
+    --slab-shadow: 0 -10px 18px -10px rgba(90, 20, 40, 0.35);
+    --scrim: rgba(43, 13, 24, 0.35);
+
+    --text: #2b0d18;
+    --heading: #2b0d18;
+    --text-2: #4e1f30;
+    --muted: #6d3a4b;
+    --well: #f8e6e9;
+    --well-edge: rgba(110, 24, 52, 0.14);
+    --field: #fffafb;
+    --field-edge: rgba(110, 24, 52, 0.32);
+    --field-focus: #9b1c4b;
+    --hover: rgba(110, 24, 52, 0.06);
+    --selected: rgba(110, 24, 52, 0.1);
+    --code: #f6e1e5;
+
+    --accent: #9b1c4b;
+    --accent-soft: rgba(155, 28, 75, 0.09);
+    --accent-edge: rgba(155, 28, 75, 0.45);
+    --ink-accent: #8a1842;
+    --on-accent: #ffffff;
+    --var: #8a1842;
+
+    --answer-bg: linear-gradient(#ec6f9f, #ec6f9f);
+    --answer-edge: #c44a7c;
+    --answer-label: #4a0f25;
+    --answer-text: #2b0d18;
+    --value-bg: linear-gradient(#fff7fa, #fff7fa);
+    --value-text: #8a1842;
+    --answer-note: #3b1020;
+    --answer-focus: #2b0d18;
+    --copy-bg: #2b0d18;
+    --copy-text: #ffd6e5;
+
+    --good: #17663d;
+    --warn: #7a4a00;
+    --bad: #a31515;
+    --good-soft: rgba(23, 102, 61, 0.09);
+    --warn-soft: rgba(160, 100, 0, 0.1);
+    --bad-soft: rgba(163, 21, 21, 0.08);
+
+    --hue-green: #17663d;
+    --hue-teal: #1f5c80;
+    --hue-gold: #8a4f00;
+}
+
+[data-style='rosa'][data-theme='dark'] {
+    --ground: #170a10;
+    --ground-tint: #170a10;
+    --glow: radial-gradient(700px 500px at 10% 0%, rgba(236, 111, 159, 0.14), transparent 70%);
+    --grain: 0.2;
+    --glass: #22111a;
+    --glass-strong: #2a1520;
+    --glass-edge: rgba(255, 182, 206, 0.14);
+    --glass-hi: rgba(255, 255, 255, 0.03);
+    --glass-solid: #22111a;
+    --shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.85);
+    --slab-shadow: 0 -10px 18px -10px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(10, 3, 6, 0.55);
+
+    --text: #fbe9ef;
+    --heading: #ffffff;
+    --text-2: #e9c6d2;
+    --muted: #c095a5;
+    --well: #1c0d14;
+    --well-edge: rgba(255, 182, 206, 0.12);
+    --field: #1a0b12;
+    --field-edge: rgba(255, 182, 206, 0.3);
+    --field-focus: #f48fb7;
+    --hover: rgba(255, 255, 255, 0.05);
+    --selected: rgba(244, 143, 183, 0.12);
+    --code: #1c0d14;
+
+    --accent: #f48fb7;
+    --accent-soft: rgba(244, 143, 183, 0.12);
+    --accent-edge: rgba(244, 143, 183, 0.45);
+    --ink-accent: #f6a2c3;
+    --on-accent: #2b0d18;
+    --var: #f6a2c3;
+
+    --answer-bg: linear-gradient(#ef77a6, #ef77a6);
+    --answer-edge: #f9a8c8;
+    --answer-label: #4a0f25;
+    --answer-text: #1f0811;
+    --value-bg: linear-gradient(#fff4f8, #fff4f8);
+    --value-text: #7d1640;
+    --answer-note: #3b1020;
+    --answer-focus: #1f0811;
+    --copy-bg: #1f0811;
+    --copy-text: #ffd6e5;
+
+    --good: #8fe0b0;
+    --warn: #f7c66a;
+    --bad: #ffa3a3;
+    --good-soft: rgba(143, 224, 176, 0.1);
+    --warn-soft: rgba(247, 198, 106, 0.1);
+    --bad-soft: rgba(255, 163, 163, 0.12);
+
+    --hue-green: #8fe0b0;
+    --hue-teal: #8fc8e8;
+    --hue-gold: #f7c66a;
+}
+
+/* the bib: the leader's number, pinned on the jersey */
+[data-style='rosa'] .answer .a-value:not(.block) {
+    padding: 0.02em 0.3em;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(43, 13, 24, 0.25);
+}

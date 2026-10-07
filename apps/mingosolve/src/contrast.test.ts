@@ -1,11 +1,19 @@
 // WCAG contrast of the token pairs the interface actually draws, computed from the real custom properties in
-// app.css (nothing is hard-coded here): text needs 4.5:1 (1.4.3), focus rings and UI boundaries 3:1 (1.4.11).
+// app.css and src/styles/*.css for every style in both modes (nothing is hard-coded here): text needs 4.5:1
+// (1.4.3), focus rings and UI boundaries 3:1 (1.4.11).
 // Glass is translucent, so every pair is checked over the worst case behind it: the opaque [data-solid] surface,
 // the glass over the bare ground, and the glass over each glow of the lit backdrop.
 import { describe, expect, it } from 'vitest';
 
 import css from './app.css?raw';
+import { STYLES } from './lib/styles';
 
+const styleFiles = Object.fromEntries(
+    Object.entries(import.meta.glob<string>('./styles/*.css', { query: '?raw', import: 'default', eager: true })).map(([f, text]) => [
+        f.replace('./styles/', '').replace('.css', ''),
+        text,
+    ]),
+);
 
 type Tokens = Record<string, string>;
 type Rgba = { r: number; g: number; b: number; a: number };
@@ -21,12 +29,24 @@ function parseBlocks(source: string): { selectors: string[]; decls: Tokens }[] {
     return out;
 }
 
-/** The custom properties in force for a theme: plain :root rules, then the theme's own, in source order. */
-function tokens(theme: 'dark' | 'light'): Tokens {
-    const own = `:root[data-theme='${theme}']`;
+/** Whether a token selector (`:root`, `[data-style]`, `[data-style='x'][data-theme='y']`...) applies to the root of a
+ *  window in this style and mode; any other selector (`:root[data-solid] .glass`) is not a token block. */
+function applies(selector: string, style: string, theme: string): boolean {
+    const m = selector.match(/^(?::root)?((?:\[data-(?:style|theme)(?:='[\w-]+')?\])*)$/);
+    if (m === null) return false;
+    for (const [, attr, value] of m[1].matchAll(/\[data-(style|theme)(?:='([\w-]+)')?\]/g)) {
+        if (value !== undefined && value !== (attr === 'style' ? style : theme)) return false;
+    }
+    return true;
+}
+
+/** The custom properties in force for a style and theme: app.css, then the style files, in source order. */
+function tokens(style: string, theme: 'dark' | 'light'): Tokens {
     const all: Tokens = {};
-    for (const b of parseBlocks(css)) {
-        if (b.selectors.includes(':root') || b.selectors.includes(own)) Object.assign(all, b.decls);
+    for (const source of [css, ...Object.values(styleFiles)]) {
+        for (const b of parseBlocks(source)) {
+            if (b.selectors.some((sel) => applies(sel, style, theme))) Object.assign(all, b.decls);
+        }
     }
     return all;
 }
@@ -103,21 +123,28 @@ function worst(t: Tokens, fg: string, fill: string | null, on: Rgba[], opacity =
     return min;
 }
 
-const themes = ['dark', 'light'] as const;
+const cases = STYLES.flatMap((s) => (['dark', 'light'] as const).map((theme) => [s.id, theme] as const));
 
-describe.each(themes)('%s theme', (theme) => {
-    const t = tokens(theme);
+it('every style file is registered and read here, and every registered style other than ISC has a file', () => {
+    for (const text of Object.values(styleFiles)) expect(text.length).toBeGreaterThan(0);
+    expect(Object.keys(styleFiles).sort()).toEqual(STYLES.filter((s) => s.id !== 'isc').map((s) => s.id).sort());
+});
+
+describe.each(cases)('%s style, %s mode', (style, theme) => {
+    const t = tokens(style, theme);
     const glass = surfaces(t);
     const sl = slab(t);
 
     it('reads the real tokens (a typo in a name would throw, not pass)', () => {
         expect(resolve(t, '--text').length).toBeGreaterThan(0);
-        expect(sl.length).toBeGreaterThanOrEqual(2);
-        expect(glass.length).toBeGreaterThan(4);
+        expect(sl.length).toBeGreaterThanOrEqual(1);
+        // the opaque surface, then glass and strong glass over the ground (and over each glow, when the style has any)
+        expect(glass.length).toBeGreaterThanOrEqual(3);
     });
 
     it.each([
         ['--text', null],
+        ['--heading', null],
         ['--text-2', null],
         ['--muted', null],
         ['--ink-accent', null],
@@ -131,6 +158,7 @@ describe.each(themes)('%s theme', (theme) => {
         ['--text', '--bad-soft'],
         ['--text-2', '--hover'],
         ['--text', '--selected'],
+        ['--muted', '--selected'],
     ])('text %s on %s meets 4.5:1 over every glass surface', (fg, fill) => {
         expect(worst(t, fg, fill, glass)).toBeGreaterThanOrEqual(4.5);
     });
@@ -147,8 +175,39 @@ describe.each(themes)('%s theme', (theme) => {
         expect(css).toMatch(/\.btn-primary kbd\s*\{[^}]*color:\s*inherit/);
     });
 
-    it('the gold Copy button text is readable on its gold fill', () => {
-        expect(ratio(parseColor(resolve(t, '--on-gold')), parseColor(resolve(t, '--isc-gold')))).toBeGreaterThanOrEqual(4.5);
+    it('the answer slab is an image layer (a plain colour before the last background layer voids the whole rule)', () => {
+        expect(resolve(t, '--answer-bg')).toMatch(/gradient\(/);
+    });
+
+    it('the unit field inside the slab: its text and placeholder read on it', () => {
+        const field = (on: Rgba) => over(parseColor(resolve(t, '--slab-field')), on);
+        const opacity = Number(css.match(/\.input::placeholder\s*\{[^}]*opacity:\s*([\d.]+)/)?.[1] ?? '1');
+        for (const s of sl) {
+            const f = field(s);
+            const muted = parseColor(resolve(t, '--slab-field-muted'));
+            expect(ratio(over(parseColor(resolve(t, '--slab-field-text')), f), f)).toBeGreaterThanOrEqual(4.5);
+            expect(ratio(over({ ...muted, a: muted.a * opacity }, f), f)).toBeGreaterThanOrEqual(4.5);
+        }
+    });
+
+    it('slab shadows are colours, never an image token (an image in box-shadow voids the whole shadow)', () => {
+        for (const name of ['--slab-ring', '--slab-shadow', '--shadow']) expect(resolve(t, name)).not.toMatch(/gradient\(/);
+    });
+
+    it('the answer figures meet 4.5:1 on their plate (the bib, the flap) or on the slab itself', () => {
+        const plate = resolve(t, '--value-bg');
+        const on = plate === 'none' ? sl : sl.flatMap((s) => colorsIn(plate).map((c) => over(c, s)));
+        expect(worst(t, '--value-text', null, on)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('the answer label meets 4.5:1 on its cell (the datasheet symbol cell) or on the slab itself', () => {
+        const cell = resolve(t, '--slab-cell');
+        const on = cell === 'none' ? sl : sl.flatMap((s) => colorsIn(cell).map((c) => over(c, s)));
+        expect(worst(t, '--answer-label', null, on)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('the Copy button text is readable on its fill', () => {
+        expect(ratio(parseColor(resolve(t, '--copy-text')), parseColor(resolve(t, '--copy-bg')))).toBeGreaterThanOrEqual(4.5);
     });
 
     it.each(['--answer-label', '--answer-text', '--answer-note'])('%s meets 4.5:1 on every stop of the answer slab', (fg) => {
@@ -157,8 +216,8 @@ describe.each(themes)('%s theme', (theme) => {
 
     it('the Copy button focus ring is visible (3:1) against the slab it is drawn on, and the button against the slab', () => {
         expect(worst(t, '--answer-focus', null, sl)).toBeGreaterThanOrEqual(3);
-        const gold = parseColor(resolve(t, '--isc-gold'));
-        expect(Math.min(...sl.map((s) => ratio(gold, s)))).toBeGreaterThanOrEqual(3);
+        const copy = parseColor(resolve(t, '--copy-bg'));
+        expect(Math.min(...sl.map((s) => ratio(copy, s)))).toBeGreaterThanOrEqual(3);
     });
 
     it('the ordinary focus ring (--field-focus) is visible (3:1) on every glass surface and on a field', () => {

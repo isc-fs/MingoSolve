@@ -1,0 +1,149 @@
+/* Prontuario: an engineering formula handbook. White pages printed in black, black bookcloth at night; the answer is
+ * the page's one reversed plate, and vermilion is held back for errors (the errata slip). */
+
+[data-style='prontuario'] {
+    --font-display: 'Source Serif 4', 'Georgia', serif;
+    --font-sans: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Source Code Pro', ui-monospace, 'SF Mono', Menlo, monospace;
+    --r-sm: 3px;
+    --r-md: 4px;
+    --r-lg: 4px;
+    --r-xl: 6px;
+    --r-pill: 4px;
+    --glass-filter: none;
+    --display-weight: 600;
+    --display-tracking: 0;
+    --answer-font: 'Source Serif 4', 'Georgia', serif;
+    --answer-weight: 700;
+    --answer-tracking: 0;
+    --answer-numeric: lining-nums tabular-nums;
+    --slab-radius: 4px;
+}
+
+[data-style='prontuario'][data-theme='light'] {
+    --ground: #e8e6e1;
+    --ground-tint: #e8e6e1;
+    --glow: none;
+    --grain: 0;
+    --glass: #ffffff;
+    --glass-strong: #ffffff;
+    --glass-edge: #cfcbc2;
+    --glass-hi: transparent;
+    --glass-solid: #ffffff;
+    --shadow: 0 1px 2px rgba(20, 20, 20, 0.08), 0 8px 24px -16px rgba(20, 20, 20, 0.25);
+    --slab-shadow: 0 -8px 16px -10px rgba(0, 0, 0, 0.25);
+    --scrim: rgba(17, 17, 17, 0.35);
+
+    --text: #151515;
+    --heading: #151515;
+    --text-2: #3a3a3a;
+    --muted: #545454;
+    --well: #f4f3f0;
+    --well-edge: #dcd8cf;
+    --field: #ffffff;
+    --field-edge: #b9b4aa;
+    --field-focus: #151515;
+    --hover: rgba(21, 21, 21, 0.05);
+    --selected: rgba(21, 21, 21, 0.09);
+    --code: #f3f2ee;
+
+    --accent: #151515;
+    --accent-soft: rgba(21, 21, 21, 0.07);
+    --accent-edge: rgba(21, 21, 21, 0.45);
+    --ink-accent: #151515;
+    --on-accent: #ffffff;
+    --var: #151515;
+
+    --answer-bg: linear-gradient(#151515, #151515);
+    --answer-edge: #151515;
+    --answer-label: #d9d4c9;
+    --answer-text: #ffffff;
+    --answer-note: rgba(255, 255, 255, 0.78);
+    --answer-focus: #ffffff;
+    --copy-bg: #ffffff;
+    --copy-text: #151515;
+
+    --good: #1f6b3a;
+    --warn: #7a5300;
+    --bad: #b8321a;
+    --good-soft: rgba(31, 107, 58, 0.09);
+    --warn-soft: rgba(160, 110, 0, 0.1);
+    --bad-soft: rgba(200, 54, 27, 0.09);
+
+    --hue-green: #2f6b3a;
+    --hue-teal: #1f4fa8;
+    --hue-gold: #b5501b;
+}
+
+[data-style='prontuario'][data-theme='dark'] {
+    --ground: #141517;
+    --ground-tint: #141517;
+    --glow: none;
+    --grain: 0.22;
+    --glass: #1d1e21;
+    --glass-strong: #232427;
+    --glass-edge: #34363b;
+    --glass-hi: rgba(255, 255, 255, 0.04);
+    --glass-solid: #1d1e21;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 28px -18px rgba(0, 0, 0, 0.8);
+    --slab-shadow: 0 -10px 18px -10px rgba(0, 0, 0, 0.5);
+    --scrim: rgba(0, 0, 0, 0.45);
+
+    --text: #efede8;
+    --heading: #efede8;
+    --text-2: #cfccc5;
+    --muted: #aba8a1;
+    --well: #18191b;
+    --well-edge: #2e3034;
+    --field: #141517;
+    --field-edge: #45484e;
+    --field-focus: #efede8;
+    --hover: rgba(255, 255, 255, 0.05);
+    --selected: rgba(255, 255, 255, 0.09);
+    --code: #18191b;
+
+    --accent: #efede8;
+    --accent-soft: rgba(239, 237, 232, 0.09);
+    --accent-edge: rgba(239, 237, 232, 0.4);
+    --ink-accent: #efede8;
+    --on-accent: #141517;
+    --var: #efede8;
+
+    --answer-bg: linear-gradient(#efede8, #efede8);
+    --answer-edge: #efede8;
+    --answer-label: #5a574f;
+    --answer-text: #141517;
+    --answer-note: #3d3b36;
+    --answer-focus: #141517;
+    --copy-bg: #141517;
+    --copy-text: #efede8;
+
+    --good: #8fd19e;
+    --warn: #f2c45a;
+    --bad: #ff8b6e;
+    --good-soft: rgba(143, 209, 158, 0.1);
+    --warn-soft: rgba(242, 196, 90, 0.1);
+    --bad-soft: rgba(255, 110, 80, 0.12);
+
+    --hue-green: #7fc48a;
+    --hue-teal: #8fb0f0;
+    --hue-gold: #f09a6a;
+}
+
+/* the thumb index: the open section's tab, a black block cut flush to the rail's outer edge */
+[data-style='prontuario'] .rail .item {
+    position: relative;
+}
+[data-style='prontuario'] .rail .item.on::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    right: calc(-1 * var(--space-3));
+    width: 7px;
+    border-radius: 2px 0 0 2px;
+    background: var(--accent);
+}
+[data-style='prontuario'] .rail.compact .item.on::after {
+    right: calc(-1 * var(--space-2));
+}

@@ -2,6 +2,8 @@
 // saved by a debounced autosave effect that no-ops until the first load finished.
 import { load, type Store } from '@tauri-apps/plugin-store';
 
+import { isStyle, type StyleId } from './styles';
+
 export type RuleYear = '2027' | '2026' | 'legacy';
 export const RULE_YEARS: RuleYear[] = ['2027', '2026', 'legacy'];
 export type Theme = 'system' | 'dark' | 'light';
@@ -10,7 +12,9 @@ export const TEXT_SIZES = [90, 100, 115, 130] as const;
 export type TextSize = (typeof TEXT_SIZES)[number];
 
 export interface Settings {
-    /** Night glass (dark), Paper glass (light), or follow the OS. */
+    /** The look (lib/styles.ts); each style has a light and a dark mode. */
+    style: StyleId;
+    /** Dark, light, or follow the OS. */
     theme: Theme;
     /** Opaque surfaces instead of glass (also applied when the OS asks to reduce transparency). */
     solid: boolean;
@@ -35,6 +39,7 @@ export interface Settings {
 
 export function defaultSettings(): Settings {
     return {
+        style: 'isc',
         theme: 'system',
         solid: false,
         textSize: 100,
@@ -71,6 +76,7 @@ export function loadSettings(): Promise<void> {
             if (stored !== undefined && stored !== null) {
                 mergeInto(settings, stored);
                 if (!(TEXT_SIZES as readonly number[]).includes(settings.textSize)) settings.textSize = 100;
+                if (!isStyle(settings.style)) settings.style = 'isc';
             }
         } catch {
             // No Tauri runtime (plain browser preview): run on defaults.
