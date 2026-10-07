@@ -16,7 +16,7 @@ ISC MingoSolve has to be installed and rehearsed before the January 2027 registr
 | 1 | Rust engine and desktop app | ✅ done `feat/1-mingosolve-app` | `v0.1.0` |
 | 2 | Quiz-day correctness and installers | ✅ done `fix/2-prefill-safety` · ✅ done `fix/3-option-matching` · ✅ done `fix/4-crash-proof` · ✅ done `feat/2-release-pipeline` · ✅ done `feat/3-coverage-gaps` | `v0.5.0 (with phase 3)` |
 | 3 | Quiz-day features | ✅ done `feat/4-past-question-recognition` · ✅ done `feat/5-question-formatting` · ✅ done `fix/5-answer-path` · ✅ done `feat/6-help-and-session-log` · ✅ done `feat/7-plain-language-tools` · ✅ done `fix/6-accessibility` · ✅ done `feat/8-chain-and-calc-examples` · ✅ done `feat/9-rules-search` · ✅ done `feat/10-release-v0.5.0` | `v0.5.0` |
-| 4 | Quiz rehearsal | ✅ done `feat/11-chain-names-and-folding` · ✅ done `fix/8-release-v0.5.1` · ✅ done `fix/9-update-banner-titlebar` · ✅ done `feat/12-onboarding-tutorial` · ✅ done `feat/17-release-v1.1.0` · 🔜 planned `feat/13-mock-quiz-fixes` | `v1.1.0, then the quiz-pinned v1.x` |
+| 4 | Quiz rehearsal | ✅ done `feat/11-chain-names-and-folding` · ✅ done `fix/8-release-v0.5.1` · ✅ done `fix/9-update-banner-titlebar` · ✅ done `feat/12-onboarding-tutorial` · ✅ done `feat/17-release-v1.1.0` · 🔄 active `feat/18-app-styles` · 🔜 planned `feat/13-mock-quiz-fixes` | `v1.1.0, v1.2.0, then the quiz-pinned v1.x` |
 | 5 | After the quizzes | 🔜 planned `feat/14-drop-python-fallback` · 🔜 planned `feat/15-repl` · 🔜 planned `feat/16-contributor-guide` | `v2.0.0` |
 | — | Process fixes _(sidequest)_ | ✅ done `fix/7-roadmap-skip-ci` | — |
 
@@ -126,12 +126,16 @@ gitGraph
     commit id: "✔ Release v1.1.0 with the guided tour"
     checkout dev
     merge feat/17-release-v1.1.0
+    branch feat/18-app-styles
+    commit id: "… Seven switchable app styles, each in light and dark; release v1.2.0"
+    checkout dev
+    merge feat/18-app-styles
     branch feat/13-mock-quiz-fixes
     commit id: "○ Fixes from two timed mock quizzes; version pinned for the quizzes"
     checkout dev
     merge feat/13-mock-quiz-fixes
     checkout main
-    merge dev tag: "v1.1.0, then the quiz-pinned v1.x"
+    merge dev tag: "v1.1.0, v1.2.0, then the quiz-pinned v1.x"
     checkout dev
 
     %% Phase 5 — After the quizzes
